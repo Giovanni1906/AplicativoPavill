@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#3e1584</color>
+    <color name="secondaryColor">#cc5e0c</color>
+    <color name="ObjectBackgroudColor">#34673AB7</color>
+    <color name="backgroundColor">#F2F2F2</color> <!-- Blanco para modo claro -->
+    <!-- values/colors.xml -->
+    <color name="backgroundColorNight">#2C2F33</color> <!-- Negro para modo oscuro -->
+</resources>

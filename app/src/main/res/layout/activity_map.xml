@@ -1,0 +1,174 @@
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- CoordinatorLayout para permitir el uso de BottomSheetBehavior -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Contenedor principal para el mapa -->
+        <RelativeLayout
+            android:id="@+id/relativeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Fragmento para el mapa -->
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/map"   
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <include layout="@layout/menu_button_layout" />
+
+        </RelativeLayout>
+
+        <!-- BottomSheet para la búsqueda de origen y destino -->
+        <LinearLayout
+            android:id="@+id/bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            android:background="?android:attr/windowBackground"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+
+
+            <!-- Viñeta para subir y bajar el BottomSheet -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_corner"
+                android:layout_marginBottom="16dp" />
+            <!-- RecyclerView para sugerencias de origen -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewSuggestionsOrigin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+            <!-- Cuadro de búsqueda para el origen -->
+            <LinearLayout
+                android:id="@+id/layoutSearchOrigin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/search_box_background"
+                android:orientation="horizontal"
+                android:padding="10dp"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Buscar"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/primaryColor"
+                    android:layout_marginEnd="8dp" />
+
+                <EditText
+                    android:id="@+id/editTextOrigin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Origen"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"
+                    android:inputType="text" />
+
+
+                <!-- Botón con el ícono de humano -->
+                <ImageButton
+                    android:id="@+id/btnActivateLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_my_location"
+                    android:contentDescription="Seleccionar ubicación" />
+            </LinearLayout>
+            <Button
+                android:id="@+id/btnSetOriginToCurrentLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Usar mi ubicación como origen"
+                android:layout_marginTop="10dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="16dp"/>
+            <!-- RecyclerView para sugerencias de destino -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewSuggestionsDestination"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+            <!-- Cuadro de búsqueda para el destino -->
+            <LinearLayout
+                android:id="@+id/layoutSearchDestination"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/search_box_background"
+                android:orientation="horizontal"
+                android:padding="10dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Buscar"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/primaryColor"
+                    android:layout_marginEnd="8dp" />
+
+                <EditText
+                    android:id="@+id/editTextDestination"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Destino"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"
+                    android:inputType="text" />
+
+
+                <ImageButton
+                    android:id="@+id/btnActivateDestination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_my_location"
+                    android:contentDescription="Seleccionar destino" />
+            </LinearLayout>
+
+            <!-- Botón para solicitar un taxi -->
+            <Button
+                android:id="@+id/btnRequestTaxi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/secondaryColor"
+                android:text="Solicitar Taxi"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- Sidebar con opciones (Navigation Drawer) -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        android:background="#FFF"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/navigation_menu" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

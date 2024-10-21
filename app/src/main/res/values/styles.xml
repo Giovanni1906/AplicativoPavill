@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Estilo para el botón de "Guardar cambios" -->
+    <style name="Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/button_gradient</item>
+        <item name="android:layout_marginTop">24dp</item>
+    </style>
+
+    <!-- Estilo para el botón de "Eliminar perfil" -->
+    <style name="Button.Secondary" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/button_transparent_border</item>
+        <item name="android:layout_marginTop">24dp</item>
+    </style>
+
+    <!-- Estilo para TextInputLayout sin hint predeterminado -->
+    <style name="Base.TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="boxBackgroundMode">filled</item>
+        <item name="boxStrokeColor">@color/primaryColor</item>
+        <item name="boxStrokeWidth">0dp</item>
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="boxBackgroundColor">@color/ObjectBackgroudColor</item>
+        <item name="boxStrokeWidthFocused">0dp</item>
+    </style>
+
+    <!-- Estilo para TextInputEditText -->
+    <style name="Base.TextInputEditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.FilledBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <!-- Estilo del icono -->
+    <!-- Estilo reutilizable para botones con íconos -->
+    <style name="IconButtonStyle">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item> <!-- Fondo clicable -->
+        <item name="android:padding">8dp</item>
+    </style>
+
+</resources>
+

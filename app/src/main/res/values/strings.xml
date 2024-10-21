@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Pavill</string>
+    <string name="btn_register">Crear Cuenta</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="welcome_message">Bienvenido</string>
+    <string name="login_button_text">Iniciar sesión</string>
+
+</resources>

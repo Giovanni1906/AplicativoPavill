@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/btnBackToMain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_logout"
+    android:contentDescription="Volver al inicio"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="8dp" />
+
+    <!-- Layout para contener los campos del formulario -->
+    <LinearLayout
+        android:id="@+id/formLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Campo Correo con estilo flotante usando TextInputLayout -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Base.TextInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Correo elctrónico"> <!-- Definir el hint aquí -->
+
+            <com.google.android.material.textfield.TextInputEditText
+                style="@style/Base.TextInputEditTextStyle"
+                android:id="@+id/editTextEmail"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Campo Contraseña con estilo flotante usando TextInputLayout -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Base.TextInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="contraseña"
+            app:endIconMode="password_toggle"> <!-- Definir el hint aquí -->
+
+            <com.google.android.material.textfield.TextInputEditText
+                style="@style/Base.TextInputEditTextStyle"
+                android:id="@+id/editTextContraseña"
+                android:inputType="textPassword"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botón para iniciar sesión -->
+        <Button
+            android:id="@+id/btnLogin"
+            style="@style/Button.Primary"
+            android:text="Iniciar sesión" />
+
+        <!-- Texto de "o inicia sesión con" -->
+        <TextView
+            android:id="@+id/textViewSocialLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="o inicia sesión con"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"/>
+
+        <!-- Iconos para iniciar sesión con Facebook y Gmail -->
+        <LinearLayout
+            android:id="@+id/socialIconsLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Botón para iniciar sesión con Facebook -->
+            <ImageButton
+                android:id="@+id/btnLoginFacebook"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_facebook"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Iniciar sesión con Facebook" />
+
+            <!-- Botón para iniciar sesión con Gmail -->
+            <ImageButton
+                android:id="@+id/btnLoginGmail"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_gmail"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Iniciar sesión con Gmail" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Texto para registrar una cuenta nueva, ubicado en la parte inferior -->
+
+    <TextView
+        android:id="@+id/textViewRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿No tienes una cuenta? Regístrate"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

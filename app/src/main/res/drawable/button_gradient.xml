@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <!-- Definir color sólido en lugar de gradiente -->
+            <solid android:color="@color/primaryColor"/> <!-- Cambia este color según tu preferencia -->
+            <corners android:radius="50dp"/>
+        </shape>
+    </item>
+</layer-list>
