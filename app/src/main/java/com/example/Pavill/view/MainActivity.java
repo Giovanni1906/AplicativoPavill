@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         // para los botones
 
-        Button btnLogin = findViewById(R.id.btnLogin);
-        Button btnRegister = findViewById(R.id.btnRegister);
+        Button btnLogin = findViewById(R.id.BtnMainIniciarSesion);
+        Button btnRegister = findViewById(R.id.BtnMainCrearCuenta);
 
         btnLogin.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);

@@ -7,7 +7,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.Pavill"
+        applicationId = "radiotaxipavill.radiotaxipavillapp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
