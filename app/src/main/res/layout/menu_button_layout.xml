@@ -5,5 +5,5 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 android:id="@+id/btnOpenSidebar"
 style="@style/IconButtonStyle"
 android:src="@drawable/ic_menu"
-    android:layout_margin="16dp"
+android:layout_margin="16dp"
 android:contentDescription="Abrir menú" />

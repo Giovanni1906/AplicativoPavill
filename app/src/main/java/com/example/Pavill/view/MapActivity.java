@@ -10,6 +10,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import com.example.Pavill.R;
+import com.example.Pavill.components.TaxiClusterRenderer;
+import com.example.Pavill.controller.MapController;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -33,6 +35,7 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
+import com.google.maps.android.clustering.ClusterManager;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -49,6 +52,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -63,19 +68,20 @@ import java.util.List;
 import java.util.Locale;
 
 import com.example.Pavill.components.PlacesAutoCompleteAdapter;  // Asegúrate de que este sea el paquete correcto.
-
+import com.example.Pavill.components.MyClusterItem;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    //controlador
+    private MapController mapController;
     // Variables del mapa y navegación
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private GoogleMap mMap;
     private BottomSheetBehavior<View> bottomSheetBehavior;
+    private ClusterManager<MyClusterItem> clusterManager;
 
-    // Estado de selección
-    private boolean isOriginSelectionActive = false;
-    private boolean isDestinationSelectionActive = false;
+
 
     // Marcadores de origen y destino
     private Marker originMarker;
@@ -93,12 +99,67 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        // Inicializar el cliente de Google Places
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), "AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs");
-        }
-        placesClient = Places.createClient(this);  // Asegúrate de asignar placesClient aquí correctamente
+        initializeUIComponents();
 
+        // Inicializar el MapController
+        mapController = new MapController();
+
+        // Configurar los listeners para los inputs de origen y destino
+        setupInputFocusListener(editTextOrigin, R.id.btnActivateLocation);
+        setupInputFocusListener(editTextDestination, R.id.btnActivateDestination);
+
+        // Limpiar el foco de los inputs al iniciar
+        editTextOrigin.clearFocus();
+        editTextDestination.clearFocus();
+
+        // Configurar los listeners de los botones para marcar origen y destino en la ubicación actual
+        setupLocationButton(R.id.btnSetOriginToCurrentLocation, true);
+        setupLocationButton(R.id.btnSetDestinationToCurrentLocation, false);
+    }
+
+    /**
+     * Configura los listeners para los inputs de origen y destino.
+     */
+    private void setupInputFocusListener(EditText editText, int buttonId) {
+        editText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                // Expandir el BottomSheet completamente cuando el input tenga el foco
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                // Activar el botón de origen o destino cuando el campo de texto recibe el foco
+                findViewById(buttonId).performClick();
+            }
+        });
+    }
+
+    /**
+     * Configura los listeners para los botones que marcan la ubicación actual.
+     */
+    private void setupLocationButton(int buttonId, boolean isForOrigin) {
+        Button button = findViewById(buttonId);
+        button.setOnClickListener(v -> setLocationToCurrent(isForOrigin));
+    }
+
+    private void setLocationToCurrent(boolean isForOrigin) {
+        if (checkLocationPermission()) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        // Marcar la ubicación actual como origen o destino según el botón presionado
+                        placeMarkerAndShowAddress(currentLocation, isForOrigin);
+                        // Opcionalmente, mover la cámara a la ubicación actual
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                    } else {
+                        Toast.makeText(MapActivity.this, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+
+    private void initializeUIComponents() {
         // Referencias a los EditText y RecyclerView
         editTextOrigin = findViewById(R.id.editTextOrigin);
         editTextDestination = findViewById(R.id.editTextDestination);
@@ -109,122 +170,194 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         recyclerViewSuggestionsOrigin.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewSuggestionsDestination.setLayoutManager(new LinearLayoutManager(this));
 
+        // Inicializar el FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Inicializar botones y otras configuraciones
+        initializeButtons();
+        initializeBottomSheetAndDrawer();
+
+        // Configurar el BottomSheet para que esté completamente expandido al iniciar
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
         // Agregar TextWatcher para el autocompletado
         setupAutoComplete(editTextOrigin, recyclerViewSuggestionsOrigin, true);  // Para origen
         setupAutoComplete(editTextDestination, recyclerViewSuggestionsDestination, false);  // Para destino
 
-        // Inicializar el FusedLocationProviderClient
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        // Inicializar el cliente de Google Places
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), "AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs");
+        }
+        placesClient = Places.createClient(this);  // Asegúrate de asignar placesClient aquí correctamente
 
         // Verificar si los permisos de ubicación están otorgados, si no, solicitarlos
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        } else {
+        if (checkLocationPermission()) {
             // Si ya tiene los permisos, continuar con la inicialización del mapa
             initializeMapAndLocationServices();
         }
-
-        // Inicializar botones, mapa y otras configuraciones
-        initializeButtons();
-        initializeBottomSheetAndDrawer();
 
         // Inicializar el mapa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-
-        // Listener para seleccionar el input de origen
-        editTextOrigin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    // Activar el botón de origen cuando el campo de texto recibe el foco
-                    findViewById(R.id.btnActivateLocation).performClick();
-                }
-            }
-        });
-
-        // Listener para seleccionar el input de destino
-        editTextDestination.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    // Activar el botón de destino cuando el campo de texto recibe el foco
-                    findViewById(R.id.btnActivateDestination).performClick();
-                }
-            }
-        });
-
-        // boton para marcar origen en ubicación actual
-
-        // En tu onCreate o en el método donde inicializas los botones
-        Button btnSetOriginToCurrentLocation = findViewById(R.id.btnSetOriginToCurrentLocation);
-        btnSetOriginToCurrentLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Verificar si el permiso de ubicación ha sido concedido
-                if (ContextCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-
-                    // Obtener la última ubicación conocida
-                    fusedLocationClient.getLastLocation().addOnSuccessListener(MapActivity.this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                // Si la ubicación es válida, usarla para el origen
-                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                                // Marcar la ubicación actual como origen
-                                placeMarkerAndShowAddress(currentLocation, true);
-
-                                // Opcionalmente, mover la cámara a la ubicación actual
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-                            } else {
-                                Toast.makeText(MapActivity.this, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } else {
-                    // Si no hay permisos, solicitarlos
-                    ActivityCompat.requestPermissions(MapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-                }
-            }
-        });
-
-
     }
 
     private void initializeButtons() {
         final ImageButton btnActivateOrigin = findViewById(R.id.btnActivateLocation);
         final ImageButton btnActivateDestination = findViewById(R.id.btnActivateDestination);
+        final LinearLayout layoutButtonsOrigin = findViewById(R.id.layout_buttons_origin);
+        final LinearLayout layoutButtonsDestination = findViewById(R.id.layout_buttons_destination);
+        final Button btnUseMapForOrigin = findViewById(R.id.btnUseMapForOrigin);
+        final Button btnUseMapForDestination = findViewById(R.id.btnUseMapForDestination);
+        final ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
+        final Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
+        final Button btnBack = findViewById(R.id.btn_back);
+        final ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        final Button btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
 
-        // Activar/Desactivar selección de origen
-        btnActivateOrigin.setOnClickListener(new View.OnClickListener() {
+
+        // Inicialmente, origen y destino ocultos
+        layoutButtonsOrigin.setVisibility(View.GONE);
+        layoutButtonsDestination.setVisibility(View.GONE);
+
+        // Configurar los listeners de los botones para activar origen/destino
+        View.OnClickListener toggleButtonLayouts = v -> {
+            boolean isOriginButton = (v == btnActivateOrigin);
+            toggleSelection(isOriginButton, btnActivateOrigin, btnActivateDestination, layoutButtonsOrigin, layoutButtonsDestination);
+        };
+
+        //para mostrar los botones de los inputs
+        btnActivateOrigin.setOnClickListener(toggleButtonLayouts);
+        btnActivateDestination.setOnClickListener(toggleButtonLayouts);
+
+        btnRequestTaxi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isOriginSelectionActive) {
-                    // Activar origen y desactivar destino
-                    activateSelection(btnActivateOrigin, btnActivateDestination, true);
+                if (originCoordinates != null && destinationCoordinates != null) {
+                    Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+                    // Pasar las coordenadas al ConfirmActivity
+                    intent.putExtra("origin_lat", originCoordinates.latitude);
+                    intent.putExtra("origin_lng", originCoordinates.longitude);
+                    intent.putExtra("destination_lat", destinationCoordinates.latitude);
+                    intent.putExtra("destination_lng", destinationCoordinates.longitude);
+                    startActivity(intent);
                 } else {
-                    deactivateSelection(btnActivateOrigin);
+                    Toast.makeText(MapActivity.this, "Por favor, seleccione una ubicación de origen y destino.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        // Activar/Desactivar selección de destino
-        btnActivateDestination.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isDestinationSelectionActive) {
-                    // Activar destino y desactivar origen
-                    activateSelection(btnActivateDestination, btnActivateOrigin, false);
-                } else {
-                    deactivateSelection(btnActivateDestination);
-                }
+        // Listener para "Usar el mapa" para origen y destino
+        btnUseMapForOrigin.setOnClickListener(v -> handleMapUseButton(true));
+        btnUseMapForDestination.setOnClickListener(v -> handleMapUseButton(false));
+
+        // Listener para el botón de "Volver"
+        btnBack.setOnClickListener(v -> handleBackButton(btnOpenSidebar, iconCenterMarker, btnConfirmLocation, btnBack));
+    }
+
+    /**
+     * Alterna la selección entre origen y destino.
+     */
+    private void toggleSelection(boolean isOriginButton, ImageButton btnActivateOrigin, ImageButton btnActivateDestination,
+                                 LinearLayout layoutButtonsOrigin, LinearLayout layoutButtonsDestination) {
+        // Llama al método del controlador para alternar la selección
+        mapController.toggleSelection(isOriginButton);
+
+        // Verificar si la selección (origen o destino) está activa después de alternar
+        if (mapController.isActiveSelection(isOriginButton)) {
+            // Si la selección está activa, activar visualmente el botón correspondiente
+            activateButtonSelection(
+                    isOriginButton ? btnActivateOrigin : btnActivateDestination, // Si es origen, activa el botón de origen; si es destino, activa el de destino
+                    isOriginButton ? btnActivateDestination : btnActivateOrigin, // Si es origen, desactiva el botón de destino; y viceversa
+                    isOriginButton // Pasar si es para origen o no
+            );
+
+            if (isOriginButton) {
+                // Si el botón clicado es el de origen:
+                // Mostrar el layout de botones adicionales del origen y ocultar el del destino
+                layoutButtonsOrigin.setVisibility(View.VISIBLE);
+                layoutButtonsDestination.setVisibility(View.GONE);
+            } else {
+                // Si el botón clicado es el de destino:
+                // Mostrar el layout de botones adicionales del destino y ocultar el del origen
+                layoutButtonsDestination.setVisibility(View.VISIBLE);
+                layoutButtonsOrigin.setVisibility(View.GONE);
             }
+        } else {
+            // Si la selección no está activa, desactivar visualmente el botón correspondiente
+            if (isOriginButton) {
+                // Si es el botón de origen:
+                // Desactivar la selección visual del botón de origen y ocultar su layout de botones adicionales
+                desactivateButtonSelection(btnActivateOrigin);
+                layoutButtonsOrigin.setVisibility(View.GONE);
+            } else {
+                // Si es el botón de destino:
+                // Desactivar la selección visual del botón de destino y ocultar su layout de botones adicionales
+                desactivateButtonSelection(btnActivateDestination);
+                layoutButtonsDestination.setVisibility(View.GONE);
+            }
+        }
+    }
+
+
+    /**
+     * Maneja la acción al presionar el botón "Usar el mapa" para origen o destino.
+     */
+    private void handleMapUseButton(boolean isForOrigin) {
+        // Colapsar el BottomSheet
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        bottomSheetBehavior.setDraggable(false); // Desactivar el arrastre
+
+        // Mostrar el icono central en el mapa
+        ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
+        iconCenterMarker.setVisibility(View.VISIBLE);
+
+        // Mostrar el botón de confirmación y el botón de volver
+        Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
+        Button btnBack = findViewById(R.id.btn_back);
+        btnConfirmLocation.setVisibility(View.VISIBLE);
+        btnConfirmLocation.setText(isForOrigin ? "Marcar como origen" : "Marcar como destino");
+        btnBack.setVisibility(View.VISIBLE);
+
+        // Ocultar el menú lateral
+        ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        btnOpenSidebar.setVisibility(View.GONE);
+
+        // Configurar la acción del botón de confirmación
+        btnConfirmLocation.setOnClickListener(v -> {
+            LatLng centerLatLng = mMap.getCameraPosition().target;
+            placeMarkerAndShowAddress(centerLatLng, isForOrigin); // Marcar la ubicación seleccionada
+
+            // Ocultar el icono y los botones de confirmación y volver
+            iconCenterMarker.setVisibility(View.GONE);
+            btnConfirmLocation.setVisibility(View.GONE);
+            btnBack.setVisibility(View.GONE);
+
+            // Expandir el BottomSheet y reactivar el arrastre
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            bottomSheetBehavior.setDraggable(true);
+
+            // Mostrar el menú lateral
+            btnOpenSidebar.setVisibility(View.VISIBLE);
         });
+    }
+
+    /**
+     * Maneja la acción del botón de "Volver".
+     */
+    private void handleBackButton(ImageButton btnOpenSidebar, ImageView iconCenterMarker, Button btnConfirmLocation, Button btnBack) {
+        // Expandir el BottomSheet
+        bottomSheetBehavior.setDraggable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+        // Ocultar el icono central, el botón de confirmación y el botón de volver
+        iconCenterMarker.setVisibility(View.GONE);
+        btnConfirmLocation.setVisibility(View.GONE);
+        btnBack.setVisibility(View.GONE);
+
+        // Activar el menú lateral
+        btnOpenSidebar.setVisibility(View.VISIBLE);
     }
 
     // Inicializa el BottomSheet y el DrawerLayout
@@ -285,61 +418,73 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // Método que se ejecuta cuando el mapa está listo
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        // Asignar el GoogleMap a la variable de clase
         mMap = googleMap;
 
-        // Verificar si el permiso de ubicación ha sido concedido
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
+        // Inicializar el ClusterManager solo si el mapa no es nulo
+        if (mMap != null) {
+            // Redimensionar el icono de taxi al tamaño deseado
+            BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, 30, 50);  // Redimensionar a 30x50 px
 
-            // Obtener la última ubicación conocida
-            fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        // Si la ubicación es válida, centrar la cámara en la ubicación del usuario
-                        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+            // Inicializar ClusterManager
+            clusterManager = new ClusterManager<>(this, mMap);
 
-                        // Mostrar carros simulados cerca de la ubicación actual
-                        addNearbyCars(myLocation);
-                    } else {
-                        // Si no se puede obtener la ubicación, centrar en Tacna, Perú
-                        LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
+            // Inicializar el renderer personalizado para los taxis
+            TaxiClusterRenderer renderer = new TaxiClusterRenderer(this, mMap, clusterManager, taxiIcon);
+            clusterManager.setRenderer(renderer);
+
+            // Configurar el mapa para usar ClusterManager para manejar marcadores
+            mMap.setOnCameraIdleListener(clusterManager);
+            mMap.setOnMarkerClickListener(clusterManager);
+
+            // Verificar si el permiso de ubicación ha sido concedido
+            if (checkLocationPermission()) {
+                mMap.setMyLocationEnabled(true);
+
+                // Obtener la última ubicación conocida
+                fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            // Si la ubicación es válida, centrar la cámara en la ubicación del usuario
+                            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+
+                            // Mostrar carros simulados cerca de la ubicación actual
+                            addNearbyCars(myLocation);
+                        } else {
+                            // Si no se puede obtener la ubicación, centrar en Tacna, Perú
+                            LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                // Si no hay permisos, centrar en Tacna, Perú
+                LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
+            }
         } else {
-            // Si no hay permisos, centrar en Tacna, Perú
-            LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
+            Log.e("MapActivity", "GoogleMap is null, cannot initialize ClusterManager");
         }
     }
 
+
     private void addNearbyCars(LatLng userLocation) {
-        // Generar ubicaciones cercanas al usuario
-        LatLng car1 = new LatLng(userLocation.latitude + 0.001, userLocation.longitude + 0.001);
-        LatLng car2 = new LatLng(userLocation.latitude - 0.001, userLocation.longitude - 0.001);
-        LatLng car3 = new LatLng(userLocation.latitude + 0.0015, userLocation.longitude - 0.0015);
+        clusterManager.clearItems(); // Limpiar los elementos anteriores si es necesario
 
-        // Obtener el ícono redimensionado
-        BitmapDescriptor smallCarIcon = getResizedBitmap(R.drawable.ic_car, 30, 50);  // Redimensionar a 80x80 px
+        // Crear ubicaciones simuladas cercanas
+        MyClusterItem car1 = new MyClusterItem(userLocation.latitude + 0.001, userLocation.longitude + 0.001, "Taxi cercano", "Este taxi está a poca distancia de ti");
+        MyClusterItem car2 = new MyClusterItem(userLocation.latitude - 0.001, userLocation.longitude - 0.001, "Taxi cercano", "Este taxi está a poca distancia de ti");
+        MyClusterItem car3 = new MyClusterItem(userLocation.latitude + 0.0015, userLocation.longitude - 0.0015, "Taxi cercano", "Este taxi está a poca distancia de ti");
 
-        // Añadir marcadores para los carros en las ubicaciones simuladas
-        mMap.addMarker(new MarkerOptions()
-                .position(car1)
-                .title("Taxi cercano")
-                .icon(smallCarIcon));
+        // Añadir los elementos al ClusterManager
+        clusterManager.addItem(car1);
+        clusterManager.addItem(car2);
+        clusterManager.addItem(car3);
 
-        mMap.addMarker(new MarkerOptions()
-                .position(car2)
-                .title("Taxi cercano")
-                .icon(smallCarIcon));
-
-        mMap.addMarker(new MarkerOptions()
-                .position(car3)
-                .title("Taxi cercano")
-                .icon(smallCarIcon));
+        // Actualizar el ClusterManager para que agrupe los marcadores
+        clusterManager.cluster();
     }
 
     // Método para redimensionar el ícono
@@ -348,59 +493,48 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
         return BitmapDescriptorFactory.fromBitmap(resizedBitmap);
     }
-
-    // Activa la selección de origen o destino
-    private void activateSelection(ImageButton activeButton, ImageButton inactiveButton, boolean isForOrigin) {
-        isOriginSelectionActive = isForOrigin;
-        isDestinationSelectionActive = !isForOrigin;
-
-        // Actualizar los íconos
+    
+    private void activateButtonSelection(ImageButton activeButton, ImageButton inactiveButton, boolean isForOrigin) {
+        // Actualizar los íconos en la UI
         activeButton.setImageResource(isForOrigin ? R.drawable.ic_my_location_active : R.drawable.ic_my_location_active);
         inactiveButton.setImageResource(isForOrigin ? R.drawable.ic_my_location : R.drawable.ic_my_location);
-
-        // Activar selección en el mapa
-        activateLocationSelection(isForOrigin);
     }
 
-    // Desactiva la selección
-    private void deactivateSelection(ImageButton button) {
-        isOriginSelectionActive = false;
-        isDestinationSelectionActive = false;
-
-        // Actualizar ícono
-        button.setImageResource(button == findViewById(R.id.btnActivateLocation) ? R.drawable.ic_my_location : R.drawable.ic_my_location);
-
-        deactivateLocationSelection();
+    private void desactivateButtonSelection(ImageButton button) {
+        // Actualizar ícono en la UI
+        button.setImageResource(R.drawable.ic_my_location);
     }
-
-    // Configura el clic en el mapa para seleccionar origen o destino
-    private void activateLocationSelection(final boolean isForOrigin) {
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                placeMarkerAndShowAddress(latLng, isForOrigin);
-            }
-        });
-    }
-
-    // Coloca el marcador y muestra la dirección
+        // Coloca el marcador y muestra la dirección
     private void placeMarkerAndShowAddress(LatLng latLng, boolean isForOrigin) {
-        MarkerOptions markerOptions = new MarkerOptions()
-                .position(latLng)
-                .title(isForOrigin ? "Ubicación de origen" : "Ubicación de destino")
-                .icon(BitmapDescriptorFactory.defaultMarker(isForOrigin ? BitmapDescriptorFactory.HUE_VIOLET : BitmapDescriptorFactory.HUE_ORANGE));
-
-        // Actualiza el marcador correcto
         if (isForOrigin) {
-            if (originMarker != null) originMarker.remove();
-            originMarker = mMap.addMarker(markerOptions);
+            if (originMarker != null) {
+                // Si el marcador ya existe, simplemente actualiza su posición
+                originMarker.setPosition(latLng);
+            } else {
+                // Si no existe, crea un nuevo marcador
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(latLng)
+                        .title("Ubicación de origen")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                originMarker = mMap.addMarker(markerOptions);
+            }
             originCoordinates = latLng;
         } else {
-            if (destinationMarker != null) destinationMarker.remove();
-            destinationMarker = mMap.addMarker(markerOptions);
+            if (destinationMarker != null) {
+                // Si el marcador ya existe, simplemente actualiza su posición
+                destinationMarker.setPosition(latLng);
+            } else {
+                // Si no existe, crea un nuevo marcador
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(latLng)
+                        .title("Ubicación de destino")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                destinationMarker = mMap.addMarker(markerOptions);
+            }
             destinationCoordinates = latLng;
         }
 
+        // Mostrar la dirección en el campo correspondiente
         getAddressFromCoordinates(latLng, isForOrigin);
     }
 
@@ -424,11 +558,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // Desactiva el clic en el mapa
-    private void deactivateLocationSelection() {
-        mMap.setOnMapClickListener(null);
     }
 
     private void initializeMapAndLocationServices() {
@@ -526,6 +655,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
     }
+
+    // Verificación de permisos del mapa
+    private boolean checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            return true; // Permiso otorgado
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return false; // Permiso aún no otorgado
+        }
+    }
 }
-
-

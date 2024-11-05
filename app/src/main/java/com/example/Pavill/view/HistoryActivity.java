@@ -20,7 +20,7 @@ public class HistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history); // Asegúrate de tener el archivo activity_history.xml
+        setContentView(R.layout.activity_history);
 
         // Obtener referencia del DrawerLayout
         drawerLayout = findViewById(R.id.drawer_layout);

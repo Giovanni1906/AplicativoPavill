@@ -78,6 +78,4 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         return sharedPreferences.getBoolean("isLoggedIn", false);
     }
-
-
 }

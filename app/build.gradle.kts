@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.playServicesLocation)
     implementation(libs.playServicesPlaces)
     implementation(libs.drawerlayout)  // Ubicación
+    implementation(libs.android.maps.utils)  // ClusterManager
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

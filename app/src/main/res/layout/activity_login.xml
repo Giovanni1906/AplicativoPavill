@@ -59,9 +59,13 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Botón para iniciar sesión -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnLogin"
-            style="@style/Button.Primary"
+            style="@style/Button.Form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_gradient"
             android:text="Iniciar sesión" />
 
         <!-- Texto de "o inicia sesión con" -->
@@ -71,7 +75,7 @@
             android:layout_height="wrap_content"
             android:text="o inicia sesión con"
             android:textColor="@android:color/darker_gray"
-            android:layout_marginBottom="16dp"
+            android:layout_marginTop="16dp"
             android:gravity="center"/>
 
         <!-- Iconos para iniciar sesión con Facebook y Gmail -->

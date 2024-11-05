@@ -35,14 +35,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".view.MapActivity"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <!-- Otras configuraciones de la actividad -->
+        </activity>
+
         <!-- Declaración de otras actividades -->
         <activity android:name=".view.LoginActivity" />
         <activity android:name=".view.HomeActivity" />
-        <activity android:name=".view.MapActivity" />
+<!--        <activity android:name=".view.MapActivity" />-->
         <activity android:name=".view.ProfileActivity" />
         <activity android:name=".view.RegisterActivity" />
         <activity android:name=".view.HistoryActivity" />
         <activity android:name=".view.PointsActivity" />
+        <activity android:name=".view.ConfirmActivity" />
 
     </application>
 
