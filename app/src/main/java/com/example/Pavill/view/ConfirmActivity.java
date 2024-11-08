@@ -1,5 +1,7 @@
 package com.example.Pavill.view;
+
 import com.example.Pavill.R;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.navigation.NavigationView;
 
 import android.content.Intent;
@@ -7,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -24,31 +27,56 @@ public class ConfirmActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private LatLng originCoordinates;
+    private LatLng destinationCoordinates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
-        // Obtener las coordenadas pasadas desde MapActivity
-        Intent intent = getIntent();
-        double originLat = intent.getDoubleExtra("origin_lat", 0.0);
-        double originLng = intent.getDoubleExtra("origin_lng", 0.0);
-        double destinationLat = intent.getDoubleExtra("destination_lat", 0.0);
-        double destinationLng = intent.getDoubleExtra("destination_lng", 0.0);
+        // Obtener las coordenadas de origen y destino desde el Intent
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            // Obtener las coordenadas pasadas desde MapActivity
+            double originLat = extras.getDouble("origin_lat", 0.0);
+            double originLng = extras.getDouble("origin_lng", 0.0);
+            double destinationLat = extras.getDouble("destination_lat", 0.0);
+            double destinationLng = extras.getDouble("destination_lng", 0.0);
 
-        // Usar Geocoder para obtener direcciones amigables
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            // Crear los objetos LatLng para las coordenadas
+            originCoordinates = new LatLng(originLat, originLng);
+            destinationCoordinates = new LatLng(destinationLat, destinationLng);
 
-        String originAddress = getAddressFromCoordinates(geocoder, originLat, originLng);
-        String destinationAddress = getAddressFromCoordinates(geocoder, destinationLat, destinationLng);
+            // Usar Geocoder para obtener direcciones amigables
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
-        // Mostrar las direcciones en los TextViews
-        TextView originTextView = findViewById(R.id.textOrigin);
-        TextView destinationTextView = findViewById(R.id.textDestination);
+            String originAddress = getAddressFromCoordinates(geocoder, originLat, originLng);
+            String destinationAddress = getAddressFromCoordinates(geocoder, destinationLat, destinationLng);
 
-        originTextView.setText("Origen: " + originAddress);
-        destinationTextView.setText("Destino: " + destinationAddress);
+            // Mostrar las direcciones en los TextViews
+            TextView originTextView = findViewById(R.id.textOrigin);
+            TextView destinationTextView = findViewById(R.id.textDestination);
+
+            originTextView.setText("Origen: " + originAddress);
+            destinationTextView.setText("Destino: " + destinationAddress);
+        }
+
+        // Obtener el botón "Pedir un Pavill"
+        Button btnRequestTaxi = findViewById(R.id.btnConfirm);
+        btnRequestTaxi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Redirigir a la actividad de búsqueda de taxi
+                Intent intent = new Intent(ConfirmActivity.this, SearchingActivity.class);
+                // Pasar las coordenadas a la actividad de búsqueda
+                intent.putExtra("origin_lat", originCoordinates.latitude);
+                intent.putExtra("origin_lng", originCoordinates.longitude);
+                intent.putExtra("destination_lat", destinationCoordinates.latitude);
+                intent.putExtra("destination_lng", destinationCoordinates.longitude);
+                startActivity(intent);
+            }
+        });
     }
 
     /**

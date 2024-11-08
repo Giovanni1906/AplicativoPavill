@@ -50,6 +50,9 @@
         <activity android:name=".view.HistoryActivity" />
         <activity android:name=".view.PointsActivity" />
         <activity android:name=".view.ConfirmActivity" />
+        <activity android:name=".view.ProgressActivity" />
+        <activity android:name=".view.SearchingActivity" />
+        <activity android:name=".view.WaitingActivity" />
 
     </application>
 
