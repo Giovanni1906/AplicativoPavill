@@ -28,7 +28,7 @@
 
         </RelativeLayout>
 
-        <!-- BottomSheet con el botón "A bordo" -->
+        <!-- BottomSheet con información del taxista -->
         <LinearLayout
             android:id="@+id/bottom_sheet"
             android:layout_width="match_parent"
@@ -46,15 +46,166 @@
                 android:background="@drawable/rounded_corner"
                 android:layout_marginBottom="16dp" />
 
-            <!-- Botón para indicar que el usuario está a bordo -->
-            <Button
-                android:id="@+id/btnOnBoard"
+            <!-- Texto "Tu pavill está en camino" -->
+            <TextView
+                android:id="@+id/textViewOnWay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Tu pavill está en camino"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primaryColor"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Texto "Dentro de: xx min" -->
+            <TextView
+                android:id="@+id/textViewETA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Dentro de: 10 min"
+                android:textSize="12sp"
+                android:textColor="@color/primaryColor"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Foto circular del taxista con botones de mensaje y llamada -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp">
+
+                <!-- Botón para mensaje -->
+                <ImageButton
+                    android:id="@+id/btnMessage"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_message"
+                    android:contentDescription="Mensaje"
+                    app:tint="@color/primaryColor" />
+
+                <!-- Foto circular del taxista -->
+                <com.example.Pavill.components.CircularImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/img_conductor"
+                    android:contentDescription="Imagen de perfil"
+                    android:layout_marginHorizontal="16dp" />
+
+                <!-- Botón para llamada -->
+                <ImageButton
+                    android:id="@+id/btnCallDriver"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_call"
+                    android:contentDescription="Llamar al conductor"
+                    app:tint="@color/primaryColor" />
+
+            </LinearLayout>
+
+            <!-- 5 estrellas para la calificación -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    android:contentDescription="Estrella"
+                    app:tint="@color/quantum_yellow" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    android:contentDescription="Estrella"
+                    app:tint="@color/quantum_yellow" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    android:contentDescription="Estrella"
+                    app:tint="@color/quantum_yellow" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    android:contentDescription="Estrella"
+                    app:tint="@color/quantum_yellow" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    android:contentDescription="Estrella"
+                    app:tint="@color/quantum_grey" />
+            </LinearLayout>
+
+            <!-- Nombre del taxista -->
+            <TextView
+                android:id="@+id/textViewDriverName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Juan Pérez"
+                android:textSize="18sp"
+                android:textColor="@color/primaryColor"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Código del taxista -->
+            <TextView
+                android:id="@+id/textViewDriverCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Código: W-17"
+                android:textSize="12sp"
+                android:textColor="@color/primaryColor"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Modelo y placa del taxi -->
+            <TextView
+                android:id="@+id/textViewCarDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Modelo: Toyota Prius | Placa: ABC-123"
+                android:textSize="16sp"
+                android:textColor="@color/primaryColor"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Botón "Cancelar" -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnCancelSearch"
+                style="@style/Button.Form"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="A bordo"
-                android:backgroundTint="@color/primaryColor"
-                android:textColor="@android:color/white"
-                android:textStyle="bold" />
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_alternative"
+                android:text="Cancelar" />
+
+            <!-- Botón "A bordo" -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnOnBoard"
+                style="@style/Button.Form"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_gradient"
+                android:text="A bordo" />
 
         </LinearLayout>
 

@@ -94,7 +94,7 @@ public class SearchingActivity extends AppCompatActivity {
     }
 
     /**
-     * Inicializa el BottomSheet para que se comporte como en MapActivity.
+     * Inicializa el BottomSheet para que se expanda y contraiga.
      */
     private void initializeBottomSheet() {
         View bottomSheet = findViewById(R.id.bottom_sheet);

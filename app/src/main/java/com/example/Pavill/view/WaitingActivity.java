@@ -24,11 +24,15 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
     private BottomSheetBehavior<View> bottomSheetBehavior;
+    private String driverName = "Juan Caballero";  // Obtener valor dinamicamente
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_waiting);
+
+        // Inicializar el BottomSheet
+        initializeBottomSheet();
 
         // Obtener las coordenadas de origen y destino desde el Intent
         Bundle extras = getIntent().getExtras();
@@ -48,24 +52,32 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             mapFragment.getMapAsync(this);
         }
 
-        // Inicializar el BottomSheet
-        View bottomSheet = findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
         // Configurar el botón "A bordo"
         Button btnOnBoard = findViewById(R.id.btnOnBoard);
         btnOnBoard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Ir a la actividad de progreso del viaje
-                Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
-                intent.putExtra("origin_lat", originCoordinates.latitude);
-                intent.putExtra("origin_lng", originCoordinates.longitude);
-                intent.putExtra("destination_lat", destinationCoordinates.latitude);
-                intent.putExtra("destination_lng", destinationCoordinates.longitude);
-                startActivity(intent);
-                finish();
+                // Mostrar el ArrivalMessageDialog
+                ArrivalMessageDialog arrivalMessageDialog = new ArrivalMessageDialog();
+                arrivalMessageDialog.setDriverName("Juan Pérez"); // Pasa el nombre del conductor aquí
+
+                // Configurar el listener para el botón "OK"
+                arrivalMessageDialog.setOnConfirmClickListener(new ArrivalMessageDialog.OnConfirmClickListener() {
+                    @Override
+                    public void onConfirmClick() {
+                        // Ir a la actividad de progreso del viaje
+                        Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
+                        intent.putExtra("origin_lat", originCoordinates.latitude);
+                        intent.putExtra("origin_lng", originCoordinates.longitude);
+                        intent.putExtra("destination_lat", destinationCoordinates.latitude);
+                        intent.putExtra("destination_lng", destinationCoordinates.longitude);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+
+                // Mostrar el cuadro de diálogo
+                arrivalMessageDialog.show(getSupportFragmentManager(), "ArrivalMessageDialog");
             }
         });
     }
@@ -73,7 +85,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         // Colocar marcadores de origen y destino
         if (originCoordinates != null && destinationCoordinates != null) {
             mMap.addMarker(new MarkerOptions().position(originCoordinates).title("Origen"));
@@ -86,5 +97,16 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                             .include(destinationCoordinates)
                             .build(), 100));
         }
+    }
+
+    /**
+     * Inicializa el BottomSheet para que se expanda y contraiga.
+     */
+    private void initializeBottomSheet() {
+        View bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottomSheetBehavior.setPeekHeight(100); // Altura mínima visible del BottomSheet
+        bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
     }
 }
