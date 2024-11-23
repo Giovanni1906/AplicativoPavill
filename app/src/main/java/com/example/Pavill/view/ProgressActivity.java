@@ -14,9 +14,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 
 public class ProgressActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -25,6 +27,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     private LatLng destinationCoordinates;
     private GoogleMap mMap;
     private ProgressController progressController;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,9 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         }
         // Inicializar el controlador
         progressController = new ProgressController(this);
+
+        // Inicializar el BottomSheet
+        initializeBottomSheet();
 
         // Inicializar el mapa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -69,8 +75,14 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
 
         if (originCoordinates != null && destinationCoordinates != null) {
             // Añadir marcadores para el origen y destino
-            mMap.addMarker(new MarkerOptions().position(originCoordinates).title("Origen"));
-            mMap.addMarker(new MarkerOptions().position(destinationCoordinates).title("Destino"));
+            mMap.addMarker(new MarkerOptions()
+                    .position(originCoordinates)
+                    .title("Ubicación de origen")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+            mMap.addMarker(new MarkerOptions()
+                    .position(destinationCoordinates)
+                    .title("Ubicación de Destino")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
 
             // Definir límites del mapa para incluir ambos puntos
             LatLngBounds bounds = new LatLngBounds.Builder()
@@ -85,4 +97,16 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
             Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles");
         }
     }
+
+    /**
+     * Inicializa el BottomSheet para que se expanda y contraiga.
+     */
+    private void initializeBottomSheet() {
+        View bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottomSheetBehavior.setPeekHeight(100); // Altura mínima visible del BottomSheet
+        bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
+    }
+
 }

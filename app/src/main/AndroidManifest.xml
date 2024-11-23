@@ -53,6 +53,10 @@
         <activity android:name=".view.ProgressActivity" />
         <activity android:name=".view.SearchingActivity" />
         <activity android:name=".view.WaitingActivity" />
+        <activity android:name=".view.BaseActivity" />
+        <activity android:name=".view.RatingActivity" />
+        <activity android:name=".view.VerifyPhoneActivity" />
+        <activity android:name=".view.VerifyCodeActivity" />
 
     </application>
 

@@ -36,7 +36,7 @@
             android:text="Configura tu ubicación"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@color/textColor"
             android:gravity="center"
             android:layout_marginBottom="8dp" />
 
@@ -51,6 +51,16 @@
             android:textColor="@android:color/darker_gray"
             android:gravity="center"
             android:layout_marginBottom="24dp" />
+
+        <!-- Botón para solicitar un taxi -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnActivateUbication"
+            style="@style/Button.Form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_gradient"
+            android:text="Activar ubicación" />
 
     </LinearLayout>
 

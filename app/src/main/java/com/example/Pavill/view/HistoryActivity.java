@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 public class HistoryActivity extends AppCompatActivity {
@@ -32,7 +33,7 @@ public class HistoryActivity extends AppCompatActivity {
         setupNavigationView();
 
         // Obtener referencia del botón de menú
-        ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        CardView btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
         if (btnOpenSidebar != null) {
             btnOpenSidebar.setOnClickListener(new View.OnClickListener() {
                 @Override

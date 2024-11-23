@@ -7,12 +7,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.Pavill.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -59,7 +61,12 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             public void onClick(View v) {
                 // Mostrar el ArrivalMessageDialog
                 ArrivalMessageDialog arrivalMessageDialog = new ArrivalMessageDialog();
-                arrivalMessageDialog.setDriverName("Juan Pérez"); // Pasa el nombre del conductor aquí
+                String textArrivalMessageDialog = driverName + ", tu pavill ya llegó";
+                String buttonOkText = "Iniciar Viaje"; // Texto personalizado para el botón
+
+                arrivalMessageDialog.setDriverName(textArrivalMessageDialog);
+                arrivalMessageDialog.setButtonText(buttonOkText); // Configurar el texto del botón
+
 
                 // Configurar el listener para el botón "OK"
                 arrivalMessageDialog.setOnConfirmClickListener(new ArrivalMessageDialog.OnConfirmClickListener() {
@@ -87,9 +94,15 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         mMap = googleMap;
         // Colocar marcadores de origen y destino
         if (originCoordinates != null && destinationCoordinates != null) {
-            mMap.addMarker(new MarkerOptions().position(originCoordinates).title("Origen"));
-            mMap.addMarker(new MarkerOptions().position(destinationCoordinates).title("Destino"));
+            mMap.addMarker(new MarkerOptions()
+                    .position(originCoordinates)
+                    .title("Ubicación de origen")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
 
+            mMap.addMarker(new MarkerOptions()
+                    .position(destinationCoordinates)
+                    .title("Ubicación de Destino")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
             // Mover la cámara para que ambos puntos sean visibles
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
                     new LatLngBounds.Builder()
@@ -109,4 +122,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         bottomSheetBehavior.setPeekHeight(100); // Altura mínima visible del BottomSheet
         bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
     }
+
+
 }

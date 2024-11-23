@@ -67,30 +67,36 @@
             android:layout_marginTop="24dp">
 
             <!-- EditText para cambiar número de teléfono con estilo flotante usando TextInputLayout -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Base.TextInputLayoutStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Teléfono"> <!-- Definir el hint aquí -->
-
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Base.TextInputEditTextStyle"
+            <LinearLayout
+                style="@style/GeneralLinearLayoutStyle"
+                android:id="@+id/layoutEditPhone"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    style="@style/GeneralImageViewStyle"
+                    android:src="@drawable/ic_phone"
+                    android:contentDescription="Celular"/>
+                <EditText
+                    style="@style/GeneralEditTextStyle"
                     android:id="@+id/edit_phone"
+                    android:hint="Número de celular"
                     android:inputType="phone" />
-            </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
             <!-- EditText para cambiar correo electrónico con estilo flotante usando TextInputLayout -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Base.TextInputLayoutStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Correo electrónico"> <!-- Definir el hint aquí -->
-
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Base.TextInputEditTextStyle"
+            <LinearLayout
+                style="@style/GeneralLinearLayoutStyle"
+                android:id="@+id/layoutEditEmail"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    style="@style/GeneralImageViewStyle"
+                    android:src="@drawable/ic_email"
+                    android:contentDescription="Correo electrónico"/>
+                <EditText
+                    style="@style/GeneralEditTextStyle"
                     android:id="@+id/edit_email"
-                    android:inputType="phone" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:hint="Correo electrónico"
+                    android:inputType="textEmailAddress" />
+            </LinearLayout>
 
             <!-- Switch para activar o desactivar notificaciones -->
             <Switch

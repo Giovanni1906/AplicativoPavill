@@ -62,7 +62,7 @@
                 android:text="Tu viaje está en progreso"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/primaryColor"
+                android:textColor="@color/textColor"
                 android:layout_marginBottom="8dp" />
 
             <!-- Botón para finalizar el viaje -->

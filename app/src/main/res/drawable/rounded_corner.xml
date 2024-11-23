@@ -3,8 +3,5 @@
     android:shape="rectangle">
 
     <corners android:radius="16dp" />
-    <solid android:color="#D3D3D3"/> <!-- Color de fondo gris claro -->
-    <stroke
-        android:width="2dp"
-        android:color="#B0B0B0"/> <!-- Borde de color gris oscuro -->
+    <solid android:color="@color/boxBackgroundColor"/> <!-- Color de fondo gris claro -->
 </shape>

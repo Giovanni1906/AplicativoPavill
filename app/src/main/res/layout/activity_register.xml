@@ -7,17 +7,18 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <ImageButton
+    <!-- Botón de CardView para volver al inicio -->
+    <androidx.cardview.widget.CardView
         android:id="@+id/btnBackToMain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_logout"
-        android:contentDescription="Volver al inicio"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp" />
+        style="@style/FloatingActionCardStyle"
+        app:cardBackgroundColor="@color/primaryColor"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            style="@style/FloatingImageViewStyle"
+            android:src="@drawable/ic_return"
+            app:tint="@color/quantum_white_100" />
+    </androidx.cardview.widget.CardView>
 
     <!-- Layout para contener los campos del formulario -->
     <LinearLayout
@@ -32,69 +33,87 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Campo DNI con estilo flotante usando TextInputLayout -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Base.TextInputLayoutStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="DNI"> <!-- Definir el hint aquí -->
+        <LinearLayout
+            style="@style/GeneralLinearLayoutStyle"
+            android:id="@+id/layoutDNI"
+            android:layout_marginBottom="16dp">
+            <ImageView
+                style="@style/GeneralImageViewStyle"
+                android:src="@drawable/ic_dni"
+                android:contentDescription="Correo electrónico"/>
 
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/Base.TextInputEditTextStyle"
+            <EditText
                 android:id="@+id/editTextDNI"
+                style="@style/GeneralEditTextStyle"
+                android:hint="DNI"
                 android:inputType="number" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
-        <!-- Campo Nombre con el mismo estilo del DNI -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Base.TextInputLayoutStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nombres"> <!-- Definir el hint aquí -->
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/Base.TextInputEditTextStyle"
-                android:id="@+id/editTextNombre"
+        <!-- Campo Nombre -->
+        <LinearLayout
+            style="@style/GeneralLinearLayoutStyle"
+            android:id="@+id/layoutName"
+            android:layout_marginBottom="16dp">
+            <ImageView
+                style="@style/GeneralImageViewStyle"
+                android:src="@drawable/ic_user"
+                android:contentDescription="Nombres y apellidos"/>
+            <EditText
+                style="@style/GeneralEditTextStyle"
+                android:id="@+id/editTextName"
+                android:hint="Nombres y apellidos"
                 android:inputType="textPersonName" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
-        <!-- Campo Celular con el mismo estilo del DNI -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Base.TextInputLayoutStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Celular"> <!-- Definir el hint aquí -->
+<!--        &lt;!&ndash; Campo Celular &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            style="@style/GeneralLinearLayoutStyle"-->
+<!--            android:id="@+id/layoutPhone"-->
+<!--            android:layout_marginBottom="16dp">-->
+<!--            <ImageView-->
+<!--                style="@style/GeneralImageViewStyle"-->
+<!--                android:src="@drawable/ic_phone"-->
+<!--                android:contentDescription="Celular"/>-->
+<!--            <EditText-->
+<!--                style="@style/GeneralEditTextStyle"-->
+<!--                android:id="@+id/editTextPhone"-->
+<!--                android:hint="Celular"-->
+<!--                android:inputType="phone" />-->
+<!--        </LinearLayout>-->
 
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/Base.TextInputEditTextStyle"
-                android:id="@+id/editTextCelular"
-                android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <!-- Campo Correo -->
+        <LinearLayout
+            style="@style/GeneralLinearLayoutStyle"
+            android:id="@+id/layoutEmail"
+            android:layout_marginBottom="16dp">
+            <ImageView
+                style="@style/GeneralImageViewStyle"
+                android:src="@drawable/ic_email"
+                android:contentDescription="Correo electrónico"/>
 
-        <!-- Campo Correo con el mismo estilo del DNI -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Base.TextInputLayoutStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Correo"> <!-- Definir el hint aquí -->
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/Base.TextInputEditTextStyle"
-                android:id="@+id/editTextCorreo"
+            <EditText
+                android:id="@+id/editTextEmail"
+                style="@style/GeneralEditTextStyle"
+                android:layout_width="match_parent"
+                android:hint="Correo electrónico"
                 android:inputType="textEmailAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <!-- Campo Contraseña con el mismo estilo del DNI -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Base.TextInputLayoutStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="contraseña"> <!-- Definir el hint aquí -->
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/Base.TextInputEditTextStyle"
-                android:id="@+id/editTextContraseña"
+        <LinearLayout
+            style="@style/GeneralLinearLayoutStyle"
+            android:id="@+id/layoutPassword"
+            android:layout_marginBottom="16dp">
+            <ImageView
+                style="@style/GeneralImageViewStyle"
+                android:src="@drawable/ic_password"
+                android:contentDescription="Contraseña"/>
+            <EditText
+                style="@style/GeneralEditTextStyle"
+                android:id="@+id/editTextPassword"
+                android:hint="Contraseña"
                 android:inputType="textPassword" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <!-- CheckBox para aceptar términos -->
         <CheckBox

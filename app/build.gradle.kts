@@ -43,9 +43,12 @@ dependencies {
     implementation(libs.drawerlayout)  // Ubicación
     implementation(libs.android.maps.utils)
     implementation(libs.glide)
+    implementation(libs.location.services)
+    implementation(libs.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.playServicesPlaces)
+
 
 }

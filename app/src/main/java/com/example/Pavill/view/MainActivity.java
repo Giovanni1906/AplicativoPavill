@@ -11,7 +11,7 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,27 +51,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            Intent intent = new Intent(MainActivity.this, VerifyPhoneActivity.class);
             startActivity(intent);
         });
     }
 
     private long backPressedTime;
     private Toast backToast;
-
-    @Override
-    public void onBackPressed() {
-        if (backPressedTime + 2000 > System.currentTimeMillis()) { // Si la segunda pulsación ocurre en menos de 2 segundos
-            if (backToast != null) backToast.cancel();  // Cancela el mensaje anterior si existe
-            super.onBackPressed();  // Cierra la aplicación
-            return;
-        } else {
-            backToast = Toast.makeText(getBaseContext(), "Presiona otra vez para salir", Toast.LENGTH_SHORT);
-            backToast.show();  // Muestra la advertencia
-        }
-
-        backPressedTime = System.currentTimeMillis();  // Actualiza el tiempo de la primera pulsación
-    }
 
     // Verificar si el usuario está logueado utilizando SharedPreferences
     private boolean checkUserLoggedIn() {

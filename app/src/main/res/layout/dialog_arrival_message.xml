@@ -23,10 +23,10 @@
         android:id="@+id/tvArrivalMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="[Nombre del conductor], tu pavill ya llegó"
+        android:text="mensaje desconocido"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/primaryColor"
+        android:textColor="@color/textColor"
         android:gravity="center"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"/>

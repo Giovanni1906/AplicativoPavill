@@ -18,18 +18,42 @@
 
             <!-- Fragmento para el mapa -->
             <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/map"   
+                android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
+<!--            boton para ir a la ubicación actual-->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btn_my_location"
+                style="@style/FloatingActionCardStyle"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                app:cardBackgroundColor="@color/secondaryColor">
+                <ImageView
+                    style="@style/FloatingImageViewStyle"
+                    android:src="@drawable/ic_my_location"
+                    app:tint="@color/quantum_white_100"/>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Sombra ovalada debajo del icono -->
             <ImageView
-                android:id="@+id/icon_center_marker"
+                android:id="@+id/icon_shadow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:src="@drawable/animated_wave"
+                android:visibility="gone" />
+
+            <!-- Icono central del marcador -->
+            <ImageView
+                android:id="@+id/icon_center_marker"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_marker_center"
                 android:layout_centerInParent="true"
-                android:visibility="gone" />
+                android:translationY="-15dp"
+            android:visibility="gone" />
 
             <include layout="@layout/menu_button_layout" />
 
@@ -43,6 +67,7 @@
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             android:background="?android:attr/windowBackground"
             android:orientation="vertical"
+            android:gravity="center"
             android:padding="16dp">
 
             <!-- Viñeta para subir y bajar el BottomSheet -->
@@ -52,6 +77,25 @@
                 android:layout_gravity="center"
                 android:background="@drawable/rounded_corner"
                 android:layout_marginBottom="16dp" />
+            <!-- Texto "Hola xxxxxxx" -->
+            <TextView
+                android:id="@+id/textViewName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Hola, Cliente"
+                android:textSize="12sp"
+                android:textColor="@color/textColor" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="¿A dónde deseas ir?"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/textColor"
+                android:layout_marginBottom="16dp" />
+
             <!-- RecyclerView para sugerencias de origen -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewSuggestionsOrigin"
@@ -61,34 +105,18 @@
                 android:visibility="gone" />
             <!-- Cuadro de búsqueda para el origen -->
             <LinearLayout
-                android:id="@+id/layoutSearchOrigin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/search_box_background"
-                android:orientation="horizontal"
-                android:padding="10dp"
-                android:layout_gravity="center_horizontal">
-
+                style="@style/GeneralLinearLayoutStyle"
+                android:id="@+id/layoutSearchOrigin">
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:contentDescription="Buscar"
+                    style="@style/GeneralImageViewStyle"
                     android:src="@drawable/ic_search"
-                    app:tint="@color/primaryColor"
-                    android:layout_marginEnd="8dp" />
-
+                    android:contentDescription="Buscar"/>
                 <EditText
+                    style="@style/GeneralEditTextStyle"
                     android:id="@+id/editTextOrigin"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Origen"
-                    android:background="@android:color/transparent"
-                    android:padding="8dp"
+                    android:hint="Tu ubicación"
                     android:inputType="text" />
 
-
-                <!-- Botón con el ícono de ubicación -->
                 <ImageButton
                     android:id="@+id/btnActivateLocation"
                     android:layout_width="wrap_content"
@@ -104,7 +132,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="8dp"
                 android:padding="8dp"
                 android:visibility="gone"
                 android:background="@android:color/transparent">
@@ -142,32 +171,18 @@
                 android:visibility="gone" />
             <!-- Cuadro de búsqueda para el destino -->
             <LinearLayout
-                android:id="@+id/layoutSearchDestination"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/search_box_background"
-                android:orientation="horizontal"
-                android:padding="10dp">
-
+                style="@style/GeneralLinearLayoutStyle"
+                android:layout_marginTop="8dp"
+                android:id="@+id/layoutSearchDestination">
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:contentDescription="Buscar"
+                    style="@style/GeneralImageViewStyle"
                     android:src="@drawable/ic_search"
-                    app:tint="@color/primaryColor"
-                    android:layout_marginEnd="8dp" />
-
+                    android:contentDescription="Buscar"/>
                 <EditText
+                    style="@style/GeneralEditTextStyle"
                     android:id="@+id/editTextDestination"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Destino"
-                    android:background="@android:color/transparent"
-                    android:padding="8dp"
+                    android:hint="Tu destino"
                     android:inputType="text" />
-
 
                 <ImageButton
                     android:id="@+id/btnActivateDestination"
@@ -184,7 +199,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="0dp"
                 android:padding="8dp"
                 android:visibility="gone"
                 android:background="@android:color/transparent">
@@ -221,7 +236,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_alternative"
-                android:text="Solicitar Taxi" />
+                android:text="Calcular tarifa" />
+
+            <TextView
+                android:id="@+id/numberOfTaxis"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="encontramos 3 unidades cercanas a tu ubicación"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="16dp"
+                android:gravity="center"/>
 
         </LinearLayout>
 

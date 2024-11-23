@@ -3,6 +3,11 @@ package com.example.Pavill.view;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -35,13 +40,16 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.maps.android.clustering.ClusterManager;
 
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.google.android.material.navigation.NavigationView;
 
@@ -70,7 +78,7 @@ import java.util.Locale;
 import com.example.Pavill.components.PlacesAutoCompleteAdapter;  // Asegúrate de que este sea el paquete correcto.
 import com.example.Pavill.components.MyClusterItem;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     //controlador
     private MapController mapController;
@@ -80,8 +88,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private ClusterManager<MyClusterItem> clusterManager;
-
-
 
     // Marcadores de origen y destino
     private Marker originMarker;
@@ -93,6 +99,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
 
     private FusedLocationProviderClient fusedLocationClient;
+    private boolean isMarkerLifted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +107,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
 
         initializeUIComponents();
+
+        // Inicializar el botón de ubicación y agregar el listener
+        CardView btnMyLocation = findViewById(R.id.btn_my_location);
+        btnMyLocation.setOnClickListener(v -> {
+            if (checkLocationPermission()) {
+                fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                    } else {
+                        Toast.makeText(MapActivity.this, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
 
         // Inicializar el MapController
         mapController = new MapController();
@@ -186,7 +208,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Inicializar el cliente de Google Places
         if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), "AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs");
+            Places.initialize(getApplicationContext(), String.valueOf(R.string.map_api_key));
         }
         placesClient = Places.createClient(this);  // Asegúrate de asignar placesClient aquí correctamente
 
@@ -211,9 +233,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         final Button btnUseMapForOrigin = findViewById(R.id.btnUseMapForOrigin);
         final Button btnUseMapForDestination = findViewById(R.id.btnUseMapForDestination);
         final ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
+        final ImageView waveView = findViewById(R.id.icon_shadow);
         final Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         final Button btnBack = findViewById(R.id.btn_back);
-        final ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        final CardView btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
         final Button btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
 
 
@@ -253,7 +276,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         btnUseMapForDestination.setOnClickListener(v -> handleMapUseButton(false));
 
         // Listener para el botón de "Volver"
-        btnBack.setOnClickListener(v -> handleBackButton(btnOpenSidebar, iconCenterMarker, btnConfirmLocation, btnBack));
+        btnBack.setOnClickListener(v -> handleBackButton(waveView, btnOpenSidebar, iconCenterMarker, btnConfirmLocation, btnBack));
     }
 
     /**
@@ -313,6 +336,26 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
         iconCenterMarker.setVisibility(View.VISIBLE);
 
+        // Cambiar el color del icono central según el uso (origen o destino)
+        int color = isForOrigin ? getResources().getColor(R.color.primaryColor) : getResources().getColor(R.color.secondaryColor);
+        iconCenterMarker.setColorFilter(color);
+
+        // Añadir una animación de onda debajo del ícono central
+        View waveView = findViewById(R.id.icon_shadow);
+        waveView.setVisibility(View.VISIBLE);
+
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(waveView, "scaleX", 1f, 1.5f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(waveView, "scaleY", 1f, 1.5f);
+        scaleX.setRepeatMode(ValueAnimator.REVERSE);
+        scaleY.setRepeatMode(ValueAnimator.REVERSE);
+        scaleX.setRepeatCount(ValueAnimator.INFINITE);
+        scaleY.setRepeatCount(ValueAnimator.INFINITE);
+        scaleX.setDuration(1000);
+        scaleY.setDuration(1000);
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(scaleX, scaleY);
+        animatorSet.start();
+
         // Mostrar el botón de confirmación y el botón de volver
         Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         Button btnBack = findViewById(R.id.btn_back);
@@ -321,7 +364,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         btnBack.setVisibility(View.VISIBLE);
 
         // Ocultar el menú lateral
-        ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        CardView btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
         btnOpenSidebar.setVisibility(View.GONE);
 
         // Configurar la acción del botón de confirmación
@@ -331,6 +374,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             // Ocultar el icono y los botones de confirmación y volver
             iconCenterMarker.setVisibility(View.GONE);
+            waveView.setVisibility(View.GONE);
             btnConfirmLocation.setVisibility(View.GONE);
             btnBack.setVisibility(View.GONE);
 
@@ -346,13 +390,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     /**
      * Maneja la acción del botón de "Volver".
      */
-    private void handleBackButton(ImageButton btnOpenSidebar, ImageView iconCenterMarker, Button btnConfirmLocation, Button btnBack) {
+    private void handleBackButton(ImageView waveView ,CardView btnOpenSidebar, ImageView iconCenterMarker, Button btnConfirmLocation, Button btnBack) {
         // Expandir el BottomSheet
         bottomSheetBehavior.setDraggable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
         // Ocultar el icono central, el botón de confirmación y el botón de volver
         iconCenterMarker.setVisibility(View.GONE);
+        waveView.setVisibility(View.GONE);
         btnConfirmLocation.setVisibility(View.GONE);
         btnBack.setVisibility(View.GONE);
 
@@ -366,7 +411,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         navigationView = findViewById(R.id.nav_view);
 
         // Botón del menú lateral
-        ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        CardView btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
         if (btnOpenSidebar != null) {
             btnOpenSidebar.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -423,9 +468,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Inicializar el ClusterManager solo si el mapa no es nulo
         if (mMap != null) {
-            // Redimensionar el icono de taxi al tamaño deseado
-            BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, 30, 50);  // Redimensionar a 30x50 px
 
+            // Redimensionar el icono de taxi al tamaño deseado
+            int widthInDp = 30; // Tamaño en dp
+            int heightInDp = 40; // Tamaño en dp
+
+            int widthInPx = convertDpToPx(widthInDp);
+            int heightInPx = convertDpToPx(heightInDp);
+
+            BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, widthInPx, heightInPx);
             // Inicializar ClusterManager
             clusterManager = new ClusterManager<>(this, mMap);
 
@@ -440,6 +491,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // Verificar si el permiso de ubicación ha sido concedido
             if (checkLocationPermission()) {
                 mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
                 // Obtener la última ubicación conocida
                 fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -665,5 +717,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return false; // Permiso aún no otorgado
         }
+    }
+
+    private int convertDpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 }

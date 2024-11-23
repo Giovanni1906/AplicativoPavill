@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#410099</color>
+    <color name="textColor">#E0E0E0</color>
+    <color name="secondaryColor">#FF6B00</color>
+    <color name="alertColor">#DEA5A5</color>
+<!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->
+    <color name="backgroundColor">#2C2F33</color> <!-- Blanco para modo claro -->
+    <color name="boxBackgroundColor">#424242</color> <!-- Color del fondo del TextInput -->
+    <color name="glowBackgroundColor" > #50E0E0E0 </color>
+
+    <!-- values/colors.xml -->
+</resources>

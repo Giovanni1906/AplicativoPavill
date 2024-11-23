@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.widget.Toast;
 
 import com.example.Pavill.view.MainActivity;
+import com.example.Pavill.view.RatingActivity;
 
 public class ProgressController {
 
@@ -22,9 +23,9 @@ public class ProgressController {
         // Mostrar mensaje de viaje finalizado
         Toast.makeText(context, "El viaje ha finalizado", Toast.LENGTH_SHORT).show();
 
-        // Después de finalizar el viaje, redirigir a la MainActivity
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        // Después de finalizar el viaje, redirigir a la RatingActivity para calificar al conductor
+        Intent intent = new Intent(context, RatingActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 }

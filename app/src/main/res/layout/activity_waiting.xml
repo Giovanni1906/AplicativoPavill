@@ -55,8 +55,7 @@
                 android:text="Tu pavill está en camino"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/primaryColor"
-                android:layout_marginBottom="8dp" />
+                android:textColor="@color/textColor" />
 
             <!-- Texto "Dentro de: xx min" -->
             <TextView
@@ -66,8 +65,8 @@
                 android:layout_gravity="center_horizontal"
                 android:text="Dentro de: 10 min"
                 android:textSize="12sp"
-                android:textColor="@color/primaryColor"
-                android:layout_marginBottom="16dp" />
+                android:textColor="@color/textColor"
+                android:layout_marginBottom="24dp" />
 
             <!-- Foto circular del taxista con botones de mensaje y llamada -->
             <LinearLayout
@@ -76,17 +75,17 @@
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="4dp">
 
                 <!-- Botón para mensaje -->
                 <ImageButton
                     android:id="@+id/btnMessage"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@android:color/transparent"
+                    android:background="@drawable/glow_background"
                     android:src="@drawable/ic_message"
                     android:contentDescription="Mensaje"
-                    app:tint="@color/primaryColor" />
+                    app:tint="@color/textColor" />
 
                 <!-- Foto circular del taxista -->
                 <com.example.Pavill.components.CircularImageView
@@ -102,10 +101,9 @@
                     android:id="@+id/btnCallDriver"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/ic_call"
+                    android:background="@drawable/glow_background"                    android:src="@drawable/ic_call"
                     android:contentDescription="Llamar al conductor"
-                    app:tint="@color/primaryColor" />
+                    app:tint="@color/textColor" />
 
             </LinearLayout>
 
@@ -115,7 +113,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="4dp">
 
                 <ImageView
                     android:layout_width="20dp"
@@ -161,9 +159,8 @@
                 android:layout_gravity="center_horizontal"
                 android:text="Juan Pérez"
                 android:textSize="18sp"
-                android:textColor="@color/primaryColor"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
+                android:textColor="@color/textColor"
+                android:textStyle="bold" />
 
             <!-- Código del taxista -->
             <TextView
@@ -173,7 +170,7 @@
                 android:layout_gravity="center_horizontal"
                 android:text="Código: W-17"
                 android:textSize="12sp"
-                android:textColor="@color/primaryColor"
+                android:textColor="@color/textColor"
                 android:layout_marginBottom="8dp" />
 
             <!-- Modelo y placa del taxi -->
@@ -184,7 +181,7 @@
                 android:layout_gravity="center_horizontal"
                 android:text="Modelo: Toyota Prius | Placa: ABC-123"
                 android:textSize="16sp"
-                android:textColor="@color/primaryColor"
+                android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp" />
 
             <!-- Botón "Cancelar" -->

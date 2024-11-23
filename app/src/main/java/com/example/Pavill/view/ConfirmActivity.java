@@ -3,14 +3,21 @@ package com.example.Pavill.view;
 import com.example.Pavill.R;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.textfield.TextInputLayout;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,11 +36,23 @@ public class ConfirmActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
+    private ImageView iconOrigin;
+    private ImageView iconDestination;
+    private View lineBetween;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
+
+        // Botón de cancelar
+        findViewById(R.id.btnCancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Simula la acción de retroceder
+                onBackPressed();
+            }
+        });
 
         // Obtener las coordenadas de origen y destino desde el Intent
         Bundle extras = getIntent().getExtras();
@@ -58,8 +77,8 @@ public class ConfirmActivity extends AppCompatActivity {
             TextView originTextView = findViewById(R.id.textOrigin);
             TextView destinationTextView = findViewById(R.id.textDestination);
 
-            originTextView.setText("Origen: " + originAddress);
-            destinationTextView.setText("Destino: " + destinationAddress);
+            originTextView.setText(originAddress);
+            destinationTextView.setText(destinationAddress);
         }
 
         // Obtener el botón "Pedir un Pavill"
@@ -94,4 +113,5 @@ public class ConfirmActivity extends AppCompatActivity {
         }
         return "Dirección no disponible";
     }
+
 }

@@ -2,15 +2,22 @@ package com.example.Pavill.view;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.EditText;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.DeviceIdentifier;
+import com.example.Pavill.components.LoadingDialog;
+import com.example.Pavill.controller.AuthController;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -18,48 +25,116 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class LoginActivity extends AppCompatActivity {
 
+    private EditText textEmail, textPassword;
+    private Button btnLogin;
+    private TextView errorText;
+    private LoadingDialog loadingDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // regresar al MainActivity
-        ImageButton btnBackToMain = findViewById(R.id.btnBackToMain);
-        btnBackToMain.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Redirigir al MainActivity
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Si deseas cerrar esta actividad
-            }
-        });
+        // Inicializar LoadingDialog
+        loadingDialog = new LoadingDialog(this);
 
-        // Encontrar el TextView y establecer el OnClickListener
-        TextView textViewLogin = findViewById(R.id.textViewRegister);
-        textViewLogin.setOnClickListener(v -> {
-            // Redirigir al RegisterActivity
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+        textEmail = findViewById(R.id.TextEmail);
+        textPassword = findViewById(R.id.TextPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        errorText = findViewById(R.id.ErrorText);
+
+
+        // Configurar botón para regresar al MainActivity
+        CardView btnBackToMain = findViewById(R.id.btnBackToMain);
+        btnBackToMain.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
+            finish();
         });
 
-        Button btnLogin = findViewById(R.id.btnLogin);
+        // Configurar el botón de inicio de sesión
         btnLogin.setOnClickListener(v -> {
-            // Validar credenciales
+            String email = textEmail.getText().toString().trim();
+            String password = textPassword.getText().toString().trim();
 
-            // Guardar sesión en SharedPreferences
-            SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("isLoggedIn", true);
-            editor.apply();
-
-            // Verificar estado de la ubicación antes de redirigir
-            checkLocationSettings();
+            if (isValidInput(email, password)) {
+                String deviceId =  DeviceIdentifier.getUniqueIdentifier(this);
+                login(email, password, deviceId);
+            } else {
+                errorText.setText("Por favor ingresa un correo y contraseña válidos.");
+                errorText.setVisibility(View.VISIBLE);
+            }
         });
     }
 
+    /**
+     * Verifica si los campos de entrada son válidos.
+     */
+    private boolean isValidInput(String email, String password) {
+        return email.contains("@") && !password.isEmpty();
+    }
+
+    /**
+     * Maneja el proceso de inicio de sesión.
+     */
+    private void login(String email, String password, String deviceId) {
+        AuthController authController = new AuthController();
+
+        // Mostrar indicador de carga
+        loadingDialog.show();
+
+        authController.login(this, email, password, deviceId, new AuthController.Callback() {
+            @Override
+            public void onSuccess(JSONObject clientData) {
+                // Ocultar indicador de carga
+                loadingDialog.dismiss();
+
+                // Guardar sesión en SharedPreferences
+                saveSession(clientData);
+
+                // Verificar ubicación y redirigir
+                checkLocationSettings();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                // Ocultar indicador de carga
+                loadingDialog.dismiss();
+
+                // Mostrar mensaje de error
+                errorText.setText(errorMessage);
+                errorText.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    /**
+     * Guarda la sesión del usuario en SharedPreferences.
+     */
+    private void saveSession(JSONObject clientData) {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        try {
+            editor.putBoolean("isLoggedIn", true);
+            editor.putString("ClienteId", clientData.getString("ClienteId"));
+            editor.putString("ClienteNombre", clientData.getString("ClienteNombre"));
+            editor.putString("ClienteEmail", clientData.getString("ClienteEmail"));
+            editor.putString("ClienteCelular", clientData.getString("ClienteCelular"));
+            editor.putString("Identificador", clientData.getString("Identificador"));
+            editor.apply();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Verifica el estado de la ubicación antes de redirigir.
+     */
     private void checkLocationSettings() {
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -72,23 +147,22 @@ public class LoginActivity extends AppCompatActivity {
         Task<LocationSettingsResponse> task = LocationServices.getSettingsClient(this)
                 .checkLocationSettings(builder.build());
 
-        task.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                try {
-                    LocationSettingsResponse response = task.getResult(Exception.class);
-                    // Si la ubicación está activada, ve a MapActivity
-                    goToMapActivity();
-                } catch (Exception e) {
-                    // Si la ubicación no está activada, redirige a HomeActivity
-                    goToHomeActivity();
-                }
+        task.addOnCompleteListener(task1 -> {
+
+            try {
+                task1.getResult(Exception.class);
+                // Si la ubicación está activada, ve a MapActivity
+                goToMapActivity();
+            } catch (Exception e) {
+                // Si la ubicación no está activada, redirige a HomeActivity
+                goToHomeActivity();
             }
         });
     }
 
     private void goToMapActivity() {
         Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
@@ -98,4 +172,5 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
 }

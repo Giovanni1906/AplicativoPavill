@@ -15,7 +15,8 @@ import com.example.Pavill.R;
 public class ArrivalMessageDialog extends DialogFragment {
 
     private OnConfirmClickListener listener;
-    private String driverName;
+    private String textArrivalMessageDialog;
+    private String buttonText; // Nuevo campo para el texto del botón
 
     public interface OnConfirmClickListener {
         void onConfirmClick();
@@ -25,8 +26,13 @@ public class ArrivalMessageDialog extends DialogFragment {
         this.listener = listener;
     }
 
-    public void setDriverName(String driverName) {
-        this.driverName = driverName;
+    public void setDriverName(String textArrivalMessageDialog) {
+        this.textArrivalMessageDialog = textArrivalMessageDialog;
+    }
+
+    // Nuevo método para configurar el texto del botón
+    public void setButtonText(String buttonText) {
+        this.buttonText = buttonText;
     }
 
     @Nullable
@@ -34,12 +40,15 @@ public class ArrivalMessageDialog extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_arrival_message, container, false);
 
-        // Configurar el texto del nombre del conductor
+        // Configurar el texto del mensaje
         TextView tvArrivalMessage = view.findViewById(R.id.tvArrivalMessage);
-        tvArrivalMessage.setText(driverName + ", tu pavill ya llegó");
+        tvArrivalMessage.setText(textArrivalMessageDialog);
 
-        // Configurar el botón "OK"
+        // Configurar el texto del botón "OK"
         Button btnOk = view.findViewById(R.id.btnOk);
+        if (buttonText != null) {
+            btnOk.setText(buttonText);
+        }
         btnOk.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onConfirmClick();
@@ -54,10 +63,10 @@ public class ArrivalMessageDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-        // Hacer que el fondo sea transparente
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
         return dialog;
     }
 }
+

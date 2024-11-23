@@ -1,6 +1,7 @@
 package com.example.Pavill.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
@@ -8,7 +9,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 
 import com.example.Pavill.R;
 import com.google.android.material.navigation.NavigationView;
@@ -33,7 +33,7 @@ public class ProfileActivity extends AppCompatActivity {
         setupNavigationView();
 
         // Obtener referencia del botón de menú
-        ImageButton btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
+        CardView btnOpenSidebar = findViewById(R.id.btnOpenSidebar);
         if (btnOpenSidebar != null) {
             btnOpenSidebar.setOnClickListener(new View.OnClickListener() {
                 @Override
