@@ -6,6 +6,7 @@
     <string name="login_button_text">Iniciar sesión</string>
     <string name="map_api_key">AIzaSyCJvwwycBUIIbFpWE6C0oviCl9a2AFkKDQ</string>
     <string name="url_services">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnCliente.php</string>
+    <string name="url_services_pedido">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnPedido.php</string>
 
 <!--    versión de la aplicación-->
     <string name="app_version_number">v.1.40.0</string>

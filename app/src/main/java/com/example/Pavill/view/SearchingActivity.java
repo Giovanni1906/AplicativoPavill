@@ -2,6 +2,7 @@ package com.example.Pavill.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,9 +13,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.example.Pavill.R;
+import com.example.Pavill.components.LoadingDialog;
+import com.example.Pavill.controller.CancelRequestController;
+import com.example.Pavill.controller.PedidoStatusController;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.bumptech.glide.Glide;
 
@@ -24,74 +29,37 @@ public class SearchingActivity extends AppCompatActivity {
     private double originLng;
     private double destinationLat;
     private double destinationLng;
-    private BottomSheetBehavior<View> bottomSheetBehavior;
     private TextView textViewTimer;
     private Handler timerHandler = new Handler();
     private long startTime;
-    private boolean isCancelled = false; // Variable de control para saber si la búsqueda fue cancelada
+    private boolean isCancelled = false;
+    private LoadingDialog loadingDialog;
+    private Runnable pedidoStatusChecker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searching);
 
+        loadingDialog = new LoadingDialog(this);
         initializeUI();
-        initializeBottomSheet();
         startTimer();
-
-        // Inicia la comprobación periódica de aceptación del viaje
-        startCheckingForRideAcceptance();
+        startCheckingPedidoStatus();
     }
 
     private void initializeUI() {
-        // Configurar el mensaje de actualización
-        TextView textViewUpdateMessage = findViewById(R.id.textViewUpdateMessage);
-        setTextWithColorSpan(textViewUpdateMessage, "actualiza\nla nueva versión\nde la aplicación", "nueva versión", R.color.primaryColor);
-
-        // Configurar el cronómetro
         textViewTimer = findViewById(R.id.textViewTimer);
 
-        // Botón para cancelar la búsqueda
         Button btnCancelSearch = findViewById(R.id.btnCancelSearch);
         btnCancelSearch.setOnClickListener(v -> cancelSearch());
 
-        // Cargar el GIF de carga
-        ImageView gifLoader = findViewById(R.id.gifLoader);
-        Glide.with(this)
-                .asGif()
-                .load(R.drawable.loading)
-                .transform(new FitCenter())
-                .override(300, 300)
-                .into(gifLoader);
-
-        // Obtener las coordenadas de origen y destino
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            originLat = extras.getDouble("origin_lat");
-            originLng = extras.getDouble("origin_lng");
-            destinationLat = extras.getDouble("destination_lat");
-            destinationLng = extras.getDouble("destination_lng");
+             originLat = extras.getDouble("origin_lat", 0.0);
+             originLng = extras.getDouble("origin_lng", 0.0);
+             destinationLat = extras.getDouble("destination_lat", 0.0);
+             destinationLng = extras.getDouble("destination_lng", 0.0);
         }
-    }
-
-    private void setTextWithColorSpan(TextView textView, String fullText, String targetText, int colorRes) {
-        SpannableString spannableString = new SpannableString(fullText);
-        int startIndex = fullText.indexOf(targetText);
-        int endIndex = startIndex + targetText.length();
-
-        if (startIndex >= 0) {
-            int primaryColor = getResources().getColor(colorRes);
-            spannableString.setSpan(new ForegroundColorSpan(primaryColor), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-        textView.setText(spannableString);
-    }
-
-    private void initializeBottomSheet() {
-        View bottomSheet = findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        bottomSheetBehavior.setPeekHeight(100);
-        bottomSheetBehavior.setDraggable(true);
     }
 
     private void startTimer() {
@@ -104,7 +72,7 @@ public class SearchingActivity extends AppCompatActivity {
         public void run() {
             if (!isCancelled) {
                 updateTimer();
-                timerHandler.postDelayed(this, 1000); // Actualiza cada segundo
+                timerHandler.postDelayed(this, 1000);
             }
         }
     };
@@ -114,30 +82,72 @@ public class SearchingActivity extends AppCompatActivity {
         int seconds = (int) (millis / 1000);
         int minutes = seconds / 60;
         seconds = seconds % 60;
-
         textViewTimer.setText(String.format("%02d:%02d", minutes, seconds));
+    }
 
-        if (millis >= 10000) { // Pasados 10 segundos, simula la transición a WaitingActivity
-            navigateToWaitingActivity();
-        }
+    private void startCheckingPedidoStatus() {
+        final Handler handler = new Handler();
+        pedidoStatusChecker = new Runnable() {
+            @Override
+            public void run() {
+                if (!isCancelled) {
+                    new PedidoStatusController().checkPedidoStatus(SearchingActivity.this, new PedidoStatusController.PedidoStatusCallback() {
+                        @Override
+                        public void onStatusReceived(String status, String message) {
+                            switch (status) {
+                                case "P005": // Pedido aceptado
+                                    navigateToWaitingActivity();
+                                    handler.removeCallbacksAndMessages(null);
+                                    break;
+
+                                case "P006": // Pedido cancelado
+                                    isCancelled = true;
+                                    timerHandler.removeCallbacks(timerRunnable);
+                                    handler.removeCallbacksAndMessages(null);
+                                    showCancelledMessage();
+                                    break;
+
+                                default: // Continuar verificando
+                                    handler.postDelayed(pedidoStatusChecker, 3000);
+                                    break;
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            handler.postDelayed(pedidoStatusChecker, 3000);
+                        }
+                    });
+                }
+            }
+        };
+        handler.postDelayed(pedidoStatusChecker, 3000);
     }
 
     private void cancelSearch() {
         isCancelled = true;
         timerHandler.removeCallbacks(timerRunnable);
-        finish(); // Finalizar la actividad y volver a la anterior
-    }
 
-    @Override
-    public void onBackPressed() {
-        cancelSearch(); // Usa el mismo método de cancelación
-        super.onBackPressed();
+        loadingDialog.show();
+        new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
+            @Override
+            public void onSuccess(String message) {
+                loadingDialog.dismiss();
+                Toast.makeText(SearchingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                loadingDialog.dismiss();
+                Toast.makeText(SearchingActivity.this, "Error al cancelar el pedido.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void navigateToWaitingActivity() {
         if (!isCancelled) {
-            isCancelled = true; // Marcar como cancelado para detener cualquier ejecución posterior del cronómetro
-            timerHandler.removeCallbacks(timerRunnable); // Detener el Runnable del cronómetro
+            isCancelled = true;
+            timerHandler.removeCallbacks(timerRunnable);
 
             Intent intent = new Intent(SearchingActivity.this, WaitingActivity.class);
             intent.putExtra("origin_lat", originLat);
@@ -145,35 +155,27 @@ public class SearchingActivity extends AppCompatActivity {
             intent.putExtra("destination_lat", destinationLat);
             intent.putExtra("destination_lng", destinationLng);
             startActivity(intent);
-            finish(); // Finaliza la actividad actual
+            finish();
         }
     }
 
-    // Simulación de comprobación de aceptación del viaje
-    private void startCheckingForRideAcceptance() {
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (!isCancelled) {
-                    checkRideAcceptance();
-                    handler.postDelayed(this, 3000); // Vuelve a verificar cada 3 segundos
-                }
-            }
-        }, 3000);
+    private void showCancelledMessage() {
+        runOnUiThread(() -> {
+            Toast.makeText(this, "El pedido fue cancelado.", Toast.LENGTH_LONG).show();
+        });
     }
 
-    private void checkRideAcceptance() {
-        boolean rideAccepted = /* Lógica de verificación en el servidor */ false;
-
-        if (rideAccepted) {
-            onRideAccepted();
-        }
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cancelar búsqueda")
+                .setMessage("¿Estás seguro de que deseas cancelar la búsqueda?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    cancelSearch();
+                    super.onBackPressed(); // Llama al comportamiento predeterminado
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
-    private void onRideAccepted() {
-//        isCancelled = true;
-//        timerHandler.removeCallbacks(timerRunnable);
-        navigateToWaitingActivity();
-    }
 }

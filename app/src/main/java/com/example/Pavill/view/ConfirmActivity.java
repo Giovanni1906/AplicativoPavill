@@ -1,6 +1,10 @@
 package com.example.Pavill.view;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.FriendlyAddressHelper;
+import com.example.Pavill.components.LoadingDialog;
+import com.example.Pavill.components.TemporaryData;
+import com.example.Pavill.controller.RequestTaxiController;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputLayout;
@@ -8,6 +12,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,27 +37,26 @@ import java.util.Locale;
 
 public class ConfirmActivity extends AppCompatActivity {
 
-    private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
-    private ImageView iconOrigin;
-    private ImageView iconDestination;
-    private View lineBetween;
+    private String originAddress;
+    private String  destinationAddress;
+    private LoadingDialog loadingDialog;
+    private TextView errorText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
+        loadingDialog = new LoadingDialog(this);
+
+        // Inicializar errorText después de setContentView
+        errorText = findViewById(R.id.errorText);
+
         // Botón de cancelar
-        findViewById(R.id.btnCancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Simula la acción de retroceder
-                onBackPressed();
-            }
-        });
+        findViewById(R.id.btnCancel).setOnClickListener(v -> onBackPressed());
 
         // Obtener las coordenadas de origen y destino desde el Intent
         Bundle extras = getIntent().getExtras();
@@ -68,50 +72,104 @@ public class ConfirmActivity extends AppCompatActivity {
             destinationCoordinates = new LatLng(destinationLat, destinationLng);
 
             // Usar Geocoder para obtener direcciones amigables
-            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            FriendlyAddressHelper.getFriendlyAddress(this, originLat, originLng, new FriendlyAddressHelper.AddressCallback() {
+                @Override
+                public void onAddressRetrieved(String friendlyAddress) {
+                    // Asigna la dirección de origen cuando esté disponible
+                    originAddress = friendlyAddress;
+                    updateUI(); // Método para actualizar la interfaz si necesitas mostrar ambas direcciones
+                }
 
-            String originAddress = getAddressFromCoordinates(geocoder, originLat, originLng);
-            String destinationAddress = getAddressFromCoordinates(geocoder, destinationLat, destinationLng);
+                @Override
+                public void onError(String errorMessage) {
+                    // Manejo de error para la dirección de origen
+                    originAddress = "Dirección de origen no disponible";
+                    updateUI(); // Método para manejar errores y continuar con la interfaz
+                }
+            });
 
-            // Mostrar las direcciones en los TextViews
-            TextView originTextView = findViewById(R.id.textOrigin);
-            TextView destinationTextView = findViewById(R.id.textDestination);
+            FriendlyAddressHelper.getFriendlyAddress(this, destinationLat, destinationLng, new FriendlyAddressHelper.AddressCallback() {
+                @Override
+                public void onAddressRetrieved(String friendlyAddress) {
+                    // Asigna la dirección de destino cuando esté disponible
+                    destinationAddress = friendlyAddress;
+                    updateUI(); // Método para actualizar la interfaz si necesitas mostrar ambas direcciones
+                }
 
-            originTextView.setText(originAddress);
-            destinationTextView.setText(destinationAddress);
+                @Override
+                public void onError(String errorMessage) {
+                    // Manejo de error para la dirección de destino
+                    destinationAddress = "Dirección de destino no disponible";
+                    updateUI(); // Método para manejar errores y continuar con la interfaz
+                }
+            });
         }
 
-        // Obtener el botón "Pedir un Pavill"
         Button btnRequestTaxi = findViewById(R.id.btnConfirm);
-        btnRequestTaxi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Redirigir a la actividad de búsqueda de taxi
-                Intent intent = new Intent(ConfirmActivity.this, SearchingActivity.class);
-                // Pasar las coordenadas a la actividad de búsqueda
-                intent.putExtra("origin_lat", originCoordinates.latitude);
-                intent.putExtra("origin_lng", originCoordinates.longitude);
-                intent.putExtra("destination_lat", destinationCoordinates.latitude);
-                intent.putExtra("destination_lng", destinationCoordinates.longitude);
-                startActivity(intent);
-            }
+        btnRequestTaxi.setOnClickListener(v -> {
+            String reference = ((TextView) findViewById(R.id.editReference)).getText().toString().trim();
+
+            loadingDialog.show();
+
+            new RequestTaxiController().requestTaxi(
+                    this,
+                    originAddress,
+                    destinationAddress,
+                    originCoordinates.latitude,
+                    originCoordinates.longitude,
+                    destinationCoordinates.latitude,
+                    destinationCoordinates.longitude,
+                    reference,
+                    new RequestTaxiController.RequestTaxiCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            loadingDialog.dismiss();
+
+                            // Acceder a los datos temporales
+                            TemporaryData temporaryData = TemporaryData.getInstance();
+                            String pedidoId = temporaryData.getPedidoId();
+
+                            // Muestra el ID del pedido (opcional, para pruebas)
+                            System.out.println("Pedido registrado con ID: " + pedidoId);
+
+                            // Redirigir a SearchingActivity
+                            Intent intent = new Intent(ConfirmActivity.this, SearchingActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            intent.putExtra("origin_lat", originCoordinates.latitude);
+                            intent.putExtra("origin_lng", originCoordinates.longitude);
+                            intent.putExtra("destination_lat", destinationCoordinates.latitude);
+                            intent.putExtra("destination_lng", destinationCoordinates.longitude);
+                            startActivity(intent);
+
+                        }
+
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            if (isDestroyed() || isFinishing()) {
+                                Log.e("ConfirmActivity", "La actividad ya no está activa");
+                                return;
+                            }
+
+                            if (errorText != null) {
+                                errorText.setVisibility(View.VISIBLE);
+                                errorText.setText(errorMessage);
+                            } else {
+                                Log.e("ConfirmActivity", "TextView errorText es null");
+                            }
+                        }
+
+                    }
+            );
         });
+
+
     }
 
-    /**
-     * Método para obtener una dirección amigable a partir de coordenadas
-     */
-    private String getAddressFromCoordinates(Geocoder geocoder, double latitude, double longitude) {
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                return address.getAddressLine(0);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "Dirección no disponible";
-    }
+    private void updateUI() {
+        TextView originTextView = findViewById(R.id.textOrigin);
+        TextView destinationTextView = findViewById(R.id.textDestination);
 
+        originTextView.setText(originAddress);
+        destinationTextView.setText(destinationAddress);
+    }
 }

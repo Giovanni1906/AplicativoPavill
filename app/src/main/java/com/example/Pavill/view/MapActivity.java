@@ -62,6 +62,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -99,7 +100,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
 
     private FusedLocationProviderClient fusedLocationClient;
-    private boolean isMarkerLifted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +187,15 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         editTextDestination = findViewById(R.id.editTextDestination);
         recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
         recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
+        // Accede al TextView
+        TextView textViewName = findViewById(R.id.textViewName);
+
+        // Accede a SharedPreferences para obtener el nombre del cliente
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String clienteNombre = sharedPreferences.getString("ClienteNombre", "Cliente"); // "Cliente" es el valor por defecto
+
+        // Establece el texto en el TextView
+        textViewName.setText("Hola, " + clienteNombre);
 
         // Configurar LayoutManager para los RecyclerView
         recyclerViewSuggestionsOrigin.setLayoutManager(new LinearLayoutManager(this));
