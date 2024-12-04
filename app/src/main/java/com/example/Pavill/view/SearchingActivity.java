@@ -87,6 +87,8 @@ public class SearchingActivity extends AppCompatActivity {
 
     private void startCheckingPedidoStatus() {
         final Handler handler = new Handler();
+
+        // Define el Runnable
         pedidoStatusChecker = new Runnable() {
             @Override
             public void run() {
@@ -95,34 +97,46 @@ public class SearchingActivity extends AppCompatActivity {
                         @Override
                         public void onStatusReceived(String status, String message) {
                             switch (status) {
-                                case "P005": // Pedido aceptado
+                                case "P005": // Pedido aprobado
                                     navigateToWaitingActivity();
-                                    handler.removeCallbacksAndMessages(null);
+                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
                                     break;
 
-                                case "P006": // Pedido cancelado
+                                case "CANCELADO": // Pedido cancelado
                                     isCancelled = true;
-                                    timerHandler.removeCallbacks(timerRunnable);
-                                    handler.removeCallbacksAndMessages(null);
-                                    showCancelledMessage();
+                                    timerHandler.removeCallbacks(timerRunnable); // Detiene el cronómetro
+                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
+                                    showCancelledMessage(); // Muestra un mensaje de cancelación
                                     break;
 
-                                default: // Continuar verificando
-                                    handler.postDelayed(pedidoStatusChecker, 3000);
+                                case "EN_ESPERA": // Pedido en espera
+                                    showSearchingMessage();
+                                    handler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
+                                    break;
+
+                                default: // Respuesta inesperada
+                                    isCancelled = true;
+                                    timerHandler.removeCallbacks(timerRunnable); // Detiene el cronómetro
+                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
+                                    showCancelledMessage(); // Muestra un mensaje de cancelación
                                     break;
                             }
                         }
 
                         @Override
                         public void onError(String errorMessage) {
+                            // Maneja errores pero continúa intentando
                             handler.postDelayed(pedidoStatusChecker, 3000);
                         }
                     });
                 }
             }
         };
+
+        // Inicia el primer chequeo después de 3 segundos
         handler.postDelayed(pedidoStatusChecker, 3000);
     }
+
 
     private void cancelSearch() {
         isCancelled = true;
@@ -150,10 +164,6 @@ public class SearchingActivity extends AppCompatActivity {
             timerHandler.removeCallbacks(timerRunnable);
 
             Intent intent = new Intent(SearchingActivity.this, WaitingActivity.class);
-            intent.putExtra("origin_lat", originLat);
-            intent.putExtra("origin_lng", originLng);
-            intent.putExtra("destination_lat", destinationLat);
-            intent.putExtra("destination_lng", destinationLng);
             startActivity(intent);
             finish();
         }
@@ -162,6 +172,12 @@ public class SearchingActivity extends AppCompatActivity {
     private void showCancelledMessage() {
         runOnUiThread(() -> {
             Toast.makeText(this, "El pedido fue cancelado.", Toast.LENGTH_LONG).show();
+        });
+    }
+
+    private void showSearchingMessage() {
+        runOnUiThread(() -> {
+            Toast.makeText(this, "Seguimos buscando...", Toast.LENGTH_LONG).show();
         });
     }
 

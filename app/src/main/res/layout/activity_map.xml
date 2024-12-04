@@ -194,6 +194,17 @@
                     android:contentDescription="Seleccionar destino" />
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/layout_favorite_destinations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible"
+                android:padding="8dp">
+
+                <!-- TextViews dinámicos se añadirán programáticamente -->
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/layout_buttons_destination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

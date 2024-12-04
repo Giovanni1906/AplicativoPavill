@@ -16,7 +16,7 @@ public class ArrivalMessageDialog extends DialogFragment {
 
     private OnConfirmClickListener listener;
     private String textArrivalMessageDialog;
-    private String buttonText; // Nuevo campo para el texto del botón
+    private String buttonText; //texto del botón
 
     public interface OnConfirmClickListener {
         void onConfirmClick();

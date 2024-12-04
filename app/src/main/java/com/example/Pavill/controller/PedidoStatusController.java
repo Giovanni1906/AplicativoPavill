@@ -37,7 +37,30 @@ public class PedidoStatusController {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
-                        callback.onStatusReceived(respuesta, "Consulta exitosa.");
+                        int pedidoEstado = jsonResponse.optInt("PedidoEstado", -1);
+
+                        switch (respuesta) {
+                            case "P005":
+                                // Pedido aprobado
+                                assignConductorAndVehicleData(jsonResponse);
+                                callback.onStatusReceived("P005", "Unidad asignada. ¡Unidad asignada!");
+                                break;
+
+                            case "P006":
+                                if (pedidoEstado == 3) {
+                                    // Pedido cancelado
+                                    callback.onStatusReceived("CANCELADO", "El pedido fue cancelado. ¡Una nueva unidad será asignada!");
+                                } else {
+                                    // Pedido en espera
+                                    callback.onStatusReceived("EN_ESPERA", "Espere, estamos asignando una unidad.");
+                                }
+                                break;
+
+                            default:
+                                // Respuesta no esperada
+                                callback.onError("Respuesta no reconocida: " + respuesta);
+                                break;
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         callback.onError("Error al procesar la respuesta del servidor.");
@@ -57,5 +80,21 @@ public class PedidoStatusController {
         };
 
         queue.add(request);
+    }
+
+    /**
+     * Asigna los datos del conductor y vehículo a TemporaryData si están disponibles.
+     */
+    private void assignConductorAndVehicleData(JSONObject jsonResponse) {
+        TemporaryData temporaryData = TemporaryData.getInstance();
+
+        temporaryData.setConductorId(jsonResponse.optString("ConductorId", "Desconocido"));
+        temporaryData.setConductorNombre(jsonResponse.optString("ConductorNombre", "Desconocido"));
+        temporaryData.setConductorTelefono(jsonResponse.optString("ConductorCelular", "N/A"));
+        temporaryData.setConductorFoto(jsonResponse.optString("ConductorFoto", ""));
+        temporaryData.setUnidadPlaca(jsonResponse.optString("VehiculoPlaca", "N/A"));
+        temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"));
+        temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"));
+        temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"));
     }
 }

@@ -14,9 +14,15 @@ import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.Pavill.R;
 import com.example.Pavill.components.TaxiClusterRenderer;
 import com.example.Pavill.controller.MapController;
+import com.example.Pavill.controller.NearbyTaxisController;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -30,6 +36,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
@@ -72,12 +80,16 @@ import android.util.Log;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import com.example.Pavill.components.PlacesAutoCompleteAdapter;  // Asegúrate de que este sea el paquete correcto.
 import com.example.Pavill.components.MyClusterItem;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -98,6 +110,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private PlacesClient placesClient;
     private EditText editTextOrigin, editTextDestination;
     private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
+
+    private Polyline routePolyline; // Para almacenar y manipular la ruta
+
 
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -158,7 +173,14 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     private void setupLocationButton(int buttonId, boolean isForOrigin) {
         Button button = findViewById(buttonId);
-        button.setOnClickListener(v -> setLocationToCurrent(isForOrigin));
+        button.setOnClickListener(v -> {
+            setLocationToCurrent(isForOrigin);
+
+            // Si se marca el origen, activar automáticamente el destino
+            if (isForOrigin) {
+                activateDestination();
+            }
+        });
     }
 
     private void setLocationToCurrent(boolean isForOrigin) {
@@ -180,7 +202,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-
     private void initializeUIComponents() {
         // Referencias a los EditText y RecyclerView
         editTextOrigin = findViewById(R.id.editTextOrigin);
@@ -192,7 +213,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Accede a SharedPreferences para obtener el nombre del cliente
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String clienteNombre = sharedPreferences.getString("ClienteNombre", "Cliente"); // "Cliente" es el valor por defecto
+        String clienteNombre = sharedPreferences.getString("ClienteNombre", ""); // "Cliente" es el valor por defecto
 
         // Establece el texto en el TextView
         textViewName.setText("Hola, " + clienteNombre);
@@ -370,6 +391,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         Button btnBack = findViewById(R.id.btn_back);
         btnConfirmLocation.setVisibility(View.VISIBLE);
         btnConfirmLocation.setText(isForOrigin ? "Marcar como origen" : "Marcar como destino");
+
+        // Cambiar el color del botón según sea origen o destino
+        int buttonColor = isForOrigin ? R.color.primaryColor : R.color.secondaryColor;
+        btnConfirmLocation.setBackgroundTintList(ContextCompat.getColorStateList(this, buttonColor));
+
         btnBack.setVisibility(View.VISIBLE);
 
         // Ocultar el menú lateral
@@ -393,6 +419,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             // Mostrar el menú lateral
             btnOpenSidebar.setVisibility(View.VISIBLE);
+
+            // Si se marcó el origen, activar automáticamente el destino
+            if (isForOrigin) {
+                activateDestination();
+            }
+
         });
     }
 
@@ -472,80 +504,41 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     // Método que se ejecuta cuando el mapa está listo
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Asignar el GoogleMap a la variable de clase
         mMap = googleMap;
 
-        // Inicializar el ClusterManager solo si el mapa no es nulo
-        if (mMap != null) {
+        if (checkLocationPermission()) {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
-            // Redimensionar el icono de taxi al tamaño deseado
-            int widthInDp = 30; // Tamaño en dp
-            int heightInDp = 40; // Tamaño en dp
+            // Inicializar el ClusterManager
+            if (clusterManager == null) {
+                clusterManager = new ClusterManager<>(this, mMap);
+                mMap.setOnCameraIdleListener(clusterManager);
+                mMap.setOnMarkerClickListener(clusterManager);
 
-            int widthInPx = convertDpToPx(widthInDp);
-            int heightInPx = convertDpToPx(heightInDp);
-
-            BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, widthInPx, heightInPx);
-            // Inicializar ClusterManager
-            clusterManager = new ClusterManager<>(this, mMap);
-
-            // Inicializar el renderer personalizado para los taxis
-            TaxiClusterRenderer renderer = new TaxiClusterRenderer(this, mMap, clusterManager, taxiIcon);
-            clusterManager.setRenderer(renderer);
-
-            // Configurar el mapa para usar ClusterManager para manejar marcadores
-            mMap.setOnCameraIdleListener(clusterManager);
-            mMap.setOnMarkerClickListener(clusterManager);
-
-            // Verificar si el permiso de ubicación ha sido concedido
-            if (checkLocationPermission()) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-
-                // Obtener la última ubicación conocida
-                fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-                            // Si la ubicación es válida, centrar la cámara en la ubicación del usuario
-                            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-
-                            // Mostrar carros simulados cerca de la ubicación actual
-                            addNearbyCars(myLocation);
-                        } else {
-                            // Si no se puede obtener la ubicación, centrar en Tacna, Perú
-                            LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
-                        }
-                    }
-                });
-            } else {
-                // Si no hay permisos, centrar en Tacna, Perú
-                LatLng tacnaLocation = new LatLng(-18.0146, -70.2536);  // Tacna, Perú
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tacnaLocation, 15));
+                // Configurar un renderer personalizado si es necesario
+                int widthInPx = convertDpToPx(30); // Tamaño deseado
+                int heightInPx = convertDpToPx(40);
+                BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, widthInPx, heightInPx);
+                TaxiClusterRenderer renderer = new TaxiClusterRenderer(this, mMap, clusterManager, taxiIcon);
+                clusterManager.setRenderer(renderer);
             }
+
+            // Obtener la última ubicación conocida
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+
+                    // Llamar al controlador para obtener taxis cercanos
+                    fetchNearbyTaxis(currentLocation);
+                } else {
+                    Toast.makeText(MapActivity.this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
-            Log.e("MapActivity", "GoogleMap is null, cannot initialize ClusterManager");
+            Toast.makeText(this, "Permisos de ubicación no otorgados.", Toast.LENGTH_SHORT).show();
         }
-    }
-
-
-    private void addNearbyCars(LatLng userLocation) {
-        clusterManager.clearItems(); // Limpiar los elementos anteriores si es necesario
-
-        // Crear ubicaciones simuladas cercanas
-        MyClusterItem car1 = new MyClusterItem(userLocation.latitude + 0.001, userLocation.longitude + 0.001, "Taxi cercano", "Este taxi está a poca distancia de ti");
-        MyClusterItem car2 = new MyClusterItem(userLocation.latitude - 0.001, userLocation.longitude - 0.001, "Taxi cercano", "Este taxi está a poca distancia de ti");
-        MyClusterItem car3 = new MyClusterItem(userLocation.latitude + 0.0015, userLocation.longitude - 0.0015, "Taxi cercano", "Este taxi está a poca distancia de ti");
-
-        // Añadir los elementos al ClusterManager
-        clusterManager.addItem(car1);
-        clusterManager.addItem(car2);
-        clusterManager.addItem(car3);
-
-        // Actualizar el ClusterManager para que agrupe los marcadores
-        clusterManager.cluster();
     }
 
     // Método para redimensionar el ícono
@@ -554,7 +547,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
         return BitmapDescriptorFactory.fromBitmap(resizedBitmap);
     }
-    
+
     private void activateButtonSelection(ImageButton activeButton, ImageButton inactiveButton, boolean isForOrigin) {
         // Actualizar los íconos en la UI
         activeButton.setImageResource(isForOrigin ? R.drawable.ic_my_location_active : R.drawable.ic_my_location_active);
@@ -593,7 +586,13 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 destinationMarker = mMap.addMarker(markerOptions);
             }
             destinationCoordinates = latLng;
+
+            // Llamar a drawRoute para trazar la ruta entre origen y destino
+            drawRoute(originCoordinates, destinationCoordinates);
         }
+
+        // Actualizar la ruta siempre que se cambie origen o destino
+        updateRoute();
 
         // Mostrar la dirección en el campo correspondiente
         getAddressFromCoordinates(latLng, isForOrigin);
@@ -717,6 +716,51 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
+    private void fetchNearbyTaxis(LatLng currentLocation) {
+        new NearbyTaxisController().fetchNearbyTaxis(this, currentLocation, new NearbyTaxisController.NearbyTaxisCallback() {
+            @Override
+            public void onTaxisReceived(List<MyClusterItem> taxis) {
+                if (clusterManager != null) {
+                    clusterManager.clearItems(); // Limpiar taxis previos
+                    clusterManager.addItems(taxis); // Agregar taxis reales
+                    clusterManager.cluster(); // Actualizar el ClusterManager
+                } else {
+                    Log.e("MapActivity", "ClusterManager no inicializado.");
+                }
+            }
+
+            @Override
+            public void onNoTaxisFound(String message) {
+                Toast.makeText(MapActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void activateDestination() {
+        // Referencias necesarias
+        ImageButton btnActivateOrigin = findViewById(R.id.btnActivateLocation);
+        ImageButton btnActivateDestination = findViewById(R.id.btnActivateDestination);
+        LinearLayout layoutButtonsOrigin = findViewById(R.id.layout_buttons_origin);
+        LinearLayout layoutButtonsDestination = findViewById(R.id.layout_buttons_destination);
+        EditText editTextDestination = findViewById(R.id.editTextDestination);
+
+        loadFavoriteDestinations();
+
+        // Llama a toggleSelection para activar el destino
+        toggleSelection(false, btnActivateOrigin, btnActivateDestination, layoutButtonsOrigin, layoutButtonsDestination);
+
+        // Posicionar el cursor en el campo de destino sin activar el teclado
+        if (editTextDestination != null) {
+            editTextDestination.requestFocus();
+            editTextDestination.setShowSoftInputOnFocus(true); // No mostrar el teclado
+        }
+    }
+
     // Verificación de permisos del mapa
     private boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -725,6 +769,140 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return false; // Permiso aún no otorgado
+        }
+    }
+
+    private void drawRoute(LatLng origin, LatLng destination) {
+        if (origin == null || destination == null) {
+            Toast.makeText(this, "Origen o destino no definido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Usa la API Directions para obtener la ruta
+        String directionsUrl = "https://maps.googleapis.com/maps/api/directions/json" +
+                "?origin=" + origin.latitude + "," + origin.longitude +
+                "&destination=" + destination.latitude + "," + destination.longitude +
+                "&key=" + getString(R.string.map_api_key);
+
+        // Hacer una solicitud HTTP para obtener la ruta
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest request = new StringRequest(Request.Method.GET, directionsUrl,
+                response -> {
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        JSONArray routes = jsonResponse.getJSONArray("routes");
+
+                        if (routes.length() > 0) {
+                            JSONObject route = routes.getJSONObject(0);
+                            JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
+                            String points = overviewPolyline.getString("points");
+
+                            // Decodificar la polyline
+                            List<LatLng> polylinePoints = decodePoly(points);
+
+                            // Dibujar la polyline en el mapa
+                            if (routePolyline != null) {
+                                routePolyline.remove(); // Eliminar la ruta anterior si existe
+                            }
+                            routePolyline = mMap.addPolyline(new PolylineOptions()
+                                    .addAll(polylinePoints)
+                                    .width(10)
+                                    .color(ContextCompat.getColor(this, R.color.secondaryColor))
+                                    .geodesic(true));
+                        } else {
+                            Toast.makeText(this, "No se encontró una ruta.", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Error al procesar la ruta.", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    error.printStackTrace();
+                    Toast.makeText(this, "Error al obtener la ruta.", Toast.LENGTH_SHORT).show();
+                });
+
+        queue.add(request);
+    }
+
+    // Método para decodificar los puntos de la polyline
+    private List<LatLng> decodePoly(String encoded) {
+        List<LatLng> poly = new ArrayList<>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((lat / 1E5), (lng / 1E5));
+            poly.add(p);
+        }
+        return poly;
+    }
+
+    private void loadFavoriteDestinations() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String clienteId = sharedPreferences.getString("ClienteId", "");
+
+        new MapController().fetchFavoriteDestinations(this, clienteId, new MapController.FavoriteDestinationsCallback() {
+            @Override
+            public void onFavoritesReceived(List<MapController.FavoriteDestination> favorites) {
+                LinearLayout layoutFavorites = findViewById(R.id.layout_favorite_destinations);
+                layoutFavorites.setVisibility(View.VISIBLE);
+                layoutFavorites.removeAllViews();
+
+                int limit = Math.min(favorites.size(), 3); // Mostrar máximo 3 favoritos
+                for (int i = 0; i < limit; i++) {
+                    MapController.FavoriteDestination favorite = favorites.get(i);
+
+                    TextView textView = new TextView(MapActivity.this);
+                    textView.setText(favorite.getAddress());
+                    textView.setTextSize(16);
+                    textView.setPadding(8, 8, 8, 8);
+                    textView.setOnClickListener(v -> {
+                        LatLng favoriteLocation = new LatLng(favorite.getLatitude(), favorite.getLongitude());
+                        placeMarkerAndShowAddress(favoriteLocation, false); // Marcar como destino
+                    });
+
+                    layoutFavorites.addView(textView);
+                }
+            }
+
+            @Override
+            public void onNoFavoritesFound(String message) {
+                LinearLayout layoutFavorites = findViewById(R.id.layout_favorite_destinations);
+                layoutFavorites.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void updateRoute() {
+        if (originCoordinates != null && destinationCoordinates != null) {
+            drawRoute(originCoordinates, destinationCoordinates);
         }
     }
 
