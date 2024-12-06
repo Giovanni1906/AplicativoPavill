@@ -6,35 +6,31 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.Pavill.R;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import java.util.List;
 
 public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.SuggestionViewHolder> {
-
     private List<AutocompletePrediction> suggestions;
-    private OnItemClickListener onItemClickListener;
+    private final OnSuggestionClickListener listener;
 
-    public interface OnItemClickListener {
-        void onItemClick(AutocompletePrediction prediction);
-    }
-
-    public SuggestionsAdapter(List<AutocompletePrediction> suggestions, OnItemClickListener onItemClickListener) {
+    public SuggestionsAdapter(List<AutocompletePrediction> suggestions, OnSuggestionClickListener listener) {
         this.suggestions = suggestions;
-        this.onItemClickListener = onItemClickListener;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public SuggestionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_suggestion, parent, false);
         return new SuggestionViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull SuggestionViewHolder holder, int position) {
-        AutocompletePrediction prediction = suggestions.get(position);
-        holder.textViewSuggestion.setText(prediction.getPrimaryText(null));
-        holder.itemView.setOnClickListener(v -> onItemClickListener.onItemClick(prediction));
+        AutocompletePrediction suggestion = suggestions.get(position);
+        holder.bind(suggestion, listener);
     }
 
     @Override
@@ -42,12 +38,27 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
         return suggestions.size();
     }
 
+    public void updateSuggestions(List<AutocompletePrediction> newSuggestions) {
+        suggestions.clear();
+        suggestions.addAll(newSuggestions);
+        notifyDataSetChanged();
+    }
+
+    public interface OnSuggestionClickListener {
+        void onSuggestionClick(AutocompletePrediction suggestion);
+    }
+
     public static class SuggestionViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewSuggestion;
+        private final TextView textViewSuggestion;
 
         public SuggestionViewHolder(@NonNull View itemView) {
             super(itemView);
-            textViewSuggestion = itemView.findViewById(android.R.id.text1);
+            textViewSuggestion = itemView.findViewById(R.id.textViewSuggestion);
+        }
+
+        public void bind(AutocompletePrediction suggestion, OnSuggestionClickListener listener) {
+            textViewSuggestion.setText(suggestion.getPrimaryText(null));
+            itemView.setOnClickListener(v -> listener.onSuggestionClick(suggestion));
         }
     }
 }

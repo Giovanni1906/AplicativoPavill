@@ -21,6 +21,8 @@ import com.example.Pavill.R;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.DriverLocationController;
+import com.example.Pavill.controller.PedidoController;
+import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.RouteController;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,6 +44,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private GoogleMap mMap;
     private Marker driverMarker;
     private Handler locationUpdateHandler = new Handler();
+
+    private Handler pedidoStatusHandler = new Handler(); // Nuevo handler para verificar el estado del pedido
+    private Runnable pedidoStatusChecker; // Runnable para manejar las verificaciones
 
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
@@ -72,6 +77,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Iniciar actualizaciones de ubicación del conductor
         startFetchingDriverLocation();
+
+        // Iniciar verificación del estado del pedido
+        startPedidoStatusChecker();
     }
 
     private void initializeUI() {
@@ -87,7 +95,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         // Configurar BottomSheet
         initializeBottomSheet();
         // Otros inicializadores...
-        updateRatingBar(Integer.parseInt(unidadCalificacion)); // Actualiza las estrellas con base en la puntuación
+        double value = Double.parseDouble(unidadCalificacion);
+        int roundedValue = (int) Math.round(value);
+        updateRatingBar(roundedValue); // Actualiza las estrellas con base en la puntuación
 
         // Configurar TextViews de la UI
         TextView textViewDriverName = findViewById(R.id.textViewDriverName);
@@ -127,7 +137,17 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
                 @Override
                 public void onSuccess(String message) {
-                    finish();
+                    Toast.makeText(WaitingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
+
+                    // limpiar TemporaryData
+                    temporaryData = TemporaryData.getInstance();
+                    temporaryData.clearData();
+
+                    // Crear un intent para regresar al MapActivity
+                    Intent intent = new Intent(WaitingActivity.this, MapActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+                    startActivity(intent);
+                    finish(); // Finalizar la WaitingActivity
                 }
 
                 @Override
@@ -135,13 +155,12 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     showError(errorMessage);
                 }
             });
+
         });
 
-        findViewById(R.id.btnOnBoard).setOnClickListener(v -> {
-            Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        findViewById(R.id.btnOnBoard).setOnClickListener(v -> checkAndProceedToProgress());
+
+
     }
 
     @Override
@@ -255,12 +274,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         arrivalMessageDialog.setButtonText(buttonText);
 
         // Configurar el listener para el botón "A bordo"
-        arrivalMessageDialog.setOnConfirmClickListener(() -> {
-            // Pasar a la siguiente actividad (ProgressActivity)
-            Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        arrivalMessageDialog.setOnConfirmClickListener(() -> checkAndProceedToProgress());
+
+
 
         // Mostrar el diálogo
         arrivalMessageDialog.show(getSupportFragmentManager(), "ArrivalMessageDialog");
@@ -322,6 +338,110 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    private void checkAndProceedToProgress() {
+        String pedidoId = temporaryData.getPedidoId();
+        String conductorId = temporaryData.getConductorId();
+
+        if (pedidoId == null || conductorId == null) {
+            showError("Faltan datos para procesar el pedido.");
+            return;
+        }
+
+        // Obtén las coordenadas del vehículo desde el DriverLocationController
+        new DriverLocationController().fetchDriverLocation(this, new DriverLocationController.DriverLocationCallback() {
+            @Override
+            public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
+                // Calcular si hubo tardanza (mayor a 5 minutos)
+                long timeSinceRequest = System.currentTimeMillis() - temporaryData.getRequestTime();
+                int tardanza = (timeSinceRequest > 5 * 60 * 1000) ? 1 : 0; // 1 = tardanza, 0 = no tardanza
+
+                // Preparar y enviar los datos al controlador PedidoController
+                new PedidoController().marcarAbordo(WaitingActivity.this, pedidoId, conductorId, lat, lng, tardanza, new PedidoController.AbordoCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        // Redirigir a ProgressActivity
+                        Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        showError(errorMessage); // Mostrar error si no se pudo marcar como "A bordo"
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                showError("Error al obtener ubicación del vehículo: " + errorMessage);
+            }
+        });
+    }
+
+    private void startPedidoStatusChecker() {
+        String pedidoId = temporaryData.getPedidoId();
+
+        if (pedidoId == null) {
+            showError("ID de pedido no disponible.");
+            return;
+        }
+
+        pedidoStatusChecker = new Runnable() {
+            @Override
+            public void run() {
+                new PedidoStatusController().checkPedidoStatus(WaitingActivity.this, new PedidoStatusController.PedidoStatusCallback() {
+                    @Override
+                    public void onStatusReceived(String status, String message) {
+                        if ("CANCELADO".equalsIgnoreCase(status)) {
+                            // Detener verificaciones
+                            pedidoStatusHandler.removeCallbacks(pedidoStatusChecker);
+
+                            // Limpiar TemporaryData
+                            temporaryData = TemporaryData.getInstance();
+                            temporaryData.clearData();
+
+                            // Redirigir a MapActivity
+                            Intent intent = new Intent(WaitingActivity.this, MapActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+                            startActivity(intent);
+                            finish(); // Finalizar la WaitingActivity
+
+                            // Mostrar un mensaje de cancelación
+                            Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
+
+                        } else if ("EN_ESPERA".equalsIgnoreCase(status)) {
+                            // Detener verificaciones
+                            pedidoStatusHandler.removeCallbacks(pedidoStatusChecker);
+
+                            // Mostrar un mensaje indicando la búsqueda de un nuevo conductor
+                            Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
+
+                            // Redirigir a SearchingActivity
+                            Intent intent = new Intent(WaitingActivity.this, SearchingActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+                            startActivity(intent);
+                            finish(); // Finalizar la WaitingActivity
+                        } else {
+                            // Continuar verificando si no está cancelado o en espera
+                            pedidoStatusHandler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
+                        }
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        // En caso de error, continuar verificando
+                        pedidoStatusHandler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
+                    }
+                });
+            }
+        };
+
+        // Ejecutar la verificación inicial
+        pedidoStatusHandler.post(pedidoStatusChecker);
+    }
+
+
 
     private int convertDpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
@@ -339,5 +459,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onDestroy() {
         super.onDestroy();
         locationUpdateHandler.removeCallbacksAndMessages(null);
+        pedidoStatusHandler.removeCallbacksAndMessages(null); // Detener el handler al destruir la actividad
     }
 }

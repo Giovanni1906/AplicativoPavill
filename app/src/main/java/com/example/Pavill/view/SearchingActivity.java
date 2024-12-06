@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.example.Pavill.R;
 import com.example.Pavill.components.LoadingDialog;
+import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -35,6 +36,8 @@ public class SearchingActivity extends AppCompatActivity {
     private boolean isCancelled = false;
     private LoadingDialog loadingDialog;
     private Runnable pedidoStatusChecker;
+
+    private TemporaryData temporaryData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +109,17 @@ public class SearchingActivity extends AppCompatActivity {
                                     isCancelled = true;
                                     timerHandler.removeCallbacks(timerRunnable); // Detiene el cronómetro
                                     handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
+
+                                    // limpiar TemporaryData
+                                    temporaryData = TemporaryData.getInstance();
+                                    temporaryData.clearData();
+
+                                    // Crear un intent para regresar al MapActivity
+                                    Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+                                    startActivity(intent);
+                                    finish(); // Finalizar
+
                                     showCancelledMessage(); // Muestra un mensaje de cancelación
                                     break;
 
@@ -148,6 +162,16 @@ public class SearchingActivity extends AppCompatActivity {
             public void onSuccess(String message) {
                 loadingDialog.dismiss();
                 Toast.makeText(SearchingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
+
+                // limpiar TemporaryData
+                temporaryData = TemporaryData.getInstance();
+                temporaryData.clearData();
+
+                // Crear un intent para regresar al MapActivity
+                Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+                startActivity(intent);
+                finish(); // Finalizar
             }
 
             @Override
@@ -171,7 +195,7 @@ public class SearchingActivity extends AppCompatActivity {
 
     private void showCancelledMessage() {
         runOnUiThread(() -> {
-            Toast.makeText(this, "El pedido fue cancelado.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "El pedido fue cancelado", Toast.LENGTH_LONG).show();
         });
     }
 
@@ -193,5 +217,4 @@ public class SearchingActivity extends AppCompatActivity {
                 .setNegativeButton("No", null)
                 .show();
     }
-
 }

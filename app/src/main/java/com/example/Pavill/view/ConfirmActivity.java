@@ -129,6 +129,10 @@ public class ConfirmActivity extends AppCompatActivity {
                             TemporaryData temporaryData = TemporaryData.getInstance();
                             String pedidoId = temporaryData.getPedidoId();
 
+                            // Registrar el tiempo del pedido
+                            long requestTime = System.currentTimeMillis(); // Guardar la hora actual en milisegundos
+                            temporaryData.setRequestTime(requestTime); // Establecer el tiempo en TemporaryData
+
                             // Muestra el ID del pedido (opcional, para pruebas)
                             System.out.println("Pedido registrado con ID: " + pedidoId);
 
@@ -140,7 +144,6 @@ public class ConfirmActivity extends AppCompatActivity {
                             intent.putExtra("destination_lat", destinationCoordinates.latitude);
                             intent.putExtra("destination_lng", destinationCoordinates.longitude);
                             startActivity(intent);
-
                         }
 
                         @Override
@@ -157,7 +160,6 @@ public class ConfirmActivity extends AppCompatActivity {
                                 Log.e("ConfirmActivity", "TextView errorText es null");
                             }
                         }
-
                     }
             );
         });

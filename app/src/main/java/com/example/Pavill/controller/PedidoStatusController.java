@@ -1,6 +1,7 @@
 package com.example.Pavill.controller;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -49,10 +50,18 @@ public class PedidoStatusController {
                             case "P006":
                                 if (pedidoEstado == 3) {
                                     // Pedido cancelado
-                                    callback.onStatusReceived("CANCELADO", "El pedido fue cancelado. ¡Una nueva unidad será asignada!");
+                                    Log.e("PedidoStatusController", "Pedido cancelado: " + pedidoEstado);
+                                    callback.onStatusReceived("CANCELADO", "El pedido fue cancelado.");
+
+                                } else if (pedidoEstado == 1) {
+                                    // Pedido En espera
+                                    Log.e("PedidoStatusController", "Pedido en espera: " + pedidoEstado);
+                                    callback.onStatusReceived("EN_ESPERA", "Se está buscando un taxista");
                                 } else {
                                     // Pedido en espera
-                                    callback.onStatusReceived("EN_ESPERA", "Espere, estamos asignando una unidad.");
+                                    Log.e("PedidoStatusController", "PedidoDESCONOCIDO: " + pedidoEstado);
+                                    callback.onStatusReceived("EN_ESPERA", "Pedido en espera");
+
                                 }
                                 break;
 
@@ -96,5 +105,7 @@ public class PedidoStatusController {
         temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"));
         temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"));
         temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"));
+        Log.d("PedidoStatusController", "Foto de conductor " + jsonResponse.optString("ConductorFoto", ""));
+
     }
 }

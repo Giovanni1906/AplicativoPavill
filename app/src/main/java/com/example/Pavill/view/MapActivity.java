@@ -8,7 +8,10 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.UiModeManager;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -20,6 +23,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.Pavill.R;
+import com.example.Pavill.components.NavigationHeaderInfo;
+import com.example.Pavill.components.SuggestionsAdapter;
 import com.example.Pavill.components.TaxiClusterRenderer;
 import com.example.Pavill.controller.MapController;
 import com.example.Pavill.controller.NearbyTaxisController;
@@ -34,6 +39,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -85,7 +91,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.example.Pavill.components.PlacesAutoCompleteAdapter;  // Asegúrate de que este sea el paquete correcto.
+import com.example.Pavill.components.PlacesAutoCompleteAdapter;
 import com.example.Pavill.components.MyClusterItem;
 
 import org.json.JSONArray;
@@ -473,6 +479,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     // Manejo de navegación
     private void setupNavigationView() {
+        // Configurar el encabezado
+        NavigationHeaderInfo.setupHeader(this, navigationView);
+
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
@@ -505,6 +514,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        // Aplicar estilo basado en el modo del sistema
+        applyMapStyle(mMap);
 
         if (checkLocationPermission()) {
             mMap.setMyLocationEnabled(true);
@@ -642,47 +654,50 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void setupAutoComplete(final EditText editText, final RecyclerView recyclerView, final boolean isForOrigin) {
+        SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
+            // Manejo de selección de sugerencia
+            fetchPlaceDetails(suggestion.getPlaceId(), isForOrigin);
+        });
+        recyclerView.setAdapter(suggestionsAdapter);
+
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() >= 3) {  // Iniciar búsqueda tras 3 caracteres
+                if (s.length() >= 3) {
                     AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
-
-                    // LatLngBounds para limitar las sugerencias a Tacna
-                    LatLngBounds tacnaBounds = new LatLngBounds(
-                            new LatLng(-18.0400, -70.2900),  // Suroeste
-                            new LatLng(-17.9800, -70.2000)   // Noreste
+                    LatLngBounds bounds = new LatLngBounds(
+                            new LatLng(-18.0400, -70.2900), // Suroeste
+                            new LatLng(-17.9800, -70.2000)  // Noreste
                     );
 
                     FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
                             .setQuery(s.toString())
+                            .setLocationBias(RectangularBounds.newInstance(bounds))
                             .setSessionToken(token)
-                            .setLocationBias(RectangularBounds.newInstance(tacnaBounds))  // Limitar a Tacna
                             .build();
 
-                    placesClient.findAutocompletePredictions(request).addOnSuccessListener((response) -> {
-                        // Adaptador para las sugerencias
-                        List<AutocompletePrediction> predictionList = response.getAutocompletePredictions();
-                        PlacesAutoCompleteAdapter adapter = new PlacesAutoCompleteAdapter(predictionList, new PlacesAutoCompleteAdapter.OnPlaceClickListener() {
-                            @Override
-                            public void onPlaceClick(AutocompletePrediction prediction) {
-                                // Cuando el usuario selecciona una sugerencia
-                                String placeId = prediction.getPlaceId();
-                                fetchPlaceDetails(placeId, isForOrigin);
-                            }
-                        });
+                    placesClient.findAutocompletePredictions(request).addOnSuccessListener(response -> {
+                        List<AutocompletePrediction> predictions = response.getAutocompletePredictions();
 
-                        recyclerView.setAdapter(adapter);
-                        recyclerView.setVisibility(View.VISIBLE);  // Mostrar las sugerencias
-                    }).addOnFailureListener((exception) -> {
+                        // Limitar a las tres sugerencias más cercanas
+                        List<AutocompletePrediction> topPredictions = predictions.size() > 3
+                                ? predictions.subList(0, 3)
+                                : predictions;
+
+                        // Actualizar las sugerencias en el adaptador
+                        suggestionsAdapter.updateSuggestions(topPredictions);
+                        recyclerView.setVisibility(View.VISIBLE);
+                    }).addOnFailureListener(exception -> {
                         if (exception instanceof ApiException) {
                             ApiException apiException = (ApiException) exception;
                             Log.e("Places", "Error: " + apiException.getStatusCode());
                         }
                     });
+                } else {
+                    recyclerView.setVisibility(View.GONE); // Ocultar si no hay suficientes caracteres
                 }
             }
 
@@ -690,6 +705,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             public void afterTextChanged(Editable s) {}
         });
     }
+
+
 
     private void fetchPlaceDetails(String placeId, final boolean isForOrigin) {
         // Definir los campos de lugar que queremos obtener
@@ -909,4 +926,31 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private int convertDpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
+
+    // Método para aplicar estilo oscuro según el tema del sistema
+    private void applyMapStyle(GoogleMap googleMap) {
+        UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+        int currentMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+        if (currentMode == Configuration.UI_MODE_NIGHT_YES) {
+            // Aplicar estilo oscuro
+            try {
+                boolean success = googleMap.setMapStyle(
+                        MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_dark)
+                );
+
+                if (!success) {
+                    Log.e("MapStyle", "Error aplicando estilo oscuro.");
+                }
+            } catch (Resources.NotFoundException e) {
+                Log.e("MapStyle", "No se encontró el archivo de estilo. Error: ", e);
+            }
+        } else {
+            // Estilo predeterminado (claro)
+            googleMap.setMapStyle(null);
+        }
+    }
+
+
+
 }

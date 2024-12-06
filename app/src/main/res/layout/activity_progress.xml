@@ -53,6 +53,17 @@
                 android:background="@drawable/rounded_corner"
                 android:layout_marginBottom="16dp" />
 
+            <ImageView
+                android:id="@+id/imageProcess"
+                android:layout_width="wrap_content"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:contentDescription="Imagen del taxi"
+                android:src="@drawable/ic_process"
+                app:tint="@color/textColor" />
+
+
             <!-- Texto "Tu pavill está en camino" -->
             <TextView
                 android:id="@+id/textViewTravelStatus"
@@ -74,6 +85,15 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_alternative"
                 android:text="Finalizar viaje" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnActivateUbication"
+                style="@style/Button.Form"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_green"
+                android:text="Compartir ubicación" />
 
         </LinearLayout>
 

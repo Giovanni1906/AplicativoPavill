@@ -17,6 +17,8 @@ public class TemporaryData {
     private String unidadColor;
     private String unidadCalificacion;
 
+    private long requestTime;
+
     private TemporaryData() {
         // Constructor privado para el patrón singleton
     }
@@ -53,15 +55,15 @@ public class TemporaryData {
     public String getUnidadCalificacion() { return unidadCalificacion; }
     public void setUnidadCalificacion(String unidadCalificacion) { this.unidadCalificacion = unidadCalificacion; }
 
-    //setter para los datos del conductor
-    public void setConductorAndUnitData(String conductorNombre, String conductorTelefono, String conductorFoto,
-                                        String unidadPlaca, String unidadModelo, String unidadColor) {
-        this.conductorNombre = conductorNombre;
-        this.conductorTelefono = conductorTelefono;
-        this.conductorFoto = conductorFoto;
-        this.unidadPlaca = unidadPlaca;
-        this.unidadModelo = unidadModelo;
-        this.unidadColor = unidadColor;
+
+    // Método para establecer el tiempo del pedido
+    public void setRequestTime(long requestTime) {
+        this.requestTime = requestTime;
+    }
+
+    // Método para obtener el tiempo del pedido
+    public long getRequestTime() {
+        return requestTime;
     }
 
     //verificadores

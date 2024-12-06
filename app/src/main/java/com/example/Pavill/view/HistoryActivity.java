@@ -1,5 +1,6 @@
 package com.example.Pavill.view;
 import com.example.Pavill.R;
+import com.example.Pavill.components.NavigationHeaderInfo;
 import com.google.android.material.navigation.NavigationView;
 
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -49,6 +51,9 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void setupNavigationView() {
+        // Configurar el encabezado
+        NavigationHeaderInfo.setupHeader(this, navigationView);
+
         // Manejar los eventos de click en los elementos del menú del NavigationView
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override

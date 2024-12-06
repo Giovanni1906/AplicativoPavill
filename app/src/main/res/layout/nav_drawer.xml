@@ -11,53 +11,54 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <!-- Aquí irá el mapa u otros elementos -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?attr/backgroundColor"
+            android:fitsSystemWindows="true">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/nav_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/backgroundColor"
+                    android:text="Perfil" />
+
+                <Button
+                    android:id="@+id/nav_history"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Historial" />
+
+                <Button
+                    android:id="@+id/nav_points"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Puntos Pavill" />
+
+                <Button
+                    android:id="@+id/btnMaps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Inicio" />
+
+                <Button
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cerrar sesión" />
+
+
+            </LinearLayout>
+        </com.google.android.material.navigation.NavigationView>
     </FrameLayout>
 
     <!-- Sidebar con opciones -->
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@color/backgroundColor"
-        android:fitsSystemWindows="true">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/nav_profile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Perfil" />
-
-            <Button
-                android:id="@+id/nav_history"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Historial" />
-
-            <Button
-                android:id="@+id/nav_points"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Puntos Pavill" />
-
-            <Button
-                android:id="@+id/btnMaps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Inicio" />
-
-            <Button
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Cerrar sesión" />
-
-
-        </LinearLayout>
-    </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
@@ -15,6 +16,7 @@ public class CircularImageView extends AppCompatImageView {
 
     private Paint paint;
     private BitmapShader shader;
+    private Matrix shaderMatrix;
 
     public CircularImageView(Context context) {
         super(context);
@@ -34,19 +36,41 @@ public class CircularImageView extends AppCompatImageView {
     private void init() {
         paint = new Paint();
         paint.setAntiAlias(true);
+        shaderMatrix = new Matrix();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         Bitmap bitmap = getBitmapFromDrawable();
         if (bitmap != null) {
-            int width = getWidth();
-            int height = getHeight();
-            shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            int viewWidth = getWidth();
+            int viewHeight = getHeight();
+            float radius = Math.min(viewWidth / 2.0f, viewHeight / 2.0f);
 
+            shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            shaderMatrix.set(null);
+
+            // Escalar el bitmap para que se ajuste completamente al círculo
+            float scale;
+            float dx = 0, dy = 0;
+            int bitmapWidth = bitmap.getWidth();
+            int bitmapHeight = bitmap.getHeight();
+
+            if (bitmapWidth * viewHeight > viewWidth * bitmapHeight) {
+                scale = (float) viewHeight / bitmapHeight;
+                dx = (viewWidth - bitmapWidth * scale) * 0.5f;
+            } else {
+                scale = (float) viewWidth / bitmapWidth;
+                dy = (viewHeight - bitmapHeight * scale) * 0.5f;
+            }
+
+            shaderMatrix.setScale(scale, scale);
+            shaderMatrix.postTranslate(dx, dy);
+
+            shader.setLocalMatrix(shaderMatrix);
             paint.setShader(shader);
-            float radius = Math.min(width / 2.0f, height / 2.0f);
-            canvas.drawCircle(width / 2.0f, height / 2.0f, radius, paint);
+
+            canvas.drawCircle(viewWidth / 2.0f, viewHeight / 2.0f, radius, paint);
         }
     }
 
@@ -60,27 +84,10 @@ public class CircularImageView extends AppCompatImageView {
             return ((BitmapDrawable) drawable).getBitmap();
         }
 
-        // Crear un bitmap proporcional al tamaño del ImageView
         Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
-
-        // Recortar el bitmap para centrarlo y evitar la compresión
-        return cropCenterBitmap(bitmap);
-    }
-
-    private Bitmap cropCenterBitmap(Bitmap bitmap) {
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-
-        int newWidth = Math.min(width, height);
-        int newHeight = newWidth;
-
-        int xOffset = (width - newWidth) / 2;
-        int yOffset = (height - newHeight) / 2;
-
-        // Recortar el bitmap para centrarlo
-        return Bitmap.createBitmap(bitmap, xOffset, yOffset, newWidth, newHeight);
+        return bitmap;
     }
 }

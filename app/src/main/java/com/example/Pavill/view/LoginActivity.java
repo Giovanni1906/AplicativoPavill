@@ -122,6 +122,7 @@ public class LoginActivity extends AppCompatActivity {
         try {
             editor.putBoolean("isLoggedIn", true);
             editor.putString("ClienteId", clientData.getString("ClienteId"));
+            editor.putString("ClienteNumeroDocumento", clientData.getString("ClienteNumeroDocumento"));
             editor.putString("ClienteNombre", clientData.getString("ClienteNombre"));
             editor.putString("ClienteEmail", clientData.getString("ClienteEmail"));
             editor.putString("ClienteCelular", clientData.getString("ClienteCelular"));

@@ -1,6 +1,7 @@
 package com.example.Pavill.controller;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -40,13 +41,16 @@ public class CancelRequestController {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
 
-                        if ("P001".equals(respuesta)) {
+                        if ("L019".equals(respuesta)) {
+                            Log.d("CancelRequestController", "Cancelación de pedido: El pedido se canceló correctamente.");
                             callback.onSuccess("El pedido se canceló correctamente.");
                         } else {
+                            Log.e("CancelRequestController", "Cancelación de pedido: No se pudo cancelar el pedido. Código: " + respuesta);
                             callback.onFailure("No se pudo cancelar el pedido. Código: " + respuesta);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Log.e("CancelRequestController", "Cancelación de pedido: Error al procesar la respuesta del servidor.: ", e);
                         callback.onFailure("Error al procesar la respuesta del servidor.");
                     }
                 },

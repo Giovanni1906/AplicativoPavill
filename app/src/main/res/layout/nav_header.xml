@@ -17,22 +17,9 @@
             android:id="@+id/profile_image"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@drawable/main_background"
+            android:src="@drawable/img_conductor"
             android:contentDescription="Imagen de perfil"
             android:layout_centerInParent="true" />
-
-        <ImageButton
-            android:id="@+id/edit_image_button"
-            android:layout_width="53dp"
-            android:layout_height="52dp"
-            android:layout_alignTop="@id/profile_image"
-            android:layout_alignEnd="@id/profile_image"
-            android:layout_marginTop="-8dp"
-            android:layout_marginEnd="-8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Editar imagen de perfil"
-            android:src="@drawable/ic_edit"
-            app:tint="@android:color/darker_gray" />
     </RelativeLayout>
 
 

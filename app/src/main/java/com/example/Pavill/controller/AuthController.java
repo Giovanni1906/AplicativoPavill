@@ -55,14 +55,16 @@ public class AuthController {
                                     break;
                             }
                         } catch (JSONException e) {
+                            Log.e("NearbyTaxisController", "Error al procesar la respuesta del servidor: ", e);
                             callback.onFailure("Error al procesar la respuesta del servidor.");
+
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e("AuthController", "Error en la solicitud: " + error.getMessage());
+                        Log.e("AuthController", "No se pudo conectar al servidor. Verifica tu conexión." + error.getMessage());
                         callback.onFailure("No se pudo conectar al servidor. Verifica tu conexión.");
                     }
                 }

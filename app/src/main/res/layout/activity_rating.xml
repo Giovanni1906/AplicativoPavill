@@ -61,7 +61,7 @@
                 android:text="Califica la experiencia del servicio"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/primaryColor"
+                android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp"/>
 
             <!-- Foto circular del taxista -->

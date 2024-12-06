@@ -10,6 +10,7 @@ import android.widget.Button;
 
 import com.example.Pavill.R;
 import com.example.Pavill.controller.ProgressController;
+import com.example.Pavill.components.TemporaryData; // Asegúrate de que la ruta sea correcta
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -19,7 +20,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
 
 public class ProgressActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -34,19 +34,17 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
 
-        // Obtener las coordenadas de origen y destino desde el Intent
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            double originLat = extras.getDouble("origin_lat", 0.0);
-            double originLng = extras.getDouble("origin_lng", 0.0);
-            double destinationLat = extras.getDouble("destination_lat", 0.0);
-            double destinationLng = extras.getDouble("destination_lng", 0.0);
+        // Obtener las coordenadas desde TemporaryData
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        originCoordinates = temporaryData.getOriginCoordinates();
+        destinationCoordinates = temporaryData.getDestinationCoordinates();
 
-            // Crear objetos LatLng
-            originCoordinates = new LatLng(originLat, originLng);
-            destinationCoordinates = new LatLng(destinationLat, destinationLng);
-
+        // Verificar si las coordenadas están disponibles
+        if (originCoordinates == null || destinationCoordinates == null) {
+            Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData");
+            return;
         }
+
         // Inicializar el controlador
         progressController = new ProgressController(this);
 
@@ -69,6 +67,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
             }
         });
     }
+
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
@@ -108,5 +107,4 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         bottomSheetBehavior.setPeekHeight(100); // Altura mínima visible del BottomSheet
         bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
     }
-
 }
