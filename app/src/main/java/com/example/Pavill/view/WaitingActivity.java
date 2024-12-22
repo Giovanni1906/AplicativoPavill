@@ -17,7 +17,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
+import com.example.Pavill.components.CircularImageView;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.DriverLocationController;
@@ -74,6 +76,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Configurar UI
         initializeUI();
+        loadConductorPhoto();
 
         // Iniciar actualizaciones de ubicación del conductor
         startFetchingDriverLocation();
@@ -201,7 +204,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             public void onRouteReceived(List<LatLng> route) {
                 mMap.addPolyline(new PolylineOptions()
                         .addAll(route)
-                        .color(Color.BLUE)
+                        .color(getResources().getColor(R.color.secondaryColor))
                         .width(10));
             }
 
@@ -258,7 +261,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     }
                 });
 
-                locationUpdateHandler.postDelayed(this, 5000); // Repetir cada 5 segundos
+                locationUpdateHandler.postDelayed(this, 2000); // Repetir cada 2 segundos
             }
         }, 5000);
     }
@@ -441,7 +444,23 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         pedidoStatusHandler.post(pedidoStatusChecker);
     }
 
+    //para la foto del conductor
+    private void loadConductorPhoto() {
+        String conductorFoto = TemporaryData.getInstance().getConductorFoto();
+        CircularImageView profileImage = findViewById(R.id.profile_image);
 
+        if (conductorFoto != null && !conductorFoto.isEmpty()) {
+            // Usar Glide para cargar la imagen
+            Glide.with(this)
+                    .load(conductorFoto)
+                    .placeholder(R.drawable.img_conductor) // Imagen por defecto mientras se carga
+                    .error(R.drawable.img_conductor) // Imagen por defecto si hay un error
+                    .into(profileImage);
+        } else {
+            // Usa la imagen por defecto
+            profileImage.setImageResource(R.drawable.img_conductor);
+        }
+    }
 
     private int convertDpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);

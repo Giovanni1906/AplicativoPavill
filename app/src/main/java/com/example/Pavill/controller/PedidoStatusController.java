@@ -44,6 +44,8 @@ public class PedidoStatusController {
                             case "P005":
                                 // Pedido aprobado
                                 assignConductorAndVehicleData(jsonResponse);
+                                String conductorId = jsonResponse.optString("ConductorId", "");
+                                fetchConductorPhoto(context, conductorId); // Llama al servicio para obtener la foto del conductor
                                 callback.onStatusReceived("P005", "Unidad asignada. ¡Unidad asignada!");
                                 break;
 
@@ -59,7 +61,7 @@ public class PedidoStatusController {
                                     callback.onStatusReceived("EN_ESPERA", "Se está buscando un taxista");
                                 } else {
                                     // Pedido en espera
-                                    Log.e("PedidoStatusController", "PedidoDESCONOCIDO: " + pedidoEstado);
+                                    Log.e("PedidoStatusController", "PedidoDESCONOCIDO: " + pedidoEstado + respuesta);
                                     callback.onStatusReceived("EN_ESPERA", "Pedido en espera");
 
                                 }
@@ -92,6 +94,42 @@ public class PedidoStatusController {
     }
 
     /**
+     * Obtiene la foto del conductor.
+     */
+    public void fetchConductorPhoto(Context context, String conductorId) {
+        String url = context.getString(R.string.url_services_conductor);
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        String conductorFoto = jsonResponse.optString("ConductorFoto", "");
+
+                        // Guarda la foto en TemporaryData
+                        TemporaryData.getInstance().setConductorFoto(conductorFoto);
+                        Log.d("PedidoStatusController", "Foto de conductor " + jsonResponse.optString("ConductorFoto", ""));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    error.printStackTrace();
+                }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("Accion", "ObtenerConductor");
+                params.put("ConductorId", conductorId);
+                return params;
+            }
+        };
+
+        queue.add(request);
+    }
+
+    /**
      * Asigna los datos del conductor y vehículo a TemporaryData si están disponibles.
      */
     private void assignConductorAndVehicleData(JSONObject jsonResponse) {
@@ -100,12 +138,10 @@ public class PedidoStatusController {
         temporaryData.setConductorId(jsonResponse.optString("ConductorId", "Desconocido"));
         temporaryData.setConductorNombre(jsonResponse.optString("ConductorNombre", "Desconocido"));
         temporaryData.setConductorTelefono(jsonResponse.optString("ConductorCelular", "N/A"));
-        temporaryData.setConductorFoto(jsonResponse.optString("ConductorFoto", ""));
         temporaryData.setUnidadPlaca(jsonResponse.optString("VehiculoPlaca", "N/A"));
         temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"));
         temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"));
         temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"));
-        Log.d("PedidoStatusController", "Foto de conductor " + jsonResponse.optString("ConductorFoto", ""));
 
     }
 }

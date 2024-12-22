@@ -129,7 +129,4 @@ public class MapController {
         void onNoFavoritesFound(String message);
         void onError(String errorMessage);
     }
-
-
-
 }
