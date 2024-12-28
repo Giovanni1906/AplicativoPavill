@@ -4,11 +4,13 @@ import com.example.Pavill.R;
 import com.example.Pavill.components.FriendlyAddressHelper;
 import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.TemporaryData;
+import com.example.Pavill.controller.FavoriteController;
 import com.example.Pavill.controller.RequestTaxiController;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputLayout;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -30,6 +32,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.location.Address;
 import android.location.Geocoder;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,6 +52,10 @@ public class ConfirmActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
+
+        // Acceso a SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String clienteId = sharedPreferences.getString("ClienteId", null);
 
         loadingDialog = new LoadingDialog(this);
 
@@ -165,6 +172,36 @@ public class ConfirmActivity extends AppCompatActivity {
         });
 
 
+
+        // Validar que ClienteId esté disponible
+        if (clienteId == null) {
+            Toast.makeText(this, "ClienteId no encontrado en SharedPreferences" + clienteId, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Continuar con las demás configuraciones
+        // Obtener las coordenadas del Intent y configurar el botón del corazón
+        extras = getIntent().getExtras();
+        if (extras != null) {
+            double destinationLat = extras.getDouble("destination_lat", 0.0);
+            double destinationLng = extras.getDouble("destination_lng", 0.0);
+            LatLng destinationCoordinates = new LatLng(destinationLat, destinationLng);
+
+            TextView destinationTextView = findViewById(R.id.textDestination);
+            String destinationAddress = destinationTextView.getText().toString();
+
+            ImageView heartButton = findViewById(R.id.favoriteButton);
+            heartButton.setOnClickListener(v -> {
+                // Llamar al controlador con los datos necesarios
+                new FavoriteController().addFavoriteDestination(
+                        this,
+                        clienteId,
+                        destinationAddress,
+                        destinationCoordinates.latitude,
+                        destinationCoordinates.longitude
+                );
+            });
+        }
     }
 
     private void updateUI() {

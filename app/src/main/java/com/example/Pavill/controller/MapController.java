@@ -19,9 +19,9 @@ import java.util.Map;
 public class MapController {
 
     private SelectionState currentSelection = SelectionState.NONE;
+    private static final String TAG = "MapController";
 
     public MapController() {
-
     }
 
     public enum SelectionState {
@@ -30,14 +30,10 @@ public class MapController {
         NONE
     }
 
-
-
     public void toggleSelection(boolean isForOrigin) {
-        if (isForOrigin) {
-            currentSelection = (currentSelection == SelectionState.ORIGIN) ? SelectionState.NONE : SelectionState.ORIGIN;
-        } else {
-            currentSelection = (currentSelection == SelectionState.DESTINATION) ? SelectionState.NONE : SelectionState.DESTINATION;
-        }
+        currentSelection = isForOrigin
+                ? (currentSelection == SelectionState.ORIGIN ? SelectionState.NONE : SelectionState.ORIGIN)
+                : (currentSelection == SelectionState.DESTINATION ? SelectionState.NONE : SelectionState.DESTINATION);
     }
 
     public boolean isActiveSelection(boolean isForOrigin) {
@@ -48,43 +44,58 @@ public class MapController {
     public void fetchFavoriteDestinations(Context context, String clienteId, FavoriteDestinationsCallback callback) {
         String url = context.getString(R.string.url_services_fav);
 
+        Log.d(TAG, "Iniciando solicitud para obtener destinos favoritos.");
+        Log.d(TAG, "URL: " + url);
+        Log.d(TAG, "ClienteId: " + clienteId);
+
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
+                    Log.d(TAG, "Respuesta recibida: " + response);
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
 
-                        if ("D001".equals(respuesta)) {
-                            JSONArray datos = jsonResponse.optJSONArray("Datos");
-                            List<FavoriteDestination> favorites = new ArrayList<>();
-                            if (datos != null) {
-                                for (int i = 0; i < datos.length(); i++) {
-                                    JSONObject obj = datos.getJSONObject(i);
-                                    FavoriteDestination destination = new FavoriteDestination(
-                                            obj.optString("ClienteDestinoFavoritoDireccion"),
-                                            obj.optDouble("ClienteDestinoFavoritoCoordenadaX"),
-                                            obj.optDouble("ClienteDestinoFavoritoCoordenadaY")
-                                    );
-                                    favorites.add(destination);
+                        switch (respuesta) {
+                            case "D001":
+                                JSONArray datos = jsonResponse.optJSONArray("Datos");
+                                List<FavoriteDestination> favorites = new ArrayList<>();
+                                if (datos != null) {
+                                    for (int i = 0; i < datos.length(); i++) {
+                                        JSONObject obj = datos.getJSONObject(i);
+                                        FavoriteDestination destination = new FavoriteDestination(
+                                                obj.optString("ClienteDestinoFavoritoDireccion"),
+                                                obj.optDouble("ClienteDestinoFavoritoCoordenadaX", 0.0),
+                                                obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0)
+                                        );
+                                        favorites.add(destination);
+                                    }
+                                    Log.d(TAG, "Número de destinos favoritos obtenidos: " + favorites.size());
                                 }
-                            }
-                            callback.onFavoritesReceived(favorites);
-                        } else if ("D002".equals(respuesta)) {
-                            Log.e("MapController", "Fav: No se encontraron destinos favoritos. ");
-                            callback.onNoFavoritesFound("No se encontraron destinos favoritos.");
-                        } else if ("D003".equals(respuesta)) {
-                            Log.e("MapController", "Fav: No se proporcionó un ClienteId.");
-                            callback.onError("No se proporcionó un ClienteId.");
+                                callback.onFavoritesReceived(favorites);
+                                break;
+
+                            case "D002":
+                                Log.w(TAG, "No se encontraron destinos favoritos para el cliente.");
+                                callback.onNoFavoritesFound("No se encontraron destinos favoritos.");
+                                break;
+
+                            case "D003":
+                                Log.e(TAG, "No se proporcionó un ClienteId válido.");
+                                callback.onError("No se proporcionó un ClienteId.");
+                                break;
+
+                            default:
+                                Log.e(TAG, "Respuesta desconocida del servidor: " + respuesta);
+                                callback.onError("Respuesta desconocida del servidor.");
+                                break;
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.e("MapController", "Fav: No se encontraron destinos favoritos. ", e);
-                        callback.onError("Error al procesar la respuesta del servidor.");
+                        Log.e(TAG, "Error procesando la respuesta del servidor.", e);
+                        callback.onError("Error procesando la respuesta del servidor.");
                     }
                 },
                 error -> {
-                    error.printStackTrace();
-
+                    Log.e(TAG, "Error de conexión con el servidor.", error);
                     callback.onError("Error de conexión con el servidor.");
                 }) {
             @Override
@@ -92,7 +103,7 @@ public class MapController {
                 Map<String, String> params = new HashMap<>();
                 params.put("Accion", "ObtenerClienteDestinoFavoritos");
                 params.put("ClienteId", clienteId);
-                params.put("RegionId", "REG-2");
+                Log.d(TAG, "Parámetros enviados: " + params.toString());
                 return params;
             }
         };
@@ -126,7 +137,9 @@ public class MapController {
 
     public interface FavoriteDestinationsCallback {
         void onFavoritesReceived(List<FavoriteDestination> favorites);
+
         void onNoFavoritesFound(String message);
+
         void onError(String errorMessage);
     }
 }

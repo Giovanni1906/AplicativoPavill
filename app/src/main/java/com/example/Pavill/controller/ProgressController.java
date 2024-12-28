@@ -2,6 +2,7 @@ package com.example.Pavill.controller;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.Pavill.R;
@@ -40,26 +41,16 @@ public class ProgressController {
         // Crear un nuevo hilo para realizar la solicitud HTTP
         new Thread(() -> {
             try {
-                // URL del servicio (definido en strings.xml)
-                String serviceUrl = context.getString(R.string.url_services_pedido);
+                // URL base del servicio (definido en strings.xml)
+                String serviceUrl = context.getString(R.string.url_services);
+
+                // Construir la URL completa con parámetros de consulta
+                String fullUrl = serviceUrl + "?Accion=FinalizarViaje&PedidoId=" + pedidoId + "&ConductorId=" + conductorId;
 
                 // Crear conexión HTTP
-                URL url = new URL(serviceUrl);
+                URL url = new URL(fullUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-                connection.setDoOutput(true);
-
-                // Crear JSON con los datos a enviar
-                JSONObject postData = new JSONObject();
-                postData.put("Accion", "FinalizarViaje");
-                postData.put("PedidoId", pedidoId);
-                postData.put("ConductorId", conductorId);
-
-                // Escribir datos en el cuerpo de la solicitud
-                OutputStream os = connection.getOutputStream();
-                os.write(postData.toString().getBytes("UTF-8"));
-                os.close();
+                connection.setRequestMethod("GET"); // Usar GET si el servicio espera parámetros en la URL
 
                 // Leer la respuesta del servidor
                 Scanner scanner = new Scanner(connection.getInputStream());
@@ -83,24 +74,33 @@ public class ProgressController {
         }).start();
     }
 
+
     // Manejar las distintas respuestas del servidor
     private void handleResponse(String respuesta, JSONObject jsonResponse) {
         switch (respuesta) {
-            case "P099": // Caso exitoso
+            case "L021": // Caso exitoso
                 showToast("Viaje finalizado correctamente.");
+                Log.e("ProgressController", "Pedido finalizado: " + respuesta);
+
                 redirectToRating();
                 break;
 
-            case "P100": // Error al finalizar el pedido
+            case "L022": // Error al finalizar el pedido
                 showToast("Error al finalizar el pedido. Intente nuevamente.");
+                Log.e("ProgressController", "Pedido finalizado mal: " + respuesta);
+
                 break;
 
-            case "P101": // Error por falta de datos
+            case "L023": // Error por falta de datos
                 showToast("Faltan datos para finalizar el viaje.");
+                Log.e("ProgressController", "Pedido finalizado mal, Sin datos: " + respuesta);
+
                 break;
 
             default:
                 showToast("Respuesta desconocida del servidor: " + respuesta);
+                Log.e("ProgressController", "Pedido finalizado mal, servidor: " + respuesta);
+
                 break;
         }
     }

@@ -127,6 +127,17 @@
                         android:textColor="@color/textColor" />
                 </LinearLayout>
 
+                <ImageView
+                    android:id="@+id/favoriteButton"
+                    style="@style/GeneralImageViewStyle"
+                    android:contentDescription="Corazón"
+                    android:src="@drawable/ic_favorite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginEnd="8dp" />
+
             </LinearLayout>
 
         <!-- Campo de referencia usando TextInputLayout -->

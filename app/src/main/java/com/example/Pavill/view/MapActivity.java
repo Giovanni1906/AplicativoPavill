@@ -886,10 +886,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 layoutFavorites.setVisibility(View.VISIBLE);
                 layoutFavorites.removeAllViews();
 
-                int limit = Math.min(favorites.size(), 3); // Mostrar máximo 3 favoritos
-                for (int i = 0; i < limit; i++) {
-                    MapController.FavoriteDestination favorite = favorites.get(i);
+                // Obtener los últimos tres elementos
+                int size = favorites.size();
+                int start = Math.max(0, size - 3); // Si hay menos de 3, toma desde el inicio
+                List<MapController.FavoriteDestination> lastFavorites = favorites.subList(start, size);
 
+                for (MapController.FavoriteDestination favorite : lastFavorites) {
                     TextView textView = new TextView(MapActivity.this);
                     textView.setText(favorite.getAddress());
                     textView.setTextSize(16);
@@ -915,6 +917,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
     }
+
 
 
     private void updateRoute() {
@@ -950,7 +953,4 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             googleMap.setMapStyle(null);
         }
     }
-
-
-
 }
