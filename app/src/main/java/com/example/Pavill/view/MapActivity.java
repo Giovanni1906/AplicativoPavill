@@ -26,6 +26,7 @@ import com.example.Pavill.R;
 import com.example.Pavill.components.NavigationHeaderInfo;
 import com.example.Pavill.components.SuggestionsAdapter;
 import com.example.Pavill.components.TaxiClusterRenderer;
+import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.MapController;
 import com.example.Pavill.controller.NearbyTaxisController;
 import com.google.android.gms.common.api.ApiException;
@@ -814,6 +815,50 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                             JSONObject route = routes.getJSONObject(0);
                             JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
                             String points = overviewPolyline.getString("points");
+
+                            // Extraer la distancia y el tiempo estimado del primer "leg"
+                            JSONArray legs = route.getJSONArray("legs");
+                            JSONObject leg = legs.getJSONObject(0);
+
+                            String distanceText = leg.getJSONObject("distance").getString("text");
+                            String durationText = leg.getJSONObject("duration").getString("text");
+
+                            // Convertir distancia y tiempo a valores numéricos
+                            double distanceKm = Double.parseDouble(distanceText.replace(" km", "").replace(",", ""));
+                            double durationMinutes = Double.parseDouble(durationText.replace(" mins", "").replace(" min", ""));
+
+                            // Calcular el costo estimado
+                            double estimatedCost;
+                            if (durationMinutes <= 10) {
+                                // Hasta 10 minutos
+                                double baseRate = 10.0 / 10; // 10 soles por 10 minutos
+                                estimatedCost = baseRate * durationMinutes;
+                            } else {
+                                // Más de 10 minutos (18 minutos = 13 soles)
+                                double baseRate = 13.0 / 18; // 13 soles por 18 minutos
+                                estimatedCost = baseRate * durationMinutes;
+                            }
+
+                            // Ajustar costo según el rango permitido (6 a 20 soles)
+                            if (estimatedCost < 6.0) {
+                                estimatedCost = 6.0;
+                            } else if (estimatedCost > 20.0) {
+                                estimatedCost = 20.0;
+                            }
+
+                            // Redondear al número entero más cercano
+                            estimatedCost = Math.round(estimatedCost);
+
+
+                            // Guardar los valores en TemporaryData
+                            TemporaryData tempData = TemporaryData.getInstance();
+                            tempData.setDistance(distanceText);
+                            tempData.setDuration(durationText);
+                            tempData.setEstimatedCost(String.format(Locale.getDefault(), "%.2f soles", estimatedCost));
+
+
+                            // Log para depuración
+                            Log.d("MapActivity", "Distancia: " + distanceText + ", Duración: " + durationText + ", Costo Estimado: " + String.format(Locale.getDefault(), "%.2f soles", estimatedCost) );
 
                             // Decodificar la polyline
                             List<LatLng> polylinePoints = decodePoly(points);

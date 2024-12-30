@@ -207,8 +207,18 @@ public class ConfirmActivity extends AppCompatActivity {
     private void updateUI() {
         TextView originTextView = findViewById(R.id.textOrigin);
         TextView destinationTextView = findViewById(R.id.textDestination);
+        TextView estimatedCostTextView = findViewById(R.id.estimatedCost); // TextView para el costo estimado
 
         originTextView.setText(originAddress);
         destinationTextView.setText(destinationAddress);
+
+        // Obtener el costo estimado del TemporaryData y mostrarlo
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        String estimatedCost = temporaryData.getEstimatedCost();
+        if (estimatedCost != null && !estimatedCost.isEmpty()) {
+            estimatedCostTextView.setText(estimatedCost);
+        } else {
+            estimatedCostTextView.setText("s/ xx.xx"); // Texto de respaldo en caso de que no haya un valor válido
+        }
     }
 }

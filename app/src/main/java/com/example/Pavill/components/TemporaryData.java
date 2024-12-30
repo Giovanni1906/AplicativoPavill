@@ -16,6 +16,10 @@ public class TemporaryData {
     private String unidadModelo;
     private String unidadColor;
     private String unidadCalificacion;
+    private String distance;
+    private String duration;
+    private String estimatedCost;
+
 
     private long requestTime;
 
@@ -54,7 +58,12 @@ public class TemporaryData {
     public void setUnidadColor(String unidadColor) { this.unidadColor = unidadColor; }
     public String getUnidadCalificacion() { return unidadCalificacion; }
     public void setUnidadCalificacion(String unidadCalificacion) { this.unidadCalificacion = unidadCalificacion; }
-
+    public String getDistanceD() { return distance; }
+    public void setDistance(String distance) { this.distance = distance; }
+    public String getDuration() { return duration; }
+    public void setDuration(String duration) { this.duration = duration; }
+    public String getEstimatedCost() {return estimatedCost; }
+    public void setEstimatedCost(String estimatedCost) {this.estimatedCost = estimatedCost; }
 
     // Método para establecer el tiempo del pedido
     public void setRequestTime(long requestTime) {
