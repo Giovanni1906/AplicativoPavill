@@ -95,43 +95,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnCode" />
 
-<!--        &lt;!&ndash; Texto de "o inicia sesión con" &ndash;&gt;-->
-<!--        <TextView-->
-<!--            android:id="@+id/textViewSocialLogin"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginTop="16dp"-->
-<!--            android:gravity="center"-->
-<!--            android:text="o inicia sesión con"-->
-<!--            android:textColor="@android:color/darker_gray" />-->
-
-<!--        &lt;!&ndash; Iconos para iniciar sesión con Facebook y Gmail &ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:id="@+id/socialIconsLayout"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:gravity="center"-->
-<!--            android:orientation="horizontal">-->
-
-<!--            &lt;!&ndash; Botón para iniciar sesión con Facebook &ndash;&gt;-->
-<!--            <ImageButton-->
-<!--                android:id="@+id/btnLoginFacebook"-->
-<!--                android:layout_width="48dp"-->
-<!--                android:layout_height="48dp"-->
-<!--                android:layout_marginEnd="16dp"-->
-<!--                android:background="?attr/selectableItemBackgroundBorderless"-->
-<!--                android:contentDescription="Iniciar sesión con Facebook"-->
-<!--                android:src="@drawable/ic_facebook" />-->
-
-<!--            &lt;!&ndash; Botón para iniciar sesión con Gmail &ndash;&gt;-->
-<!--            <ImageButton-->
-<!--                android:id="@+id/btnLoginGmail"-->
-<!--                android:layout_width="48dp"-->
-<!--                android:layout_height="48dp"-->
-<!--                android:background="?attr/selectableItemBackgroundBorderless"-->
-<!--                android:contentDescription="Iniciar sesión con Gmail"-->
-<!--                android:src="@drawable/ic_gmail" />-->
-<!--        </LinearLayout>-->
     </LinearLayout>
 
     <TextView

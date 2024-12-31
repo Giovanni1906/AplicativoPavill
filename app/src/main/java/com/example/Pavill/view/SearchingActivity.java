@@ -21,6 +21,7 @@ import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
+import com.example.Pavill.controller.PublicidadController;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.bumptech.glide.Glide;
 
@@ -48,6 +49,9 @@ public class SearchingActivity extends AppCompatActivity {
         initializeUI();
         startTimer();
         startCheckingPedidoStatus();
+
+        // Cargar la publicidad
+        loadPublicidad();
     }
 
     private void initializeUI() {
@@ -217,4 +221,31 @@ public class SearchingActivity extends AppCompatActivity {
                 .setNegativeButton("No", null)
                 .show();
     }
+
+    private void loadPublicidad() {
+        ImageView adImageView = findViewById(R.id.ad_image);
+
+        new PublicidadController().fetchPublicidad(this, new PublicidadController.PublicidadCallback() {
+            @Override
+            public void onPublicidadReceived(String imageUrl) {
+                Glide.with(SearchingActivity.this)
+                        .load(imageUrl)
+                        .transform(new FitCenter()) // Ajustar la imagen
+                        .into(adImageView);
+            }
+
+            @Override
+            public void onNoPublicidadFound(String message) {
+                adImageView.setImageResource(R.drawable.sample_ad_image); // Imagen predeterminada si no hay publicidad
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(SearchingActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                adImageView.setImageResource(R.drawable.sample_ad_image); // Imagen predeterminada en caso de error
+            }
+        });
+    }
+
+
 }

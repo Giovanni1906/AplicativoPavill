@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
@@ -16,53 +16,39 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- Imagen superior "img_pavill_top" -->
-            <ImageView
-                android:id="@+id/img_pavill_top"
-                android:layout_width="wrap_content"
-                android:layout_height="70dp"
-                android:src="@drawable/img_pavill_top"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-            <!-- Texto debajo de "img_pavill_top" -->
-            <TextView
-                android:id="@+id/textViewUpdateMessage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="actualiza\nla nueva versión\nde la aplicación"
-                android:textSize="25sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@id/img_pavill_top"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-            <!-- Imagen del medio "img_google_play" -->
-            <ImageView
-                android:id="@+id/img_google_play"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:paddingHorizontal="130dp"
-                android:src="@drawable/img_google_play"
-                app:layout_constraintTop_toBottomOf="@id/textViewUpdateMessage"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <!-- Imagen inferior "img_update" -->
-            <ImageView
-                android:id="@+id/img_update"
-                android:layout_width="wrap_content"
-                android:layout_height="500sp"
-                android:src="@drawable/img_update"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/img_google_play"/>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Espacio publicitario -->
+        <LinearLayout
+            android:id="@+id/ad_space"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="8dp"
+            android:padding="8dp"
+            android:elevation="2dp"
+            android:layout_gravity="top"
+            android:translationZ="1dp">
+
+            <!-- Título del anuncio -->
+            <TextView
+                android:id="@+id/ad_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="¡Promoción del día!"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
+
+            <!-- Imagen publicitaria -->
+            <ImageView
+                android:id="@+id/ad_image"
+                android:layout_width="match_parent"
+                android:layout_height="450dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/sample_ad_image" />
+        </LinearLayout>
 
         <!-- BottomSheet para el estado de búsqueda -->
         <LinearLayout
@@ -72,6 +58,8 @@
             android:orientation="vertical"
             android:background="@color/primaryColor"
             android:padding="16dp"
+            android:elevation="4dp"
+            android:translationZ="2dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <!-- Viñeta para subir y bajar el BottomSheet -->
@@ -88,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="16dp" />
 
             <!-- Texto "Estamos buscando un pavill cerca a tu ubicación" -->
             <TextView
@@ -101,7 +89,7 @@
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
             <!-- Cronómetro -->
             <TextView
@@ -112,7 +100,7 @@
                 android:text="00:00"
                 android:textSize="24sp"
                 android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
             <!-- Botón "Cancelar" -->
             <androidx.appcompat.widget.AppCompatButton
@@ -123,7 +111,6 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_alternative"
                 android:text="Cancelar" />
-
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
