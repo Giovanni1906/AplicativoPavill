@@ -88,9 +88,11 @@ public class FavoriteController {
         }).start();
     }
 
-
-
-
+    /**
+     * Maneja la respuesta del servidor y muestra un Toast en función del código de respuesta.
+     * @param context
+     * @param jsonResponse
+     */
     private void handleResponse(Context context, JSONObject jsonResponse) {
         try {
             String respuesta = jsonResponse.getString("Respuesta");

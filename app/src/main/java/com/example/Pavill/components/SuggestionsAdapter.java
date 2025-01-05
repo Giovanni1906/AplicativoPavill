@@ -46,7 +46,7 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
 
     @Override
     public int getItemCount() {
-        return suggestions != null ? Math.min(suggestions.size(), 2) : 0; // Limitar a máximo 2 sugerencias
+        return suggestions != null ? Math.min(suggestions.size(), 3) : 0; // Mostrar máximo 5 sugerencias
     }
 
     static class SuggestionViewHolder extends RecyclerView.ViewHolder {
@@ -61,7 +61,7 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
 
         public void bind(AutocompletePrediction suggestion, OnSuggestionClickListener listener) {
             primaryText.setText(suggestion.getPrimaryText(null));
-            secondaryText.setText(suggestion.getSecondaryText(null)); // Ciudad y país
+            secondaryText.setText(suggestion.getSecondaryText(null));
 
             itemView.setOnClickListener(v -> listener.onSuggestionClick(suggestion));
         }

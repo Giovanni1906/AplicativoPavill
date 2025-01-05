@@ -194,14 +194,16 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void drawRoute(LatLng origin, LatLng destination) {
-        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                "origin=" + origin.latitude + "," + origin.longitude +
-                "&destination=" + destination.latitude + "," + destination.longitude +
-                "&key=" + getString(R.string.map_api_key);
+        if (origin == null || destination == null) {
+            showError("Origen o destino no definido.");
+            return;
+        }
 
-        new RouteController(this).fetchRoute(url, new RouteController.RouteCallback() {
+        RouteController routeController = new RouteController(this);
+        routeController.fetchRoute(origin, destination, null, new RouteController.RouteCallback() {
             @Override
-            public void onRouteReceived(List<LatLng> route) {
+            public void onRouteSuccess(List<LatLng> route, String distanceText, String durationText, double estimatedCost) {
+                // Dibujar la polyline en el mapa
                 mMap.addPolyline(new PolylineOptions()
                         .addAll(route)
                         .color(getResources().getColor(R.color.secondaryColor))
@@ -209,11 +211,12 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onRouteError(String errorMessage) {
                 showError("Error al cargar la ruta: " + errorMessage);
             }
         });
     }
+
 
     private void startFetchingDriverLocation() {
         locationUpdateHandler.postDelayed(new Runnable() {

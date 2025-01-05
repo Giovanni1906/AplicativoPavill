@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.util.List;
+import java.util.Locale;
 
 public class ProgressActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -157,19 +159,21 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
      * Obtiene la ruta desde la API de Google Directions y la dibuja en el mapa.
      */
     private void fetchAndDrawRoute() {
-        String directionsUrl = "https://maps.googleapis.com/maps/api/directions/json" +
-                "?origin=" + originCoordinates.latitude + "," + originCoordinates.longitude +
-                "&destination=" + destinationCoordinates.latitude + "," + destinationCoordinates.longitude +
-                "&key=" + getString(R.string.map_api_key);
+        if (originCoordinates == null || destinationCoordinates == null) {
+            Toast.makeText(this, "Origen o destino no definido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         RouteController routeController = new RouteController(this);
-        routeController.fetchRoute(directionsUrl, new RouteController.RouteCallback() {
+        routeController.fetchRoute(originCoordinates, destinationCoordinates, null, new RouteController.RouteCallback() {
             @Override
-            public void onRouteReceived(List<LatLng> route) {
+            public void onRouteSuccess(List<LatLng> route, String distanceText, String durationText, double estimatedCost) {
+                // Remover la polyline existente, si hay
                 if (routePolyline != null) {
                     routePolyline.remove();
                 }
 
+                // Crear y dibujar la nueva polyline en el mapa
                 routePolyline = mMap.addPolyline(new PolylineOptions()
                         .addAll(route)
                         .width(10)
@@ -178,11 +182,12 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onRouteError(String errorMessage) {
                 Toast.makeText(ProgressActivity.this, "Error al obtener la ruta: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 
     /**
      * Inicializa el BottomSheet para que se expanda y contraiga.

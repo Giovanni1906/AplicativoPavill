@@ -55,7 +55,8 @@
                 android:translationY="-15dp"
             android:visibility="gone" />
 
-            <include layout="@layout/menu_button_layout" />
+            <include
+                layout="@layout/menu_button_layout" />
 
         </RelativeLayout>
 
@@ -96,6 +97,45 @@
                 android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp" />
 
+
+
+            <!-- Cuadro de búsqueda para el origen -->
+            <LinearLayout
+                android:id="@+id/layoutSearchOrigin"
+                style="@style/GeneralLinearLayoutStyle">
+
+                <ImageView
+                    style="@style/GeneralImageViewStyle"
+                    android:contentDescription="Buscar"
+                    android:src="@drawable/ic_search" />
+
+                <EditText
+                    android:id="@+id/editTextOrigin"
+                    style="@style/GeneralEditTextStyle"
+                    android:hint="Tu ubicación"
+                    android:inputType="text" />
+
+                <ImageButton
+                    android:id="@+id/btnDeleteOrigin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:visibility="gone"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="eliminar dirección"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_trash" />
+
+                <ImageButton
+                    android:id="@+id/btnActivateOrigin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Seleccionar ubicación"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_my_location" />
+
+            </LinearLayout>
+
             <!-- Botones de origen -->
             <LinearLayout
                 android:id="@+id/layout_buttons_origin"
@@ -106,7 +146,7 @@
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="8dp"
                 android:padding="8dp"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:background="@android:color/transparent">
 
                 <Button
@@ -132,32 +172,6 @@
                     android:textColor="@android:color/white" />
             </LinearLayout>
 
-            <!-- Cuadro de búsqueda para el origen -->
-            <LinearLayout
-                android:id="@+id/layoutSearchOrigin"
-                style="@style/GeneralLinearLayoutStyle">
-
-                <ImageView
-                    style="@style/GeneralImageViewStyle"
-                    android:contentDescription="Buscar"
-                    android:src="@drawable/ic_search" />
-
-                <EditText
-                    android:id="@+id/editTextOrigin"
-                    style="@style/GeneralEditTextStyle"
-                    android:hint="Tu ubicación"
-                    android:inputType="text" />
-
-                <ImageButton
-                    android:id="@+id/btnActivateOrigin"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Seleccionar ubicación"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_my_location" />
-            </LinearLayout>
-
             <!-- Sugerencias de origen -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewSuggestionsOrigin"
@@ -167,6 +181,44 @@
                 android:layout_marginBottom="8dp"
                 android:divider="@android:color/darker_gray"
                 android:dividerHeight="1dp" />
+
+
+
+            <!-- Cuadro de búsqueda para el destino -->
+            <LinearLayout
+                android:id="@+id/layoutSearchDestination"
+                style="@style/GeneralLinearLayoutStyle"
+                android:layout_marginTop="8dp"
+                >
+                <ImageView
+                    style="@style/GeneralImageViewStyle"
+                    android:src="@drawable/ic_search"
+                    android:contentDescription="Buscar"/>
+                <EditText
+                    style="@style/GeneralEditTextStyle"
+                    android:id="@+id/editTextDestination"
+                    android:hint="Tu destino"
+                    android:inputType="text" />
+
+                <ImageButton
+                    android:id="@+id/btnDeleteDestination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:visibility="gone"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="eliminar dirección"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_trash" />
+
+                <ImageButton
+                    android:id="@+id/btnActivateDestination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_my_location"
+                    android:contentDescription="Seleccionar destino" />
+            </LinearLayout>
 
             <!-- Botones de destino -->
             <LinearLayout
@@ -203,34 +255,7 @@
                     android:textColor="@android:color/white" />
             </LinearLayout>
 
-            <!-- Cuadro de búsqueda para el destino -->
-            <LinearLayout
-                android:id="@+id/layoutSearchDestination"
-                style="@style/GeneralLinearLayoutStyle"
-                android:layout_marginTop="8dp"
-                >
-                <ImageView
-                    style="@style/GeneralImageViewStyle"
-                    android:src="@drawable/ic_search"
-                    android:contentDescription="Buscar"/>
-                <EditText
-                    style="@style/GeneralEditTextStyle"
-                    android:id="@+id/editTextDestination"
-                    android:hint="Tu destino"
-                    android:inputType="text" />
-
-                <ImageButton
-                    android:id="@+id/btnActivateDestination"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:padding="8dp"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/ic_my_location"
-                    android:contentDescription="Seleccionar destino" />
-            </LinearLayout>
-
             <!-- Sugerencias de destino -->
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewSuggestionsDestination"
                 android:layout_width="match_parent"
@@ -238,6 +263,31 @@
                 android:visibility="gone"
                 android:layout_marginBottom="8dp" />
 
+            <!-- favoritos -->
+            <LinearLayout
+                android:id="@+id/layoutFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:padding="8dp"
+                android:background="@android:color/transparent">
+
+                <TextView
+                    android:id="@+id/textViewFavoritesHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Favoritos"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewFavorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
 
             <!-- Botón para solicitar un taxi -->
             <androidx.appcompat.widget.AppCompatButton
