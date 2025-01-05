@@ -48,6 +48,7 @@ public class SearchingActivity extends AppCompatActivity {
         loadingDialog = new LoadingDialog(this);
         initializeUI();
         startTimer();
+        loadGifLoader();
         startCheckingPedidoStatus();
 
         // Cargar la publicidad
@@ -244,8 +245,16 @@ public class SearchingActivity extends AppCompatActivity {
                 Toast.makeText(SearchingActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 adImageView.setImageResource(R.drawable.sample_ad_image); // Imagen predeterminada en caso de error
             }
+
         });
     }
-
+    // para agregar gif de carga al layout
+    private void loadGifLoader() {
+        ImageView gifLoader = findViewById(R.id.gifLoader);
+        Glide.with(this)
+                .asGif() // Especifica que quieres cargar un GIF
+                .load(R.drawable.loading) // Reemplaza con el recurso de tu GIF
+                .into(gifLoader);
+    }
 
 }

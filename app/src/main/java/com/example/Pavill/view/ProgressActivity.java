@@ -73,6 +73,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
             // Llamar al método finishTravel() del controlador
             progressController.finishTravel();
         });
+
     }
 
     @Override

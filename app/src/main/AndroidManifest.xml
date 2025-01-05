@@ -35,7 +35,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs"/>
 
-
         <!-- Declaración de MainActivity -->
         <activity
             android:name=".view.MainActivity"

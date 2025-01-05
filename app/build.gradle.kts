@@ -7,7 +7,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "radiotaxipavill.radiotaxipavillapp"
+        applicationId = "com.example.Pavill"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.location.services)
     implementation(libs.cardview)
+    implementation(libs.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
