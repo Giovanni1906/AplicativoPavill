@@ -22,6 +22,7 @@ import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.PublicidadController;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.bumptech.glide.Glide;
 
@@ -61,12 +62,20 @@ public class SearchingActivity extends AppCompatActivity {
         Button btnCancelSearch = findViewById(R.id.btnCancelSearch);
         btnCancelSearch.setOnClickListener(v -> cancelSearch());
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-             originLat = extras.getDouble("origin_lat", 0.0);
-             originLng = extras.getDouble("origin_lng", 0.0);
-             destinationLat = extras.getDouble("destination_lat", 0.0);
-             destinationLng = extras.getDouble("destination_lng", 0.0);
+        LatLng originCoordinates;
+        LatLng destinationCoordinates;
+
+        // Obtener datos desde TemporaryData
+        TemporaryData tempData = TemporaryData.getInstance();
+
+        originCoordinates = tempData.getOriginCoordinates();
+        destinationCoordinates = tempData.getDestinationCoordinates();
+
+        if (originCoordinates != null && destinationCoordinates != null) {
+             originLat = originCoordinates.latitude;
+             originLng = originCoordinates.longitude;
+             destinationLat = destinationCoordinates.latitude;
+             destinationLng = destinationCoordinates.longitude;
         }
     }
 

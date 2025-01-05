@@ -166,40 +166,23 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         btnUseMapForOrigin.setOnClickListener(v -> handleUseMapForLocation(true));
         btnUseMapForDestination.setOnClickListener(v -> handleUseMapForLocation(false));
 
-        // Configurar el botón de confirmación de ubicación
         btnConfirmLocation.setOnClickListener(v -> {
             LatLng centerLatLng = mMap.getCameraPosition().target;
+
             if (isUseMapForOrigin) {
-                addMarkerToMap(centerLatLng, "Origen", getResources().getColor(R.color.primaryColor), true);
+                originLatLng = centerLatLng;
+                addMarkerToMap(centerLatLng, "Origen", ContextCompat.getColor(this, R.color.primaryColor), true);
                 editTextOrigin.setText(getAddressFromLatLng(centerLatLng));
-                // Cambiar el color del icon_center_marker para el origen
             } else {
-                addMarkerToMap(centerLatLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+                destinationLatLng = centerLatLng;
+                addMarkerToMap(centerLatLng, "Destino", ContextCompat.getColor(this, R.color.secondaryColor), false);
                 editTextDestination.setText(getAddressFromLatLng(centerLatLng));
-                // Cambiar el color del icon_center_marker para el destino
-            }
-
-            // Llamar a updateRoute después de establecer origen o destino
-            updateRoute();
-
-            if (iconCenterMarker instanceof ImageView) {
-                int color = isUseMapForOrigin
-                        ? ContextCompat.getColor(this, R.color.primaryColor)
-                        : ContextCompat.getColor(this, R.color.secondaryColor);
-                ((ImageView) iconCenterMarker).setColorFilter(color);
-            } else {
-                Log.e("MapActivity", "iconCenterMarker no es un ImageView.");
             }
 
             // Restaurar la interfaz
-            btnConfirmLocation.setVisibility(View.GONE);
-            btnBack.setVisibility(View.GONE);
-            iconShadow.setVisibility(View.GONE);
-            iconCenterMarker.setVisibility(View.GONE);
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED); // Expandir el BottomSheet
-            bottomSheetBehavior.setDraggable(true); // Desbloquear el BottomSheet
-            menuButtonLayout.setVisibility(View.VISIBLE);
+            resetMapUI();
         });
+
 
         // Configurar el botón "Volver"
         btnBack.setOnClickListener(v -> {
@@ -214,6 +197,30 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     /**
+     * resetear rutas
+     */
+    private void resetMapUI() {
+        Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
+        Button btnBack = findViewById(R.id.btn_back);
+        View iconShadow = findViewById(R.id.icon_shadow);
+        ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
+        CardView menuButtonLayout = findViewById(R.id.btnOpenSidebar);
+
+        // Ocultar botones y vistas
+        btnConfirmLocation.setVisibility(View.GONE);
+        btnBack.setVisibility(View.GONE);
+        iconShadow.setVisibility(View.GONE);
+        iconCenterMarker.setVisibility(View.GONE);
+
+        // Restaurar BottomSheet
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottomSheetBehavior.setDraggable(true);
+
+        // Mostrar el menú
+        menuButtonLayout.setVisibility(View.VISIBLE);
+    }
+
+    /**
      * Maneja la acción de establecer la ubicación como origen o destino.
      */
     private void handleUseMapForLocation(boolean isForOrigin) {
@@ -221,7 +228,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         Button btnBack = findViewById(R.id.btn_back);
         View iconShadow = findViewById(R.id.icon_shadow);
-        View iconCenterMarker = findViewById(R.id.icon_center_marker);
+        ImageView iconCenterMarker = findViewById(R.id.icon_center_marker);
         CardView menuButtonLayout = findViewById(R.id.btnOpenSidebar);
 
         // Bloquear el BottomSheet
@@ -231,6 +238,18 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Ocultar el botón del menú
         menuButtonLayout.setVisibility(View.GONE);
 
+        // Determinar el color según si es origen o destino
+        int color = isUseMapForOrigin
+                ? ContextCompat.getColor(this, R.color.primaryColor)
+                : ContextCompat.getColor(this, R.color.secondaryColor);
+
+        // Cambiar el color del marcador antes de hacerlo visible
+        if (iconCenterMarker instanceof ImageView) {
+            iconCenterMarker.setColorFilter(color); // Aplicar color al ícono
+        } else {
+            Log.e("MapActivity", "iconCenterMarker no es un ImageView.");
+        }
+
         // Mostrar los botones y vistas necesarias
         btnConfirmLocation.setVisibility(View.VISIBLE);
         btnBack.setVisibility(View.VISIBLE);
@@ -238,6 +257,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         iconCenterMarker.setVisibility(View.VISIBLE);
         btnConfirmLocation.setText(isForOrigin ? "Marcar como Origen" : "Marcar como Destino");
     }
+
 
     /**
      * Obtiene la dirección a partir de una latitud y longitud
@@ -643,6 +663,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
         recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
 
+        Button btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
+
         // Inicializar adaptadores de sugerencias
         initializeSuggestionsAdapterOrigin();
         initializeSuggestionsAdapterDestination();
@@ -661,8 +683,36 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Botón para ir a la ubicación actual
         GotoMyLocation(btnMyLocation);
+
+        //guardar datos en Temporary Data y pasar al Confirn Activity
+        RequestTaxi(btnRequestTaxi);
     }
 
+    /**
+     * Conectar el botón para solicitar un taxi
+      * @param btnRequestTaxi
+     */
+    private void RequestTaxi(Button btnRequestTaxi) {
+        btnRequestTaxi.setOnClickListener(v -> {
+            if (originLatLng != null && destinationLatLng != null) {
+                // Guardar las coordenadas en TemporaryData
+                TemporaryData tempData = TemporaryData.getInstance();
+                tempData.setOriginCoordinates(originLatLng);
+                tempData.setDestinationCoordinates(destinationLatLng);
+
+                // Navegar a ConfirmActivity
+                Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Por favor selecciona tanto el origen como el destino.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Configura el botón para ir a la ubicación actual
+     * @param btnMyLocation
+     */
     private void GotoMyLocation(CardView btnMyLocation) {
         btnMyLocation.setOnClickListener(v -> {
             if (mMap != null && checkLocationPermission()) {
@@ -769,28 +819,27 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             if (originMarker != null) {
                 originMarker.remove();
             }
-            originMarker = mMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+            originMarker = mMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .title(title)
-                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0])));
+                    .icon(BitmapDescriptorFactory.defaultMarker(hsv[0])));
+            originLatLng = latLng; // Actualizar coordenadas de origen
         } else {
             if (destinationMarker != null) {
                 destinationMarker.remove();
             }
-            destinationMarker = mMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+            destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .title(title)
-                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0])));
+                    .icon(BitmapDescriptorFactory.defaultMarker(hsv[0])));
+            destinationLatLng = latLng; // Actualizar coordenadas de destino
         }
-
-        // Llamar a updateRoute cuando ambos marcadores estén definidos
-        if (originMarker != null && destinationMarker != null) {
-            updateRoute();
-        }
-
 
         // Enfocar el mapa en el marcador con animación
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
+        // Intentar actualizar la ruta
+        updateRoute();
     }
 
 
