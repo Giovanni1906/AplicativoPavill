@@ -279,7 +279,7 @@
                     android:layout_height="wrap_content"
                     android:text="Favoritos"
                     android:textSize="16sp"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/textColor"
                     android:layout_marginBottom="8dp" />
 
                 <androidx.recyclerview.widget.RecyclerView

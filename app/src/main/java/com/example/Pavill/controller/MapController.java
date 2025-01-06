@@ -67,6 +67,7 @@ public class MapController {
                                                 obj.optDouble("ClienteDestinoFavoritoCoordenadaX", 0.0),
                                                 obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0)
                                         );
+                                        Log.d(TAG, "nombre: " + destination.getAddress() + "ClienteDestinoFavoritoCoordenadaX: " + destination.getLatitude() + "ClienteDestinoFavoritoCoordenadaY: " + destination.getLongitude());
                                         favorites.add(destination);
                                     }
                                     Log.d(TAG, "Número de destinos favoritos obtenidos: " + favorites.size());

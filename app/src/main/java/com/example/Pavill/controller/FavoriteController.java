@@ -40,8 +40,8 @@ public class FavoriteController {
                         "?Accion=RegistrarClienteDestinoFavorito" +
                         "&ClienteId=" + clienteId +
                         "&ClienteDestinoFavoritoDireccion=" + Uri.encode(direccion) +
-                        "&POST_ClienteDestinoFavoritoCoordenadaX=" + coordenadaX +
-                        "&POST_ClienteDestinoFavoritoCoordenadaY=" + coordenadaY;
+                        "&ClienteDestinoFavoritoCoordenadaX=" + coordenadaX +
+                        "&ClienteDestinoFavoritoCoordenadaY=" + coordenadaY;
 
                 // Log de la URL
                 Log.d(TAG, "URL construida: " + serviceUrl);

@@ -158,7 +158,7 @@ public class ConfirmActivity extends AppCompatActivity {
                         destinationCoordinates.latitude,
                         destinationCoordinates.longitude
                 );
-                Toast.makeText(this, "Destino añadido a favoritos", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Espere un momento...", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "No se pudo añadir el destino a favoritos", Toast.LENGTH_SHORT).show();
             }
