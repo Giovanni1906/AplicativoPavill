@@ -20,6 +20,15 @@
             android:text="Historial de pedidos"
             android:textSize="24sp"
             android:layout_centerInParent="true"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnActivateUbication"
+            style="@style/Button.Form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_green"
+            android:text="Compartir ubicación" />
     </RelativeLayout>
 
     <!-- Sidebar con opciones (Navigation Drawer) -->

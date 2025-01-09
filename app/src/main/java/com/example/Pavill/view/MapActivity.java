@@ -38,6 +38,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.BitmapUtils;
 import com.example.Pavill.components.FavoritesAdapter;
 import com.example.Pavill.components.FriendlyAddressHelper;
 import com.example.Pavill.components.MyClusterItem;
@@ -499,8 +500,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         mMap.setOnCameraIdleListener(clusterManager);
         mMap.setOnMarkerClickListener(clusterManager);
 
+        int iconSize = 32; // Tamaño deseado para el ícono
+
         // Configurar renderer personalizado
-        BitmapDescriptor taxiIcon = getResizedBitmap(R.drawable.ic_car, convertDpToPx(30), convertDpToPx(40));
+        BitmapDescriptor taxiIcon = BitmapUtils.getProportionalBitmap(this, R.drawable.ic_car, iconSize);
         TaxiClusterRenderer renderer = new TaxiClusterRenderer(this, mMap, clusterManager, taxiIcon);
         clusterManager.setRenderer(renderer);
     }
@@ -554,20 +557,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private void requestLocationPermission() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
     }
-
-    /**
-     * Redimensiona el ícono para los marcadores de taxis.
-     */
-    private BitmapDescriptor getResizedBitmap(int drawableRes, int width, int height) {
-        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(), drawableRes);
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-        return BitmapDescriptorFactory.fromBitmap(resizedBitmap);
-    }
-
-    private int convertDpToPx(int dp) {
-        return (int) (dp * getResources().getDisplayMetrics().density);
-    }
-
 
     /**
      * Verifica si el permiso de ubicación está otorgado

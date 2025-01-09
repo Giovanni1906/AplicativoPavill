@@ -1,5 +1,7 @@
 package com.example.Pavill.view;
 
+import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,11 +14,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.app.ActivityCompat;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.BitmapUtils;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.ProgressController;
 import com.example.Pavill.controller.RouteController;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,6 +58,11 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
 
+        // Inicializar el cliente de ubicación
+        AppCompatButton btnActivateUbication = findViewById(R.id.btnActivateUbication);
+
+        ShareLocation(destinationCoordinates, btnActivateUbication);
+
         if (originCoordinates == null || destinationCoordinates == null) {
             Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData");
             return;
@@ -76,6 +87,54 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
             progressController.finishTravel();
         });
 
+    }
+
+    private void ShareLocation(LatLng destinationCoordinates, AppCompatButton btnActivateUbication){
+
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Configurar el botón para enviar ubicación por WhatsApp
+        btnActivateUbication.setOnClickListener(v -> {
+            // Coordenadas simuladas de destino en Tacna
+            double destinationLat = destinationCoordinates.latitude;
+            double destinationLng = destinationCoordinates.longitude;
+
+            // Obtener las coordenadas actuales
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // Pedir permisos de ubicación si no están otorgados
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                return;
+            }
+
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    // Coordenadas actuales reales
+                    double currentLat = location.getLatitude();
+                    double currentLng = location.getLongitude();
+
+                    // Crear enlace de Google Maps
+                    String googleMapsUrl = "https://www.google.com/maps/dir/?api=1" +
+                            "&destination=" + destinationLat + "," + destinationLng +
+                            "&waypoints=" + currentLat + "," + currentLng;
+
+                    // Crear intent para enviar por WhatsApp
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, "Hola, estoy compartiendo mi ubicación en tiempo real y mi destino desde un Pavill: " + googleMapsUrl);
+                    sendIntent.setType("text/plain");
+                    sendIntent.setPackage("com.whatsapp");
+
+                    try {
+                        startActivity(sendIntent);
+                    } catch (Exception e) {
+                        // Mostrar mensaje si WhatsApp no está instalado
+                        Toast.makeText(this, "WhatsApp no está instalado", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     @Override
@@ -149,10 +208,14 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         // Simula una ubicación actual (ajusta según sea necesario)
         LatLng currentLocation = originCoordinates;
 
+        // Actualizar marcador del conductor
+        int iconSize = 32; // Tamaño deseado para el ícono
+
         mMap.addMarker(new MarkerOptions()
                 .position(currentLocation)
                 .title("Tu ubicación actual")
-                .icon(getCarIcon()));
+                .icon(BitmapUtils.getProportionalBitmap(this, R.drawable.ic_car, iconSize)) // Llama al método utilitario
+                .title("Conductor en camino"));
     }
 
     /**
@@ -198,15 +261,5 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         bottomSheetBehavior.setPeekHeight(100); // Altura mínima visible del BottomSheet
         bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
-    }
-
-    /**
-     * Devuelve un icono personalizado redimensionado para la ubicación actual.
-     */
-    private BitmapDescriptor getCarIcon() {
-        int width = 50; // Tamaño deseado en píxeles
-        int height = 50;
-        return BitmapDescriptorFactory.fromBitmap(Bitmap.createScaledBitmap(
-                BitmapFactory.decodeResource(getResources(), R.drawable.ic_car), width, height, false));
     }
 }

@@ -27,7 +27,7 @@
                 android:id="@+id/icon_center_marker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_marker_center"
+                android:src="@drawable/ic_marker"
                 android:layout_centerInParent="true"
                 android:visibility="gone" />
 

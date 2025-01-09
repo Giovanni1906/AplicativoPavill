@@ -2,6 +2,8 @@
 <resources>
     <color name="primaryColor">#410099</color>
     <color name="textColor">#410099</color>
+    <color name="iconColor">#410099</color>
+    <color name="inactiveIconColor">#AAAAAA</color>
     <color name="secondaryColor">#FF6B00</color>
     <color name="alertColor">#FF0040</color>
 <!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->

@@ -96,6 +96,7 @@
         <item name="cardElevation">8dp</item>
     </style>
 
+
     <!-- Estilo para ImageView del ícono dentro del CardView -->
     <style name="FloatingImageViewStyle">
         <item name="android:layout_width">match_parent</item>

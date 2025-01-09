@@ -2,6 +2,7 @@ package com.example.Pavill.controller;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -72,6 +73,7 @@ public class RequestTaxiController {
                                 temporaryData.setDestinationCoordinates(new LatLng(destinationLat, destinationLng));
 
                                 callback.onSuccess("Pedido registrado con éxito.");
+                                Log.d("RequestTaxiController", "Pedido registrado con éxito: " + jsonResponse);
                                 break;
 
                             case "P002": // Error al registrar el pedido

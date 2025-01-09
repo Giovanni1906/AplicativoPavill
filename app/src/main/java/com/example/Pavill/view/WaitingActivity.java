@@ -2,6 +2,7 @@ package com.example.Pavill.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,6 +12,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,6 +23,7 @@ import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 import com.example.Pavill.components.CircularImageView;
 import com.example.Pavill.components.TemporaryData;
+import com.example.Pavill.components.BitmapUtils;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.DriverLocationController;
 import com.example.Pavill.controller.PedidoController;
@@ -46,6 +49,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private GoogleMap mMap;
     private Marker driverMarker;
     private Handler locationUpdateHandler = new Handler();
+
+    private boolean hasArrivalMessageShown = false; // Bandera para controlar el mensaje flotante
+
 
     private Handler pedidoStatusHandler = new Handler(); // Nuevo handler para verificar el estado del pedido
     private Runnable pedidoStatusChecker; // Runnable para manejar las verificaciones
@@ -76,13 +82,15 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Configurar UI
         initializeUI();
-        loadConductorPhoto();
+
 
         // Iniciar actualizaciones de ubicación del conductor
         startFetchingDriverLocation();
 
         // Iniciar verificación del estado del pedido
         startPedidoStatusChecker();
+
+        loadConductorPhoto();
     }
 
     private void initializeUI() {
@@ -94,11 +102,22 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         String unidadModelo = temporaryData.getUnidadModelo();
         String unidadColor = temporaryData.getUnidadColor();
         String unidadCalificacion = temporaryData.getUnidadCalificacion();
+        String conductorFoto = temporaryData.getConductorFoto();
+        Log.d("Conductor foto:", "initializeUI: " + conductorFoto);
+
+        // Verificar que unidadCalificacion sea un número válido
+        double value;
+        try {
+            value = Double.parseDouble(unidadCalificacion);
+        } catch (NumberFormatException e) {
+            // Si no es un número válido, asignar un valor por defecto
+            value = 0.0;
+            Log.e("WaitingActivity", "UnidadCalificacion no es un número válido: " + unidadCalificacion, e);
+        }
 
         // Configurar BottomSheet
         initializeBottomSheet();
         // Otros inicializadores...
-        double value = Double.parseDouble(unidadCalificacion);
         int roundedValue = (int) Math.round(value);
         updateRatingBar(roundedValue); // Actualiza las estrellas con base en la puntuación
 
@@ -227,22 +246,25 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
                         LatLng driverLocation = new LatLng(lat, lng);
 
-                        // Redimensionar el icono del taxi
-                        int iconSize = convertDpToPx(40);
+                        // Actualizar marcador del conductor
+                        int iconSize = 32; // Tamaño deseado para el ícono
 
-                        // Actualizar marcador del conductor con animación
                         if (driverMarker == null) {
                             driverMarker = mMap.addMarker(new MarkerOptions()
                                     .position(driverLocation)
-                                    .icon(resizeIcon(R.drawable.ic_car, iconSize, iconSize))
+                                    .icon(BitmapUtils.getProportionalBitmap(WaitingActivity.this, R.drawable.ic_car, iconSize)) // Llama al método utilitario
                                     .title("Conductor en camino"));
                         } else {
                             animateMarkerTo(driverMarker, driverLocation);
                         }
 
+                        estimatedTimeMinutes = Integer.parseInt(TemporaryData.getInstance().getDuration());
                         // Mostrar tiempo estimado
                         TextView estimatedTimeView = findViewById(R.id.textViewETA);
                         estimatedTimeView.setText("Tiempo estimado: " + estimatedTimeMinutes + " minutos");
+                        // Iniciar el contador
+                        startEstimatedTimeCountdown(estimatedTimeMinutes);
+
 
                         // Verificar si el taxi está cerca del origen
                         float[] results = new float[1];
@@ -253,8 +275,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                         );
 
                         float distanceToOrigin = results[0]; // Distancia en metros
-                        if (distanceToOrigin <= 100) { // Rango de 100 metros
+                        if (distanceToOrigin <= 100 && !hasArrivalMessageShown) { // Mostrar solo si no se ha mostrado antes
                             showArrivalDialog();
+                            hasArrivalMessageShown = true; // Actualizar la bandera
                         }
                     }
 
@@ -269,22 +292,53 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         }, 5000);
     }
 
+    /**
+     * Método para iniciar el contador de tiempo estimado
+     * @param initialTimeMinutes
+     */
+    private void startEstimatedTimeCountdown(int initialTimeMinutes) {
+        TextView estimatedTimeView = findViewById(R.id.textViewETA);
+
+        // Inicia un Handler para el contador
+        Handler countdownHandler = new Handler();
+        Runnable countdownRunnable = new Runnable() {
+            int remainingTime = initialTimeMinutes; // Tiempo restante
+
+            @Override
+            public void run() {
+                if (remainingTime > 0) {
+                    // Actualiza el texto con el tiempo restante
+                    estimatedTimeView.setText("Tiempo estimado: " + remainingTime + " minutos");
+                    remainingTime--;
+
+                    // Repite el Runnable cada minuto (1000ms x 60)
+                    countdownHandler.postDelayed(this, 60 * 1000);
+                } else {
+                    // Cuando el tiempo llega a 0, cambia el color y detiene el contador
+                    estimatedTimeView.setText("¡El conductor ya debería estar aquí!");
+                    estimatedTimeView.setTextColor(ContextCompat.getColor(WaitingActivity.this, R.color.alertColor));
+                }
+            }
+        };
+
+        // Ejecuta el Runnable inmediatamente
+        countdownHandler.post(countdownRunnable);
+    }
+
+
+    /**
+     * Muestra un mensaje flotante indicando que el conductor ya llegó.
+     */
     private void showArrivalDialog() {
-        // Crear instancia del diálogo
         ArrivalMessageDialog arrivalMessageDialog = new ArrivalMessageDialog();
         String arrivalMessage = temporaryData.getConductorNombre() + ", tu pavill ya llegó";
         String buttonText = "A bordo";
 
-        // Configurar texto del mensaje y botón
         arrivalMessageDialog.setDriverName(arrivalMessage);
         arrivalMessageDialog.setButtonText(buttonText);
 
-        // Configurar el listener para el botón "A bordo"
         arrivalMessageDialog.setOnConfirmClickListener(() -> checkAndProceedToProgress());
 
-
-
-        // Mostrar el diálogo
         arrivalMessageDialog.show(getSupportFragmentManager(), "ArrivalMessageDialog");
     }
 
@@ -447,26 +501,41 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         pedidoStatusHandler.post(pedidoStatusChecker);
     }
 
-    //para la foto del conductor
+    /**
+     * Obtiene la foto del conductor y la guarda en TemporaryData.
+     */
     private void loadConductorPhoto() {
-        String conductorFoto = TemporaryData.getInstance().getConductorFoto();
-        CircularImageView profileImage = findViewById(R.id.profile_image);
+        String conductorId = TemporaryData.getInstance().getConductorId();
 
-        if (conductorFoto != null && !conductorFoto.isEmpty()) {
-            // Usar Glide para cargar la imagen
-            Glide.with(this)
-                    .load(conductorFoto)
-                    .placeholder(R.drawable.img_conductor) // Imagen por defecto mientras se carga
-                    .error(R.drawable.img_conductor) // Imagen por defecto si hay un error
-                    .into(profileImage);
-        } else {
-            // Usa la imagen por defecto
-            profileImage.setImageResource(R.drawable.img_conductor);
-        }
-    }
+        new PedidoStatusController().fetchConductorPhoto(this, conductorId, new PedidoStatusController.FetchConductorPhotoCallback() {
+            @Override
+            public void onSuccess(String conductorFoto) {
+                // Actualiza la imagen solo cuando la respuesta es exitosa
+                CircularImageView profileImage = findViewById(R.id.profile_image_conductor);
 
-    private int convertDpToPx(int dp) {
-        return (int) (dp * getResources().getDisplayMetrics().density);
+                if (conductorFoto != null && !conductorFoto.isEmpty()) {
+                    // Usar Glide para cargar la imagen
+                    Glide.with(WaitingActivity.this)
+                            .load(conductorFoto)
+                            .placeholder(R.drawable.img_conductor)
+                            .error(R.drawable.img_conductor)
+                            .into(profileImage);
+                    Log.d("Conductor foto:", "Imagen cargada exitosamente");
+                } else {
+                    // Usa la imagen por defecto
+                    profileImage.setImageResource(R.drawable.img_conductor);
+                    Log.d("Conductor foto:", "Imagen por defecto cargada");
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Maneja el error
+                CircularImageView profileImage = findViewById(R.id.profile_image_conductor);
+                profileImage.setImageResource(R.drawable.img_conductor);
+                Log.e("Conductor foto:", "Error al obtener la foto: " + errorMessage);
+            }
+        });
     }
 
     private void initializeBottomSheet() {

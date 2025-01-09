@@ -50,7 +50,7 @@
                 android:id="@+id/icon_center_marker"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@drawable/ic_marker_center"
+                android:src="@drawable/ic_map_pin"
                 android:layout_centerInParent="true"
                 android:translationY="-15dp"
             android:visibility="gone" />

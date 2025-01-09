@@ -89,7 +89,7 @@
 
                 <!-- Foto circular del taxista -->
                 <com.example.Pavill.components.CircularImageView
-                    android:id="@+id/profile_image"
+                    android:id="@+id/profile_image_conductor"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:src="@drawable/img_conductor"
