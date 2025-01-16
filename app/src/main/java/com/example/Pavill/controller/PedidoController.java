@@ -1,6 +1,7 @@
 package com.example.Pavill.controller;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -42,6 +43,7 @@ public class PedidoController {
                 switch (respuesta) {
                     case "P016":
                         callback.onSuccess("Cliente marcado como a bordo con éxito.");
+                        Log.d("PedidoStatusController", "Marcado a bordo con exito: " + jsonObject);
                         break;
                     case "P017":
                         callback.onFailure("Error al actualizar el estado del pedido.");

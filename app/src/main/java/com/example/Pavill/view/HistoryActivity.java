@@ -32,9 +32,6 @@ public class HistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        // Obtener referencia del DrawerLayout
-        drawerLayout = findViewById(R.id.drawer_layout);
-
         // Obtener referencia del NavigationView
         navigationView = findViewById(R.id.nav_view);
 

@@ -39,35 +39,36 @@ public class PedidoStatusController {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
                         int pedidoEstado = jsonResponse.optInt("PedidoEstado", -1);
+                        int pedAbordoCliente = jsonResponse.optInt("PedAbordoCliente", -1);
 
                         switch (respuesta) {
                             case "P005":
                                 // Pedido aprobado
                                 assignConductorAndVehicleData(jsonResponse, context);
-                                callback.onStatusReceived("P005", "Unidad asignada. ¡Unidad asignada!");
+                                callback.onStatusReceived("ACEPTADO", "Unidad asignada. ¡Unidad asignada!");
+                                Log.e("PedidoStatusController", "Pedido aceptado, respuesta: " + respuesta + " pedidoEstado: " + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 break;
 
                             case "P006":
                                 if (pedidoEstado == 3) {
                                     // Pedido cancelado
-                                    Log.e("PedidoStatusController", "Pedido cancelado: " + pedidoEstado);
-                                    callback.onStatusReceived("CANCELADO", "El pedido fue cancelado.");
+                                    Log.e("PedidoStatusController", "El pedido fue cancelado, respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                    callback.onStatusReceived("CANCELADO", "El pedido fue cancelado, respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
 
                                 } else if (pedidoEstado == 1) {
                                     // Pedido En espera
-                                    Log.e("PedidoStatusController", "Pedido en espera: " + pedidoEstado);
-                                    callback.onStatusReceived("EN_ESPERA", "Se está buscando un taxista");
+                                    Log.e("PedidoStatusController", "Se está buscando un taxista, , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                    callback.onStatusReceived("EN_ESPERA", "Se está buscando un taxista, , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 } else {
                                     // Pedido en espera
-                                    Log.e("PedidoStatusController", "PedidoDESCONOCIDO: " + pedidoEstado + respuesta);
-                                    callback.onStatusReceived("EN_ESPERA", "Pedido en espera");
-
+                                    Log.e("PedidoStatusController", "Pedido desconocido, verificar el estado; , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                    callback.onStatusReceived("DESCONOCIDO", "Pedido desconocido, verificar el estado; , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 }
                                 break;
 
                             default:
                                 // Respuesta no esperada
-                                callback.onError("Respuesta no reconocida: " + respuesta);
+                                callback.onError("Respuesta no reconocida: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 break;
                         }
                     } catch (Exception e) {

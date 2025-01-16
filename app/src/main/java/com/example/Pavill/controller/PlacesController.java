@@ -8,6 +8,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
@@ -47,10 +48,17 @@ public class PlacesController {
             sessionToken = AutocompleteSessionToken.newInstance();
         }
 
+        // Define los límites geográficos de Tacna, Perú
+        RectangularBounds boundsTacna = RectangularBounds.newInstance(
+                new LatLng(-18.0569, -70.3191), // Suroeste (latitud y longitud mínima)
+                new LatLng(-17.8800, -69.9800)  // Noreste (latitud y longitud máxima)
+        );
+
         FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
                 .setQuery(query)
                 .setSessionToken(sessionToken)
                 .setCountries("PE") // Limitar a Perú
+                .setLocationBias(boundsTacna) // Limitar a los límites de Tacna
                 .build();
 
         placesClient.findAutocompletePredictions(request)
@@ -61,6 +69,7 @@ public class PlacesController {
                     Log.e("PlacesController", "Error obteniendo predicciones: " + exception.getMessage());
                 });
     }
+
 
     /**
      * Obtiene LatLng a partir de un PlaceId

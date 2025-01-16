@@ -1,10 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        style="@style/AlignedLinearLayoutStyle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <!-- Botón de CardView para volver al inicio -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/btnBackToMain"
+            style="@style/AlignedFloatingCardViewStyle"
+            app:cardBackgroundColor="@color/primaryColor">
+
+            <ImageView
+                style="@style/FloatingImageViewStyle"
+                android:src="@drawable/ic_return"
+                app:tint="@color/quantum_white_100" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Texto al lado del botón -->
+        <TextView
+            android:id="@+id/tvBackToMainText"
+            style="@style/BackToMainTextStyle"
+            android:text="Menu" />
+    </LinearLayout>
 
     <!-- Contenido principal de la actividad -->
     <RelativeLayout
@@ -17,29 +44,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Historial de pedidos"
+            android:text="Pronto se mostrará el historial de pedidos"
             android:textSize="24sp"
+            android:gravity="center"
             android:layout_centerInParent="true"/>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnActivateUbication"
-            style="@style/Button.Form"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/button_green"
-            android:text="Compartir ubicación" />
     </RelativeLayout>
 
-    <!-- Sidebar con opciones (Navigation Drawer) -->
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        android:background="#FFF"
-        app:headerLayout="@layout/nav_header"
-        app:menu="@menu/navigation_menu" />
-
-</androidx.drawerlayout.widget.DrawerLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

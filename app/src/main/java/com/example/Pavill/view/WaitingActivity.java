@@ -4,7 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 import com.example.Pavill.components.CircularImageView;
+import com.example.Pavill.components.DistanceUtils;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.components.BitmapUtils;
 import com.example.Pavill.controller.CancelRequestController;
@@ -29,6 +33,7 @@ import com.example.Pavill.controller.DriverLocationController;
 import com.example.Pavill.controller.PedidoController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.RouteController;
+import com.example.Pavill.services.PedidoStatusService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,6 +57,17 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
     private boolean hasArrivalMessageShown = false; // Bandera para controlar el mensaje flotante
 
+    private String conductorId;
+    private String conductorNombre;
+    private String conductorTelefono;
+    private String unidadPlaca;
+    private String unidadModelo;
+    private String unidadColor;
+    private String unidadCalificacion;
+    private String conductorFoto;
+
+    // Variable global para indicar si está en tardanza (1 = tardanza, 0 = no tardanza)
+    private int tardanzaFlag = 0;
 
     private Handler pedidoStatusHandler = new Handler(); // Nuevo handler para verificar el estado del pedido
     private Runnable pedidoStatusChecker; // Runnable para manejar las verificaciones
@@ -83,26 +99,31 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         // Configurar UI
         initializeUI();
 
-
         // Iniciar actualizaciones de ubicación del conductor
         startFetchingDriverLocation();
 
-        // Iniciar verificación del estado del pedido
-        startPedidoStatusChecker();
-
         loadConductorPhoto();
+
+        // Inicia el servicio para verificar el estado del pedido
+        startPedidoStatusService();
+
+        // Registra el BroadcastReceiver para escuchar actualizaciones del estado
+        registerPedidoStatusReceiver();
     }
 
+    /**
+     * Inicializa la UI con los elementos de la actividad.
+     */
     private void initializeUI() {
         // Inicializar campos de conductor
-        String conductorId = temporaryData.getConductorId();
-        String conductorNombre = temporaryData.getConductorNombre();
-        String conductorTelefono = temporaryData.getConductorTelefono();
-        String unidadPlaca = temporaryData.getUnidadPlaca();
-        String unidadModelo = temporaryData.getUnidadModelo();
-        String unidadColor = temporaryData.getUnidadColor();
-        String unidadCalificacion = temporaryData.getUnidadCalificacion();
-        String conductorFoto = temporaryData.getConductorFoto();
+        conductorId = temporaryData.getConductorId();
+        conductorNombre = temporaryData.getConductorNombre();
+        conductorTelefono = temporaryData.getConductorTelefono();
+        unidadPlaca = temporaryData.getUnidadPlaca();
+        unidadModelo = temporaryData.getUnidadModelo();
+        unidadColor = temporaryData.getUnidadColor();
+        unidadCalificacion = temporaryData.getUnidadCalificacion();
+        conductorFoto = temporaryData.getConductorFoto();
         Log.d("Conductor foto:", "initializeUI: " + conductorFoto);
 
         // Verificar que unidadCalificacion sea un número válido
@@ -117,7 +138,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Configurar BottomSheet
         initializeBottomSheet();
-        // Otros inicializadores...
+        // Calificación de estrellas
         int roundedValue = (int) Math.round(value);
         updateRatingBar(roundedValue); // Actualiza las estrellas con base en la puntuación
 
@@ -132,6 +153,14 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         textViewCarDetails.setText("Modelo: " + unidadModelo+ " - " + unidadColor + " | Placa: " + unidadPlaca);
 
         // Configurar botones
+        initializeBottomsUI();
+    }
+
+    /**
+     * Inicializa los botones de llamada, whatsapp y de cancelar búsqueda
+     */
+    public void initializeBottomsUI(){
+        //Botón de llamada
         findViewById(R.id.btnCallDriver).setOnClickListener(v -> {
             if (conductorTelefono != null && !conductorTelefono.isEmpty()) {
                 Intent intent = new Intent(Intent.ACTION_DIAL);
@@ -142,6 +171,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        //Botón de mensaje de whatsapp
         findViewById(R.id.btnMessage).setOnClickListener(v -> {
             if (conductorTelefono != null && !conductorTelefono.isEmpty()) {
                 String clientName = getSharedPreferences("user_prefs", MODE_PRIVATE)
@@ -155,6 +185,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        //Botón de cancelar pedido
         findViewById(R.id.btnCancelSearch).setOnClickListener(v -> {
             new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
                 @Override
@@ -179,10 +210,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             });
 
         });
-
+        //Botón de continuar
         findViewById(R.id.btnOnBoard).setOnClickListener(v -> checkAndProceedToProgress());
-
-
     }
 
     @Override
@@ -212,6 +241,11 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Dibuja la ruta entre el origen y el destino en el mapa.
+     * @param origin
+     * @param destination
+     */
     private void drawRoute(LatLng origin, LatLng destination) {
         if (origin == null || destination == null) {
             showError("Origen o destino no definido.");
@@ -237,67 +271,100 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
 
+    /**
+     * Actualizar ubicación del conductor
+     */
     private void startFetchingDriverLocation() {
         locationUpdateHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                // Llamar al controlador para obtener la ubicación del conductor
                 new DriverLocationController().fetchDriverLocation(WaitingActivity.this, new DriverLocationController.DriverLocationCallback() {
                     @Override
                     public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
                         LatLng driverLocation = new LatLng(lat, lng);
 
-                        // Actualizar marcador del conductor
+                        // Actualizar el marcador del conductor
                         int iconSize = 32; // Tamaño deseado para el ícono
-
                         if (driverMarker == null) {
                             driverMarker = mMap.addMarker(new MarkerOptions()
                                     .position(driverLocation)
-                                    .icon(BitmapUtils.getProportionalBitmap(WaitingActivity.this, R.drawable.ic_car, iconSize)) // Llama al método utilitario
+                                    .icon(BitmapUtils.getProportionalBitmap(WaitingActivity.this, R.drawable.ic_car, iconSize))
                                     .title("Conductor en camino"));
                         } else {
                             animateMarkerTo(driverMarker, driverLocation);
                         }
 
-                        estimatedTimeMinutes = Integer.parseInt(TemporaryData.getInstance().getDuration());
+                        // Calcular el tiempo estimado de llegada
+                        int estimatedTimeToOrigin = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
+
                         // Mostrar tiempo estimado
                         TextView estimatedTimeView = findViewById(R.id.textViewETA);
-                        estimatedTimeView.setText("Tiempo estimado: " + estimatedTimeMinutes + " minutos");
+                        estimatedTimeView.setText("Tiempo estimado: " + estimatedTimeToOrigin + " minutos");
+                        Log.d("Tiempo estimado:", "Tiempo estimado: " + estimatedTimeToOrigin + " minutos");
+
                         // Iniciar el contador
-                        startEstimatedTimeCountdown(estimatedTimeMinutes);
+                        startEstimatedTimeCountdown(estimatedTimeToOrigin);
 
+                        // Verificar si el conductor está cerca del origen
+                        checkProximityToOrigin(driverLocation);
 
-                        // Verificar si el taxi está cerca del origen
-                        float[] results = new float[1];
-                        Location.distanceBetween(
-                                driverLocation.latitude, driverLocation.longitude,
-                                originCoordinates.latitude, originCoordinates.longitude,
-                                results
-                        );
-
-                        float distanceToOrigin = results[0]; // Distancia en metros
-                        if (distanceToOrigin <= 100 && !hasArrivalMessageShown) { // Mostrar solo si no se ha mostrado antes
-                            showArrivalDialog();
-                            hasArrivalMessageShown = true; // Actualizar la bandera
-                        }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
                         showError(errorMessage);
+                        // Reprogramar el ciclo incluso en caso de error
                     }
                 });
-
-                locationUpdateHandler.postDelayed(this, 2000); // Repetir cada 2 segundos
+                // Reprogramar el siguiente ciclo
+                locationUpdateHandler.postDelayed(this, 2000);
             }
         }, 5000);
     }
 
     /**
+     * Calcula el tiempo estimado de llegada al origen.
+     */
+    private int calculateEstimatedTimeToOrigin(LatLng driverLocation, LatLng originCoordinates) {
+        float[] results = new float[1];
+        Location.distanceBetween(
+                driverLocation.latitude, driverLocation.longitude,
+                originCoordinates.latitude, originCoordinates.longitude,
+                results
+        );
+        float distanceInMeters = results[0];
+        int estimatedTime = (int) (distanceInMeters / 300); // Ejemplo: Suponiendo 300 metros por minuto
+        return Math.max(1, estimatedTime); // Mínimo de 1 minuto
+    }
+
+    /**
+     * Verifica si el conductor está cerca del origen.
+     */
+    private void checkProximityToOrigin(LatLng driverLocation) {
+        float[] results = new float[1];
+        Location.distanceBetween(
+                driverLocation.latitude, driverLocation.longitude,
+                originCoordinates.latitude, originCoordinates.longitude,
+                results
+        );
+
+        float distanceToOrigin = results[0]; // Distancia en metros
+        if (distanceToOrigin <= 100 && !hasArrivalMessageShown) { // Mostrar solo si no se ha mostrado antes
+            showArrivalDialog();
+            hasArrivalMessageShown = true; // Actualizar la bandera
+        }
+    }
+
+    /**
      * Método para iniciar el contador de tiempo estimado
-     * @param initialTimeMinutes
+     * @param initialTimeMinutes Tiempo inicial en minutos
      */
     private void startEstimatedTimeCountdown(int initialTimeMinutes) {
         TextView estimatedTimeView = findViewById(R.id.textViewETA);
+
+        // Variable global para marcar si hay tardanza (1 = tardanza, 0 = no tardanza)
+        tardanzaFlag = 0;
 
         // Inicia un Handler para el contador
         Handler countdownHandler = new Handler();
@@ -309,14 +376,22 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 if (remainingTime > 0) {
                     // Actualiza el texto con el tiempo restante
                     estimatedTimeView.setText("Tiempo estimado: " + remainingTime + " minutos");
+                    Log.d("Tiempo estimado:", "Tiempo estimado: " + remainingTime + " minutos");
+
                     remainingTime--;
 
                     // Repite el Runnable cada minuto (1000ms x 60)
                     countdownHandler.postDelayed(this, 60 * 1000);
                 } else {
-                    // Cuando el tiempo llega a 0, cambia el color y detiene el contador
+                    // Cuando el tiempo llega a 0
                     estimatedTimeView.setText("¡El conductor ya debería estar aquí!");
                     estimatedTimeView.setTextColor(ContextCompat.getColor(WaitingActivity.this, R.color.alertColor));
+
+                    // Marcar como tardanza
+                    tardanzaFlag = 1;
+                    Log.d("TardanzaFlag", "Marcado como tardanza (1).");
+
+                    // Detener el contador, no volver a llamar a postDelayed
                 }
             }
         };
@@ -342,21 +417,23 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         arrivalMessageDialog.show(getSupportFragmentManager(), "ArrivalMessageDialog");
     }
 
-
+    /**
+     * Muestra un mensaje de error.
+     * @param errorMessage
+     */
     private void showError(String errorMessage) {
         errorText.setText(errorMessage);
         errorText.setVisibility(View.VISIBLE);
     }
 
-    private BitmapDescriptor resizeIcon(int resourceId, int width, int height) {
-        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(), resourceId);
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-        return BitmapDescriptorFactory.fromBitmap(resizedBitmap);
-    }
-
+    /**
+     * Anima el marcador del conductor para que simule avanzar
+     * @param marker
+     * @param toPosition
+     */
     private void animateMarkerTo(final Marker marker, final LatLng toPosition) {
         final LatLng fromPosition = marker.getPosition();
-        final long duration = 1000;
+        final long duration = 2000;
 
         final Handler handler = new Handler();
         final long start = System.currentTimeMillis();
@@ -377,6 +454,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
+    /**
+     * Actualiza las estrellas del conductor según la calificación
+     * @param rating
+     */
     private void updateRatingBar(int rating) {
 
         // Referencias de las estrellas en el LinearLayout
@@ -398,6 +479,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Verifica el estado y procede a la actividad de progreso.
+     */
     private void checkAndProceedToProgress() {
         String pedidoId = temporaryData.getPedidoId();
         String conductorId = temporaryData.getConductorId();
@@ -411,9 +495,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         new DriverLocationController().fetchDriverLocation(this, new DriverLocationController.DriverLocationCallback() {
             @Override
             public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
-                // Calcular si hubo tardanza (mayor a 5 minutos)
-                long timeSinceRequest = System.currentTimeMillis() - temporaryData.getRequestTime();
-                int tardanza = (timeSinceRequest > 5 * 60 * 1000) ? 1 : 0; // 1 = tardanza, 0 = no tardanza
+                // Usa la variable global `tardanzaFlag` para determinar si hubo tardanza
+                int tardanza = tardanzaFlag; // 1 = tardanza, 0 = no tardanza
 
                 // Preparar y enviar los datos al controlador PedidoController
                 new PedidoController().marcarAbordo(WaitingActivity.this, pedidoId, conductorId, lat, lng, tardanza, new PedidoController.AbordoCallback() {
@@ -439,66 +522,65 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-    private void startPedidoStatusChecker() {
-        String pedidoId = temporaryData.getPedidoId();
 
-        if (pedidoId == null) {
-            showError("ID de pedido no disponible.");
-            return;
-        }
+    private void startPedidoStatusService() {
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        startService(serviceIntent);
+    }
 
-        pedidoStatusChecker = new Runnable() {
-            @Override
-            public void run() {
-                new PedidoStatusController().checkPedidoStatus(WaitingActivity.this, new PedidoStatusController.PedidoStatusCallback() {
-                    @Override
-                    public void onStatusReceived(String status, String message) {
-                        if ("CANCELADO".equalsIgnoreCase(status)) {
-                            // Detener verificaciones
-                            pedidoStatusHandler.removeCallbacks(pedidoStatusChecker);
+    private void registerPedidoStatusReceiver() {
+        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
+        registerReceiver(pedidoStatusReceiver, filter);
+    }
 
-                            // Limpiar TemporaryData
-                            temporaryData = TemporaryData.getInstance();
-                            temporaryData.clearData();
+    private final BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = intent.getStringExtra("status");
+            String message = intent.getStringExtra("message");
 
-                            // Redirigir a MapActivity
-                            Intent intent = new Intent(WaitingActivity.this, MapActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
-                            startActivity(intent);
-                            finish(); // Finalizar la WaitingActivity
+            if ("CANCELADO".equalsIgnoreCase(status)) {
+                // Detener el servicio
+                stopPedidoStatusService();
 
-                            // Mostrar un mensaje de cancelación
-                            Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
+                // Limpiar TemporaryData
+                temporaryData = TemporaryData.getInstance();
+                temporaryData.clearData();
 
-                        } else if ("EN_ESPERA".equalsIgnoreCase(status)) {
-                            // Detener verificaciones
-                            pedidoStatusHandler.removeCallbacks(pedidoStatusChecker);
+                // Redirigir a MapActivity
+                Intent redirectIntent = new Intent(WaitingActivity.this, MapActivity.class);
+                redirectIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(redirectIntent);
+                finish();
 
-                            // Mostrar un mensaje indicando la búsqueda de un nuevo conductor
-                            Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
+                // Mostrar mensaje
+                Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
+            } else if ("EN_ESPERA".equalsIgnoreCase(status)) {
 
-                            // Redirigir a SearchingActivity
-                            Intent intent = new Intent(WaitingActivity.this, SearchingActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
-                            startActivity(intent);
-                            finish(); // Finalizar la WaitingActivity
-                        } else {
-                            // Continuar verificando si no está cancelado o en espera
-                            pedidoStatusHandler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
-                        }
-                    }
+                // Mostrar mensaje indicando búsqueda de un nuevo conductor
+                Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
 
-                    @Override
-                    public void onError(String errorMessage) {
-                        // En caso de error, continuar verificando
-                        pedidoStatusHandler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
-                    }
-                });
+                // Redirigir a SearchingActivity
+                Intent redirectIntent = new Intent(WaitingActivity.this, SearchingActivity.class);
+                redirectIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(redirectIntent);
+                finish();
+            } else if ("ACEPTADO".equalsIgnoreCase(status)) {
+                // Estado ACEPTADO; puedes manejarlo según sea necesario
+                Toast.makeText(WaitingActivity.this, "Pedido aceptado. Conductor en camino.", Toast.LENGTH_SHORT).show();
+            } else if ("FINALIZADO".equalsIgnoreCase(status)) {
+                // Detener el servicio
+                stopPedidoStatusService();
+
+                // Manejar lógica de finalización si es necesario
+                Toast.makeText(WaitingActivity.this, "Pedido finalizado.", Toast.LENGTH_SHORT).show();
             }
-        };
+        }
+    };
 
-        // Ejecutar la verificación inicial
-        pedidoStatusHandler.post(pedidoStatusChecker);
+    private void stopPedidoStatusService() {
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        stopService(serviceIntent);
     }
 
     /**
@@ -538,6 +620,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
+    /**
+     * Inicializa el BottomSheet para mostrar la información del viaje.
+     */
     private void initializeBottomSheet() {
         View bottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
@@ -549,7 +634,26 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        locationUpdateHandler.removeCallbacksAndMessages(null);
-        pedidoStatusHandler.removeCallbacksAndMessages(null); // Detener el handler al destruir la actividad
+
+        // Detener actualizaciones de ubicación
+        if (locationUpdateHandler != null) {
+            locationUpdateHandler.removeCallbacksAndMessages(null);
+        }
+
+        // Detener verificaciones de estado del pedido
+        if (pedidoStatusHandler != null) {
+            pedidoStatusHandler.removeCallbacksAndMessages(null);
+        }
+
+        // Desregistrar el BroadcastReceiver si está registrado
+        try {
+            unregisterReceiver(pedidoStatusReceiver);
+        } catch (IllegalArgumentException e) {
+            // Manejar el caso en que el receiver no esté registrado para evitar excepciones
+            Log.w("WaitingActivity", "BroadcastReceiver no estaba registrado: " + e.getMessage());
+        }
+
+        // Detener el servicio de estado del pedido
+        stopPedidoStatusService();
     }
 }

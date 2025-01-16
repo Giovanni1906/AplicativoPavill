@@ -3,7 +3,10 @@ package com.example.Pavill.view;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Spannable;
@@ -22,23 +25,18 @@ import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.PublicidadController;
+import com.example.Pavill.services.PedidoStatusService;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.bumptech.glide.Glide;
 
 public class SearchingActivity extends AppCompatActivity {
 
-    private double originLat;
-    private double originLng;
-    private double destinationLat;
-    private double destinationLng;
     private TextView textViewTimer;
     private Handler timerHandler = new Handler();
     private long startTime;
     private boolean isCancelled = false;
     private LoadingDialog loadingDialog;
-    private Runnable pedidoStatusChecker;
-
     private TemporaryData temporaryData;
 
     @Override
@@ -49,41 +47,41 @@ public class SearchingActivity extends AppCompatActivity {
         loadingDialog = new LoadingDialog(this);
         initializeUI();
         startTimer();
-        loadGifLoader();
-        startCheckingPedidoStatus();
 
+        startPedidoStatusService();
+    }
+
+    /**
+     * Inicia el servicio PedidoStatusService.
+     */
+    private void startPedidoStatusService() {
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        startService(serviceIntent);
+    }
+
+    /**
+     * Inicializa la interfaz de usuario.
+     */
+    private void initializeUI() {
+        textViewTimer = findViewById(R.id.textViewTimer);
+        Button btnCancelSearch = findViewById(R.id.btnCancelSearch);
+        btnCancelSearch.setOnClickListener(v -> cancelSearch());
+        loadGifLoader();
         // Cargar la publicidad
         loadPublicidad();
     }
 
-    private void initializeUI() {
-        textViewTimer = findViewById(R.id.textViewTimer);
-
-        Button btnCancelSearch = findViewById(R.id.btnCancelSearch);
-        btnCancelSearch.setOnClickListener(v -> cancelSearch());
-
-        LatLng originCoordinates;
-        LatLng destinationCoordinates;
-
-        // Obtener datos desde TemporaryData
-        TemporaryData tempData = TemporaryData.getInstance();
-
-        originCoordinates = tempData.getOriginCoordinates();
-        destinationCoordinates = tempData.getDestinationCoordinates();
-
-        if (originCoordinates != null && destinationCoordinates != null) {
-             originLat = originCoordinates.latitude;
-             originLng = originCoordinates.longitude;
-             destinationLat = destinationCoordinates.latitude;
-             destinationLng = destinationCoordinates.longitude;
-        }
-    }
-
+    /**
+     * Inicia el temporizador.
+     */
     private void startTimer() {
         startTime = System.currentTimeMillis();
         timerHandler.post(timerRunnable);
     }
 
+    /**
+     * Runnable para actualizar el temporizador.
+     */
     private final Runnable timerRunnable = new Runnable() {
         @Override
         public void run() {
@@ -94,6 +92,9 @@ public class SearchingActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * Actualiza el temporizador en la interfaz de usuario.
+     */
     private void updateTimer() {
         long millis = System.currentTimeMillis() - startTime;
         int seconds = (int) (millis / 1000);
@@ -102,90 +103,58 @@ public class SearchingActivity extends AppCompatActivity {
         textViewTimer.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
-    private void startCheckingPedidoStatus() {
-        final Handler handler = new Handler();
+    /**
+     * Receptor de cambios de estado del pedido.
+     */
+    private BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = intent.getStringExtra("status");
 
-        // Define el Runnable
-        pedidoStatusChecker = new Runnable() {
-            @Override
-            public void run() {
-                if (!isCancelled) {
-                    new PedidoStatusController().checkPedidoStatus(SearchingActivity.this, new PedidoStatusController.PedidoStatusCallback() {
-                        @Override
-                        public void onStatusReceived(String status, String message) {
-                            switch (status) {
-                                case "P005": // Pedido aprobado
-                                    navigateToWaitingActivity();
-                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
-                                    break;
+            switch (status) {
+                case "ACEPTADO": // Pedido aprobado
+                    navigateToWaitingActivity();
+                    break;
 
-                                case "CANCELADO": // Pedido cancelado
-                                    isCancelled = true;
-                                    timerHandler.removeCallbacks(timerRunnable); // Detiene el cronómetro
-                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
+                case "CANCELADO": // Pedido cancelado
+                    cancelProcess();
+                    break;
 
-                                    // limpiar TemporaryData
-                                    temporaryData = TemporaryData.getInstance();
-                                    temporaryData.clearData();
-
-                                    // Crear un intent para regresar al MapActivity
-                                    Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
-                                    startActivity(intent);
-                                    finish(); // Finalizar
-
-                                    showCancelledMessage(); // Muestra un mensaje de cancelación
-                                    break;
-
-                                case "EN_ESPERA": // Pedido en espera
-                                    showSearchingMessage();
-                                    handler.postDelayed(pedidoStatusChecker, 3000); // Reintentar después de 3 segundos
-                                    break;
-
-                                default: // Respuesta inesperada
-                                    isCancelled = true;
-                                    timerHandler.removeCallbacks(timerRunnable); // Detiene el cronómetro
-                                    handler.removeCallbacksAndMessages(null); // Detiene el ciclo de verificación
-                                    showCancelledMessage(); // Muestra un mensaje de cancelación
-                                    break;
-                            }
-                        }
-
-                        @Override
-                        public void onError(String errorMessage) {
-                            // Maneja errores pero continúa intentando
-                            handler.postDelayed(pedidoStatusChecker, 3000);
-                        }
-                    });
-                }
+                default:
+                    Toast.makeText(SearchingActivity.this, "Estado desconocido", Toast.LENGTH_SHORT).show();
+                    break;
             }
-        };
+        }
+    };
 
-        // Inicia el primer chequeo después de 3 segundos
-        handler.postDelayed(pedidoStatusChecker, 3000);
+    /**
+     * Registra el receptor de cambios de estado del pedido.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
+        registerReceiver(pedidoStatusReceiver, filter);
     }
 
+    /**
+     * Desregistra el receptor de cambios de estado del pedido.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(pedidoStatusReceiver);
+    }
 
+    /**
+     * Operación de cancelar pedido manual.
+     */
     private void cancelSearch() {
-        isCancelled = true;
-        timerHandler.removeCallbacks(timerRunnable);
-
         loadingDialog.show();
         new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
             @Override
             public void onSuccess(String message) {
-                loadingDialog.dismiss();
-                Toast.makeText(SearchingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
-
-                // limpiar TemporaryData
-                temporaryData = TemporaryData.getInstance();
-                temporaryData.clearData();
-
-                // Crear un intent para regresar al MapActivity
-                Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
-                startActivity(intent);
-                finish(); // Finalizar
+                cancelProcess();
             }
 
             @Override
@@ -196,6 +165,25 @@ public class SearchingActivity extends AppCompatActivity {
         });
     }
 
+    private void cancelProcess() {
+        isCancelled = true;
+        timerHandler.removeCallbacks(timerRunnable);
+        loadingDialog.dismiss();
+        showCancelledMessage();
+        // limpiar TemporaryData
+        temporaryData = TemporaryData.getInstance();
+        temporaryData.clearData();
+
+        // Crear un intent para regresar al MapActivity
+        Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
+        startActivity(intent);
+        finish(); // Finalizar
+    }
+
+    /**
+     * Navega a la actividad WaitingActivity.
+     */
     private void navigateToWaitingActivity() {
         if (!isCancelled) {
             isCancelled = true;
@@ -207,18 +195,18 @@ public class SearchingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Muestra un mensaje de cancelación.
+     */
     private void showCancelledMessage() {
         runOnUiThread(() -> {
             Toast.makeText(this, "El pedido fue cancelado", Toast.LENGTH_LONG).show();
         });
     }
 
-    private void showSearchingMessage() {
-        runOnUiThread(() -> {
-            Toast.makeText(this, "Seguimos buscando...", Toast.LENGTH_LONG).show();
-        });
-    }
-
+    /**
+     * Maneja el botón de retroceso.
+     */
     @Override
     public void onBackPressed() {
         new AlertDialog.Builder(this)
@@ -232,6 +220,9 @@ public class SearchingActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Carga la publicidad de la aplicación.
+     */
     private void loadPublicidad() {
         ImageView adImageView = findViewById(R.id.ad_image);
 
@@ -257,7 +248,10 @@ public class SearchingActivity extends AppCompatActivity {
 
         });
     }
-    // para agregar gif de carga al layout
+
+    /**
+     * Carga un GIF como un loader.
+     */
     private void loadGifLoader() {
         ImageView gifLoader = findViewById(R.id.gifLoader);
         Glide.with(this)

@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-            android:background="?android:attr/windowBackground"
+            android:background="@drawable/rounded_top_corners"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -222,7 +222,7 @@
                 android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:textColor="@color/alertColor"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:textSize="14sp"
                 android:layout_gravity="center"
                 app:layout_constraintStart_toStartOf="parent"

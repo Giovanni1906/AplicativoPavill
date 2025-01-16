@@ -32,7 +32,7 @@
                 app:cardBackgroundColor="@color/secondaryColor">
                 <ImageView
                     style="@style/FloatingImageViewStyle"
-                    android:src="@drawable/ic_my_location"
+                    android:src="@drawable/ic_my_location_active"
                     app:tint="@color/quantum_white_100"/>
             </androidx.cardview.widget.CardView>
 
@@ -46,14 +46,18 @@
                 android:visibility="gone" />
 
             <!-- Icono central del marcador -->
-            <ImageView
-                android:id="@+id/icon_center_marker"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_map_pin"
-                android:layout_centerInParent="true"
-                android:translationY="-15dp"
-            android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/icon_center_marker"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_map_pin"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"
+                    android:translationY="-18dp"
+                    android:scaleType="centerInside"
+                    />
+
 
             <include
                 layout="@layout/menu_button_layout" />
@@ -66,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-            android:background="?android:attr/windowBackground"
+            android:background="@drawable/rounded_top_corners"
             android:orientation="vertical"
             android:gravity="center"
             android:padding="16dp">

@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,6 +20,8 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -28,6 +32,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -241,12 +246,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Determinar el color según si es origen o destino
         int color = isUseMapForOrigin
-                ? ContextCompat.getColor(this, R.color.primaryColor)
+                ? ContextCompat.getColor(this, R.color.textColor)
                 : ContextCompat.getColor(this, R.color.secondaryColor);
 
         // Cambiar el color del marcador antes de hacerlo visible
         if (iconCenterMarker instanceof ImageView) {
             iconCenterMarker.setColorFilter(color); // Aplicar color al ícono
+            // Agregar una ligera sombra al marcador central
+
+            iconCenterMarker.setLayerType(View.LAYER_TYPE_SOFTWARE, null); // Habilita sombras en software
+            Paint paint = new Paint();
+            paint.setShadowLayer(40, 0, 0, Color.BLACK); // Radio, desplazamiento X, desplazamiento Y, color de sombra
+            iconCenterMarker.setLayerPaint(paint);
+
         } else {
             Log.e("MapActivity", "iconCenterMarker no es un ImageView.");
         }
@@ -257,6 +269,40 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         iconShadow.setVisibility(View.VISIBLE);
         iconCenterMarker.setVisibility(View.VISIBLE);
         btnConfirmLocation.setText(isForOrigin ? "Marcar como Origen" : "Marcar como Destino");
+
+        // Iniciar animación de ondas en iconShadow
+        animateShadow(iconShadow);
+    }
+
+    /**
+     * Aplica una animación de ondas al iconShadow.
+     */
+    private void animateShadow(View iconShadow) {
+        // Crear animadores para escala y opacidad
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(iconShadow, "scaleX", 1f, 1.5f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(iconShadow, "scaleY", 1f, 1.5f);
+        ObjectAnimator alpha = ObjectAnimator.ofFloat(iconShadow, "alpha", 1f, 0f);
+
+        // Configurar duración y repetición en cada ObjectAnimator
+        scaleX.setDuration(1000);
+        scaleY.setDuration(1000);
+        alpha.setDuration(1000);
+
+        scaleX.setRepeatCount(ObjectAnimator.INFINITE);
+        scaleY.setRepeatCount(ObjectAnimator.INFINITE);
+        alpha.setRepeatCount(ObjectAnimator.INFINITE);
+
+        scaleX.setRepeatMode(ObjectAnimator.RESTART);
+        scaleY.setRepeatMode(ObjectAnimator.RESTART);
+        alpha.setRepeatMode(ObjectAnimator.RESTART);
+
+        // Combinar animaciones en un AnimatorSet
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(scaleX, scaleY, alpha);
+        animatorSet.setInterpolator(new LinearInterpolator());
+
+        // Iniciar animación
+        animatorSet.start();
     }
 
 
@@ -348,7 +394,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.d("Route", "Ruta trazada con éxito: " + distanceText + ", " + durationText);
                     TemporaryData.getInstance().setDistance(distanceText);
                     TemporaryData.getInstance().setDuration(durationText);
-                    TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "%.2f soles", estimatedCost));
+                    TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", estimatedCost));
                 }
 
                 @Override
@@ -473,6 +519,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         if (checkLocationPermission()) {
             mMap.setMyLocationEnabled(true);
 
+            // Ocultar el botón de "ir a mi ubicación actual"
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
             // Configurar ClusterManager
             setupClusterManager();
 
@@ -554,6 +603,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Solicita el permiso de ubicación al usuario
+     */
     private void requestLocationPermission() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
     }
@@ -1113,6 +1165,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
+    /**
+     * Actualiza la interfaz de usuario según el estado de entrada
+     */
     private void updateUIForActiveInput() {
         // Mostrar/ocultar layout_buttons_origin y layout_buttons_destination
         LinearLayout layoutButtonsOrigin = findViewById(R.id.layout_buttons_origin);

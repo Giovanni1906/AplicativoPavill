@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-            android:background="?android:attr/windowBackground"
+            android:background="@drawable/rounded_top_corners"
             android:orientation="vertical"
             android:padding="16dp">
 

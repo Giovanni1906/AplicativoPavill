@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -35,6 +34,12 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs"/>
 
+        <!-- Declaración del PedidoStatusService -->
+        <service
+            android:name=".services.PedidoStatusService"
+            android:exported="false" />
+
+
         <!-- Declaración de MainActivity -->
         <activity
             android:name=".view.MainActivity"
@@ -45,10 +50,10 @@
             </intent-filter>
         </activity>
 
+        <!-- Declaración de MapActivity -->
         <activity
             android:name=".view.MapActivity"
             android:windowSoftInputMode="stateHidden|adjustResize">
-            <!-- Otras configuraciones de la actividad -->
         </activity>
 
         <!-- Declaración de otras actividades -->
