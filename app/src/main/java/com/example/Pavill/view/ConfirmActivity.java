@@ -92,13 +92,13 @@ public class ConfirmActivity extends AppCompatActivity {
 
             new RequestTaxiController().requestTaxi(
                     this,
-                    originAddress,
+                    reference, // el "reference" vendria a ser la dirección exacta
                     destinationAddress,
                     originCoordinates.latitude,
                     originCoordinates.longitude,
                     destinationCoordinates.latitude,
                     destinationCoordinates.longitude,
-                    reference,
+                    originAddress, // el "originAddress" se desplazaría a ser la referencia
                     new RequestTaxiController.RequestTaxiCallback() {
                         @Override
                         public void onSuccess(String message) {

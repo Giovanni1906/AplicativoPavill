@@ -1,7 +1,10 @@
 package com.example.Pavill.view;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +18,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.Pavill.R;
 import com.example.Pavill.components.BitmapUtils;
+import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.ProgressController;
 import com.example.Pavill.controller.RouteController;
@@ -40,15 +44,15 @@ import java.util.List;
 
 public class ProgressActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private LatLng originCoordinates;
-    private LatLng destinationCoordinates;
-    private GoogleMap mMap;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private Marker currentLocationMarker;
-    private ProgressController progressController;
-    private BottomSheetBehavior<View> bottomSheetBehavior;
-    private Polyline routePolyline;
+    private LatLng originCoordinates; // Coordenadas de origen
+    private LatLng destinationCoordinates; // Coordenadas de destino
+    private GoogleMap mMap; // Mapa de Google
+    private FusedLocationProviderClient fusedLocationClient; // Cliente de ubicación
+    private LocationCallback locationCallback;// Callback para actualizaciones dinámicas de ubicación
+    private Marker currentLocationMarker; // Marcador para la ubicación actual
+    private ProgressController progressController; // Controlador de progreso
+    private BottomSheetBehavior<View> bottomSheetBehavior; // Manejador del BottomSheet
+    private Polyline routePolyline; // Polyline para la ruta
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,13 +64,73 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         initializeControllers();
         initializeButtons();
         initializeBottomSheet();
+
+        // Asegúrate de iniciar el servicio PedidoStatusService
+        PedidoServiceHelper.startPedidoStatusService(this);
     }
+
+    /**
+     * Registra el BroadcastReceiver para recibir actualizaciones del estado del pedido.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
+        registerReceiver(pedidoStatusReceiver, filter);
+    }
+
+    /**
+     * Desregistra el BroadcastReceiver cuando la actividad se pausa.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        unregisterReceiver(pedidoStatusReceiver);
+    }
+
+    /**
+     * BroadcastReceiver para recibir actualizaciones del estado del pedido.
+     */
+    private final BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = intent.getStringExtra("status");
+            String message = intent.getStringExtra("message");
+
+            if (status == null) return;
+
+            switch (status) {
+                case "CANCELADO":
+                    Toast.makeText(ProgressActivity.this, "El pedido fue cancelado.", Toast.LENGTH_SHORT).show();
+                    Intent cancelIntent = new Intent(ProgressActivity.this, MapActivity.class);
+                    cancelIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(cancelIntent);
+                    finish();
+                    break;
+
+                case "EN_ESPERA":
+                    Toast.makeText(ProgressActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
+                    Intent searchIntent = new Intent(ProgressActivity.this, SearchingActivity.class);
+                    searchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(searchIntent);
+                    finish();
+                    break;
+
+                default:
+                    Log.d("ProgressActivity", "Estado del pedido: " + status + " - " + message);
+                    break;
+            }
+        }
+    };
+
 
     /**
      * Inicializa los datos necesarios para la actividad.
      */
     private void initializeData() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // Inicializar el cliente de ubicación
         TemporaryData temporaryData = TemporaryData.getInstance();
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
@@ -116,24 +180,95 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         bottomSheetBehavior.setDraggable(true); // Permitir arrastrar el BottomSheet
     }
 
+    /**
+     * Se utiliza para inicializar el mapa
+     * @param googleMap Mapa de Google
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
         if (checkPermission()) {
-            mMap.setMyLocationEnabled(false);
+            mMap.setMyLocationEnabled(false); // Deshabilitamos la ubicación predeterminada de Google
         } else {
             requestLocationPermission();
         }
 
-        addMarkers();
-        fetchAndDrawRoute();
+        // Dibujar la ruta estática
+        drawStaticRoute();
+
+        // Agregar marcadores personalizados para origen y destino
+        addCustomMarkers();
+
+        // Configurar la ubicación dinámica con el ícono personalizado
         startDynamicLocationUpdates();
     }
 
     /**
+     * Dibuja la ruta estática entre el origen y el destino.
+     */
+    private void drawStaticRoute() {
+        if (originCoordinates == null || destinationCoordinates == null) {
+            Toast.makeText(this, "Origen o destino no definido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Usar el controlador de rutas para obtener la ruta
+        RouteController routeController = new RouteController(this);
+        routeController.fetchRoute(originCoordinates, destinationCoordinates, null, new RouteController.RouteCallback() {
+            @Override
+            public void onRouteSuccess(List<LatLng> route, String distanceText, String durationText, double estimatedCost) {
+                // Remover cualquier Polyline existente
+                if (routePolyline != null) {
+                    routePolyline.remove();
+                }
+
+                // Dibujar la ruta en el mapa
+                routePolyline = mMap.addPolyline(new PolylineOptions()
+                        .addAll(route)
+                        .width(10)
+                        .color(getResources().getColor(R.color.primaryColor)) // Color primario para la ruta
+                        .geodesic(true));
+
+                // Ajustar la cámara para mostrar la ruta completa
+                LatLngBounds bounds = new LatLngBounds.Builder()
+                        .include(originCoordinates)
+                        .include(destinationCoordinates)
+                        .build();
+                int padding = 200; // Padding en píxeles
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+            }
+
+            @Override
+            public void onRouteError(String errorMessage) {
+                Toast.makeText(ProgressActivity.this, "Error al obtener la ruta: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Agrega marcadores personalizados para el origen y el destino.
+     */
+    private void addCustomMarkers() {
+        if (originCoordinates != null) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(originCoordinates)
+                    .title("Origen")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))); // Color para el origen
+        }
+
+        if (destinationCoordinates != null) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(destinationCoordinates)
+                    .title("Destino")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))); // Color para el destino
+        }
+    }
+
+
+    /**
      * Verifica si se han otorgado los permisos de ubicación.
-     * @return
+     * @return true si se han otorgado, false en caso contrario
      */
     private boolean checkPermission() {
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -148,8 +283,8 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
 
     /**
      * Comparte la ubicación actual con WhatsApp.
-     * @param destinationCoordinates
-     * @param btnActivateUbication
+     * @param destinationCoordinates Coordenadas de destino
+     * @param btnActivateUbication Botón para compartir ubicación
      */
     private void ShareLocation(LatLng destinationCoordinates, AppCompatButton btnActivateUbication){
 
@@ -200,59 +335,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     /**
-     * Añade marcadores para el origen y destino.
-     */
-    private void addMarkers() {
-        mMap.addMarker(new MarkerOptions()
-                .position(destinationCoordinates)
-                .title("Ubicación de destino")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-
-        // Ajustar la cámara para mostrar ambos puntos
-        LatLngBounds bounds = new LatLngBounds.Builder()
-                .include(originCoordinates)
-                .include(destinationCoordinates)
-                .build();
-
-        int padding = 200; // Padding en píxeles
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
-    }
-
-    /**
-     * Obtiene la ruta desde la API de Google Directions y la dibuja en el mapa.
-     */
-    private void fetchAndDrawRoute() {
-        if (originCoordinates == null || destinationCoordinates == null) {
-            Toast.makeText(this, "Origen o destino no definido.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        RouteController routeController = new RouteController(this);
-        routeController.fetchRoute(originCoordinates, destinationCoordinates, null, new RouteController.RouteCallback() {
-            @Override
-            public void onRouteSuccess(List<LatLng> route, String distanceText, String durationText, double estimatedCost) {
-                // Remover la polyline existente, si hay
-                if (routePolyline != null) {
-                    routePolyline.remove();
-                }
-
-                // Crear y dibujar la nueva polyline en el mapa
-                routePolyline = mMap.addPolyline(new PolylineOptions()
-                        .addAll(route)
-                        .width(10)
-                        .color(getResources().getColor(R.color.secondaryColor))
-                        .geodesic(true));
-            }
-
-            @Override
-            public void onRouteError(String errorMessage) {
-                Toast.makeText(ProgressActivity.this, "Error al obtener la ruta: " + errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
-     * Configura el inicio de actualizaciones dinámicas de ubicación.
+     * Ubicación en tiempo real con icono personalizado
      */
     private void startDynamicLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create();
@@ -268,20 +351,17 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
                 LatLng currentLatLng = new LatLng(locationResult.getLastLocation().getLatitude(),
                         locationResult.getLastLocation().getLongitude());
 
-                // Actualizar o crear marcador de ubicación actual
+                // Actualizar o crear marcador dinámico para la ubicación actual
                 if (currentLocationMarker == null) {
                     currentLocationMarker = mMap.addMarker(new MarkerOptions()
                             .position(currentLatLng)
-                            .title("Tu ubicación actual")
-                            .icon(BitmapUtils.getProportionalBitmap(ProgressActivity.this, R.drawable.ic_car, 32)));
+                            .title("Ubicación actual")
+                            .icon(BitmapUtils.getProportionalBitmap(ProgressActivity.this, R.drawable.ic_car, 32))); // Ícono personalizado
                 } else {
                     currentLocationMarker.setPosition(currentLatLng);
                 }
 
-                // Dibujar la línea de la ruta desde la ubicación actual al destino
-                updateRoutePolyline(currentLatLng, destinationCoordinates);
-
-                // Centrar la cámara opcionalmente
+                // Centrar la cámara en la ubicación actual
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
             }
         };
@@ -291,36 +371,5 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
-    }
-
-    /**
-     * Actualiza la Polyline que dibuja la ruta desde la ubicación actual al destino.
-     *
-     * @param currentLatLng La ubicación actual del usuario.
-     * @param destinationLatLng La ubicación de destino.
-     */
-    private void updateRoutePolyline(LatLng currentLatLng, LatLng destinationLatLng) {
-        if (routePolyline != null) {
-            routePolyline.remove(); // Eliminar la línea anterior para evitar duplicados
-        }
-
-        // Usar el controlador de rutas para obtener la nueva ruta
-        RouteController routeController = new RouteController(this);
-        routeController.fetchRoute(currentLatLng, destinationLatLng, null, new RouteController.RouteCallback() {
-            @Override
-            public void onRouteSuccess(List<LatLng> route, String distanceText, String durationText, double estimatedCost) {
-                // Dibujar la nueva Polyline
-                routePolyline = mMap.addPolyline(new PolylineOptions()
-                        .addAll(route)
-                        .width(10)
-                        .color(getResources().getColor(R.color.secondaryColor))
-                        .geodesic(true));
-            }
-
-            @Override
-            public void onRouteError(String errorMessage) {
-                Toast.makeText(ProgressActivity.this, "Error al obtener la ruta: " + errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }

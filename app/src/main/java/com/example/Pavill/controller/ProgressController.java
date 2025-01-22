@@ -21,11 +21,17 @@ public class ProgressController {
 
     private Context context;
 
+    /**
+     * Constructor de la clase ProgressController.
+     * @param context Contexto de la actividad actual.
+     */
     public ProgressController(Context context) {
         this.context = context;
     }
 
-    // Método para finalizar el viaje
+    /**
+     * Finaliza el viaje actual.
+     */
     public void finishTravel() {
         // Obtener datos necesarios desde TemporaryData
         TemporaryData tempData = TemporaryData.getInstance();
@@ -75,43 +81,51 @@ public class ProgressController {
     }
 
 
-    // Manejar las distintas respuestas del servidor
+    /**
+     * Maneja la respuesta del servidor para finalizar el viaje.
+     * @param respuesta Respuesta del servidor.
+     * @param jsonResponse Objeto JSON con la respuesta del servidor.
+     */
     private void handleResponse(String respuesta, JSONObject jsonResponse) {
         switch (respuesta) {
             case "L021": // Caso exitoso
                 showToast("Viaje finalizado correctamente.");
-                Log.e("ProgressController", "Pedido finalizado: " + respuesta);
-
-                redirectToRating();
+                Log.e("ProgressController", "Pedido finalizado: " + jsonResponse);
+                redirectToRating(); // Redirigir a la actividad de RatingActivity
                 break;
 
             case "L022": // Error al finalizar el pedido
                 showToast("Error al finalizar el pedido. Intente nuevamente.");
-                Log.e("ProgressController", "Pedido finalizado mal: " + respuesta);
+                Log.e("ProgressController", "Pedido finalizado mal: " + jsonResponse);
 
                 break;
 
             case "L023": // Error por falta de datos
                 showToast("Faltan datos para finalizar el viaje.");
-                Log.e("ProgressController", "Pedido finalizado mal, Sin datos: " + respuesta);
+                Log.e("ProgressController", "Pedido finalizado mal, Sin datos: " + jsonResponse);
 
                 break;
 
             default:
                 showToast("Respuesta desconocida del servidor: " + respuesta);
-                Log.e("ProgressController", "Pedido finalizado mal, servidor: " + respuesta);
+                Log.e("ProgressController", "Pedido finalizado mal, servidor: " + jsonResponse);
 
                 break;
         }
     }
 
-    // Mostrar mensaje Toast en la UI principal
+    /**
+     * Muestra un mensaje Toast en la actividad actual.
+     * @param message Mensaje a mostrar.
+     */
     private void showToast(String message) {
         // Necesario para ejecutar en el hilo principal
         ((ProgressActivity) context).runOnUiThread(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
     }
 
-    // Redirigir al usuario a la actividad de calificación
+    /**
+     * Redirige a la actividad de RatingActivity.
+     */
     private void redirectToRating() {
         Intent intent = new Intent(context, RatingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

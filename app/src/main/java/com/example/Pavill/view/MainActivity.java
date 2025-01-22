@@ -2,8 +2,13 @@ package com.example.Pavill.view;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.Pavill.R;
 import android.text.SpannableString;
@@ -18,6 +23,9 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Solicitar permiso de notificación
+        requestNotificationPermission();
+
         // Verificar si el usuario ya está logueado
         if (checkUserLoggedIn()) {
             Intent intent = new Intent(MainActivity.this, MapActivity.class);
@@ -26,6 +34,14 @@ public class MainActivity extends BaseActivity {
             return;
         }
 
+        // Inicializar la UI
+        initializeUI();
+    }
+
+    /**
+     * Inicializa la interfaz de usuario.
+     */
+    private void initializeUI(){
         // Estilizar el TextView "Pide un Pavill"
         TextView textView = findViewById(R.id.textViewPavill);
         String text = "Pide un Pavill.";
@@ -56,12 +72,49 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private long backPressedTime;
-    private Toast backToast;
-
-    // Verificar si el usuario está logueado utilizando SharedPreferences
+    /**
+     * Verificar si el usuario ya está logueado.
+     * @return true si el usuario está logueado, false de lo contrario.
+     */
     private boolean checkUserLoggedIn() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         return sharedPreferences.getBoolean("isLoggedIn", false);
     }
+
+    /**
+     * Maneja la respuesta de la solicitud de permisos.
+     * @param requestCode The request code passed in
+     * @param permissions The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     *     or {@link android.content.pm.PackageManager#PERMISSION_DENIED}. Never null.
+     *
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso otorgado. Puedes publicar notificaciones.
+                Log.d("Permission", "Permiso POST_NOTIFICATIONS otorgado");
+            } else {
+                // Permiso denegado. Notifica al usuario.
+                Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Solicitar permiso de notificación en versiones superiores a Android 13.
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 o superior
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+    }
+
+
 }

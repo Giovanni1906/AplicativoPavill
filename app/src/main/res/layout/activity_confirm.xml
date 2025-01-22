@@ -156,7 +156,7 @@
             <EditText
                 android:id="@+id/editReference"
                 style="@style/GeneralMultiEditTextStyle"
-                android:hint="Indicar una referencia*"
+                android:hint="Ingresar dirección exacta *"
                 android:inputType="text" />
         </LinearLayout>
 

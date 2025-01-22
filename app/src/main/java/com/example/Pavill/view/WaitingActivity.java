@@ -26,6 +26,8 @@ import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 import com.example.Pavill.components.CircularImageView;
 import com.example.Pavill.components.DistanceUtils;
+import com.example.Pavill.components.PedidoCancellationHelper;
+import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.components.BitmapUtils;
 import com.example.Pavill.controller.CancelRequestController;
@@ -70,7 +72,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private int tardanzaFlag = 0;
 
     private Handler pedidoStatusHandler = new Handler(); // Nuevo handler para verificar el estado del pedido
-    private Runnable pedidoStatusChecker; // Runnable para manejar las verificaciones
 
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
@@ -105,7 +106,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         loadConductorPhoto();
 
         // Inicia el servicio para verificar el estado del pedido
-        startPedidoStatusService();
+        PedidoServiceHelper.startPedidoStatusService(this);
+
 
         // Registra el BroadcastReceiver para escuchar actualizaciones del estado
         registerPedidoStatusReceiver();
@@ -384,7 +386,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     countdownHandler.postDelayed(this, 60 * 1000);
                 } else {
                     // Cuando el tiempo llega a 0
-                    estimatedTimeView.setText("¡El conductor ya debería estar aquí!");
                     estimatedTimeView.setTextColor(ContextCompat.getColor(WaitingActivity.this, R.color.alertColor));
 
                     // Marcar como tardanza
@@ -498,6 +499,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 // Usa la variable global `tardanzaFlag` para determinar si hubo tardanza
                 int tardanza = tardanzaFlag; // 1 = tardanza, 0 = no tardanza
 
+                PedidoServiceHelper.updateSubPedidoState(WaitingActivity.this, "A_BORDO");
+
                 // Preparar y enviar los datos al controlador PedidoController
                 new PedidoController().marcarAbordo(WaitingActivity.this, pedidoId, conductorId, lat, lng, tardanza, new PedidoController.AbordoCallback() {
                     @Override
@@ -522,12 +525,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-
-    private void startPedidoStatusService() {
-        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
-        startService(serviceIntent);
-    }
-
     private void registerPedidoStatusReceiver() {
         IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
         registerReceiver(pedidoStatusReceiver, filter);
@@ -540,19 +537,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             String message = intent.getStringExtra("message");
 
             if ("CANCELADO".equalsIgnoreCase(status)) {
-                // Detener el servicio
-                stopPedidoStatusService();
-
-                // Limpiar TemporaryData
-                temporaryData = TemporaryData.getInstance();
-                temporaryData.clearData();
-
-                // Redirigir a MapActivity
-                Intent redirectIntent = new Intent(WaitingActivity.this, MapActivity.class);
-                redirectIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(redirectIntent);
-                finish();
-
+                PedidoCancellationHelper.cancelProcess(WaitingActivity.this);
                 // Mostrar mensaje
                 Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
             } else if ("EN_ESPERA".equalsIgnoreCase(status)) {
@@ -566,11 +551,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 startActivity(redirectIntent);
                 finish();
             } else if ("ACEPTADO".equalsIgnoreCase(status)) {
-                // Estado ACEPTADO; puedes manejarlo según sea necesario
                 Toast.makeText(WaitingActivity.this, "Pedido aceptado. Conductor en camino.", Toast.LENGTH_SHORT).show();
             } else if ("FINALIZADO".equalsIgnoreCase(status)) {
                 // Detener el servicio
-                stopPedidoStatusService();
+                PedidoServiceHelper.stopPedidoStatusService(WaitingActivity.this);
 
                 // Manejar lógica de finalización si es necesario
                 Toast.makeText(WaitingActivity.this, "Pedido finalizado.", Toast.LENGTH_SHORT).show();
@@ -578,10 +562,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         }
     };
 
-    private void stopPedidoStatusService() {
-        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
-        stopService(serviceIntent);
-    }
 
     /**
      * Obtiene la foto del conductor y la guarda en TemporaryData.
@@ -652,8 +632,5 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             // Manejar el caso en que el receiver no esté registrado para evitar excepciones
             Log.w("WaitingActivity", "BroadcastReceiver no estaba registrado: " + e.getMessage());
         }
-
-        // Detener el servicio de estado del pedido
-        stopPedidoStatusService();
     }
 }

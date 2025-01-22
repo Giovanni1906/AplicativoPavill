@@ -161,6 +161,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Redirige a MapActivity.
+     */
     private void goToMapActivity() {
         Intent intent = new Intent(LoginActivity.this, MapActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -168,6 +171,9 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Redirige a HomeActivity.
+     */
     private void goToHomeActivity() {
         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         startActivity(intent);

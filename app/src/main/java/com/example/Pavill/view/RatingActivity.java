@@ -15,6 +15,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.PedidoCancellationHelper;
+import com.example.Pavill.components.PedidoServiceHelper;
+import com.example.Pavill.components.TemporaryData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -51,6 +54,11 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
         findViewById(R.id.btn_submit_rating).setOnClickListener(v -> {
             // Enviar la calificación y comentarios, luego regresar al MainActivity
             Toast.makeText(this, "Gracias por tu calificación", Toast.LENGTH_SHORT).show();
+
+            //Marcar viaje finalizado
+            PedidoServiceHelper.updateSubPedidoState(this, "Finalizado");
+            PedidoCancellationHelper.cancelProcess(this);
+            TemporaryData.getInstance().clearData();
 
             // Después de finalizar el viaje, redirigir a la MainActivity
             Intent intent = new Intent(this, MainActivity.class);

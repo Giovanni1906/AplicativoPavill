@@ -1,5 +1,6 @@
 package com.example.Pavill.view;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -7,11 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,6 +25,8 @@ import android.widget.Toast;
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.example.Pavill.R;
 import com.example.Pavill.components.LoadingDialog;
+import com.example.Pavill.components.PedidoCancellationHelper;
+import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
@@ -46,17 +52,13 @@ public class SearchingActivity extends AppCompatActivity {
 
         loadingDialog = new LoadingDialog(this);
         initializeUI();
-        startTimer();
+        startTimer(); // Iniciar el temporizador
 
-        startPedidoStatusService();
-    }
+        // Iniciar el servicio de seguimiento de pedidos
+        PedidoServiceHelper.startPedidoStatusService(this);
 
-    /**
-     * Inicia el servicio PedidoStatusService.
-     */
-    private void startPedidoStatusService() {
-        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
-        startService(serviceIntent);
+        // Solicitar permiso de notificación
+        requestNotificationPermission();
     }
 
     /**
@@ -117,11 +119,14 @@ public class SearchingActivity extends AppCompatActivity {
                     break;
 
                 case "CANCELADO": // Pedido cancelado
-                    cancelProcess();
+                    isCancelled = true;
+                    timerHandler.removeCallbacks(timerRunnable);
+                    loadingDialog.dismiss();
+                    PedidoCancellationHelper.cancelProcess(SearchingActivity.this);
                     break;
 
                 default:
-                    Toast.makeText(SearchingActivity.this, "Estado desconocido", Toast.LENGTH_SHORT).show();
+                    Log.d("SearchingActivity", "Desconocido o en espera.");
                     break;
             }
         }
@@ -154,7 +159,11 @@ public class SearchingActivity extends AppCompatActivity {
         new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
             @Override
             public void onSuccess(String message) {
-                cancelProcess();
+                isCancelled = true;
+                timerHandler.removeCallbacks(timerRunnable);
+                loadingDialog.dismiss();
+                PedidoCancellationHelper.cancelProcess(SearchingActivity.this);
+
             }
 
             @Override
@@ -163,22 +172,6 @@ public class SearchingActivity extends AppCompatActivity {
                 Toast.makeText(SearchingActivity.this, "Error al cancelar el pedido.", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void cancelProcess() {
-        isCancelled = true;
-        timerHandler.removeCallbacks(timerRunnable);
-        loadingDialog.dismiss();
-        showCancelledMessage();
-        // limpiar TemporaryData
-        temporaryData = TemporaryData.getInstance();
-        temporaryData.clearData();
-
-        // Crear un intent para regresar al MapActivity
-        Intent intent = new Intent(SearchingActivity.this, MapActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
-        startActivity(intent);
-        finish(); // Finalizar
     }
 
     /**
@@ -193,15 +186,6 @@ public class SearchingActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
-    }
-
-    /**
-     * Muestra un mensaje de cancelación.
-     */
-    private void showCancelledMessage() {
-        runOnUiThread(() -> {
-            Toast.makeText(this, "El pedido fue cancelado", Toast.LENGTH_LONG).show();
-        });
     }
 
     /**
@@ -258,6 +242,41 @@ public class SearchingActivity extends AppCompatActivity {
                 .asGif() // Especifica que quieres cargar un GIF
                 .load(R.drawable.loading) // Reemplaza con el recurso de tu GIF
                 .into(gifLoader);
+    }
+
+    /**
+     * Maneja la respuesta de la solicitud de permisos.
+     * @param requestCode The request code passed in
+     * @param permissions The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     *     or {@link android.content.pm.PackageManager#PERMISSION_DENIED}. Never null.
+     *
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso otorgado. Puedes publicar notificaciones.
+                Log.d("Permission", "Permiso POST_NOTIFICATIONS otorgado");
+            } else {
+                // Permiso denegado. Notifica al usuario.
+                Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Solicitar permiso de notificación en versiones superiores a Android 13.
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 o superior
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
     }
 
 }

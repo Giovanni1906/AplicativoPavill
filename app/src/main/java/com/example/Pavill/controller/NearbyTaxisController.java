@@ -56,9 +56,10 @@ public class NearbyTaxisController {
                                     try {
                                         JSONObject taxi = datos.getJSONObject(i);
 
+                                        Log.d("NearbyTaxisController", "Taxi recibido: " + taxi);
                                         double lat = taxi.optDouble("DestinoCoordenadaX", Double.NaN);
                                         double lng = taxi.optDouble("DestinoCoordenadaY", Double.NaN);
-                                        String nombre = taxi.optString("DestinoNombre", "Taxi cercano");
+                                        String nombre = (3 + (int) (Math.random() * 3)) + "✮";
 
                                         if (!Double.isNaN(lat) && !Double.isNaN(lng)) {
                                             MyClusterItem taxiMarker = new MyClusterItem(lat, lng, nombre, "Activo");

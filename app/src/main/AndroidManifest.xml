@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +38,7 @@
         <!-- Declaración del PedidoStatusService -->
         <service
             android:name=".services.PedidoStatusService"
+            android:foregroundServiceType="location"
             android:exported="false" />
 
 
