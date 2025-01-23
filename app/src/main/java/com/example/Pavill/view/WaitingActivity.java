@@ -551,7 +551,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 startActivity(redirectIntent);
                 finish();
             } else if ("ACEPTADO".equalsIgnoreCase(status)) {
-                Toast.makeText(WaitingActivity.this, "Pedido aceptado. Conductor en camino.", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(WaitingActivity.this, "Pedido aceptado. Conductor en camino.", Toast.LENGTH_SHORT).show();
+                Log.d("WaitingActivity", "Pedido aceptado. Conductor en camino.");
             } else if ("FINALIZADO".equalsIgnoreCase(status)) {
                 // Detener el servicio
                 PedidoServiceHelper.stopPedidoStatusService(WaitingActivity.this);

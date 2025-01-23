@@ -27,11 +27,7 @@ public class PedidoServiceHelper {
      */
     public static void startPedidoStatusService(Context context) {
         Intent serviceIntent = new Intent(context, PedidoStatusService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent); // Usa startForegroundService para Android 8+.
-        } else {
             context.startService(serviceIntent);
-        }
     }
 
     /**

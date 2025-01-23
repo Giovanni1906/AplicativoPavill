@@ -73,9 +73,11 @@ public class RouteController {
 
                             String distanceText = leg.getJSONObject("distance").getString("text");
                             String durationText = leg.getJSONObject("duration").getString("text");
+                            Log.d("RouteController", "distancia: " + distanceText);
+                            Log.d("RouteController", "kilometraje: " + durationText);
 
                             // Calcular costo estimado
-                            double estimatedCost = calculateEstimatedCost(durationText);
+                            double estimatedCost = calculateEstimatedCostKm(distanceText);
 
                             // Callback con los resultados
                             callback.onRouteSuccess(polylinePoints, distanceText, durationText, estimatedCost);
@@ -144,6 +146,26 @@ public class RouteController {
             estimatedCost = (10.0 / 10) * durationMinutes; // Tarifa base de 10 soles por 10 minutos
         } else {
             estimatedCost = (13.0 / 18) * durationMinutes; // Tarifa de 13 soles por 18 minutos
+        }
+
+        // Ajustar costo entre 6 y 20 soles
+        if (estimatedCost < 6.0) estimatedCost = 6.0;
+        if (estimatedCost > 20.0) estimatedCost = 20.0;
+
+        return Math.round(estimatedCost);
+    }
+
+    /**
+     * Calcula el costo estimado basado en el kilometraje.
+     */
+    private double calculateEstimatedCostKm(String durationText) {
+        double durationKm = Double.parseDouble(durationText.replace(" km", "").replace(" m", ""));
+        double estimatedCost;
+
+        if (durationKm <= 10) {
+            estimatedCost = (1.6) * durationKm; // Tarifa base 1.6 soles por km
+        } else {
+            estimatedCost = (1.5) * durationKm; // Tarifa de 1.5 soles por km
         }
 
         // Ajustar costo entre 6 y 20 soles

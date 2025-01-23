@@ -59,6 +59,8 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
             PedidoServiceHelper.updateSubPedidoState(this, "Finalizado");
             PedidoCancellationHelper.cancelProcess(this);
             TemporaryData.getInstance().clearData();
+            // Detener el servicio PedidoStatusService
+            PedidoServiceHelper.stopPedidoStatusService(this);
 
             // Después de finalizar el viaje, redirigir a la MainActivity
             Intent intent = new Intent(this, MainActivity.class);

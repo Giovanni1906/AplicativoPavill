@@ -7,16 +7,16 @@
         app:iconTint="?attr/colorOnSurface"
         app:titleTextColor="?attr/colorOnSurface"
         />
-    <item
-        android:id="@+id/nav_history"
-        android:title="Historial"
-        app:iconTint="?attr/colorOnSurface"
-        app:titleTextColor="?attr/colorOnSurface"/>
-    <item
-        android:id="@+id/nav_points"
-        android:title="Puntos Pavill"
-        app:iconTint="?attr/colorOnSurface"
-        app:titleTextColor="?attr/colorOnSurface"/>
+<!--    <item-->
+<!--        android:id="@+id/nav_history"-->
+<!--        android:title="Historial"-->
+<!--        app:iconTint="?attr/colorOnSurface"-->
+<!--        app:titleTextColor="?attr/colorOnSurface"/>-->
+<!--    <item-->
+<!--        android:id="@+id/nav_points"-->
+<!--        android:title="Puntos Pavill"-->
+<!--        app:iconTint="?attr/colorOnSurface"-->
+<!--        app:titleTextColor="?attr/colorOnSurface"/>-->
     <item
         android:id="@+id/nav_maps"
         android:title="Inicio"

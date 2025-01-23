@@ -106,7 +106,7 @@ public class MainActivity extends BaseActivity {
                         Log.d("Permission", "Permiso POST_NOTIFICATIONS otorgado");
                     } else {
                         // Permiso de notificaciones denegado
-                        Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
                     }
                 } else if (permission.equals(Manifest.permission.FOREGROUND_SERVICE)) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
@@ -114,7 +114,7 @@ public class MainActivity extends BaseActivity {
                         Log.d("Permission", "Permiso FOREGROUND_SERVICE otorgado");
                     } else {
                         // Permiso FOREGROUND_SERVICE denegado
-                        Toast.makeText(this, "Permiso para usar servicios en primer plano denegado.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "Permiso para usar servicios en primer plano denegado.", Toast.LENGTH_SHORT).show();
                     }
                 } else if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
@@ -122,7 +122,7 @@ public class MainActivity extends BaseActivity {
                         Log.d("Permission", "Permiso ACCESS_FINE_LOCATION otorgado");
                     } else {
                         // Permiso de ubicación precisa denegado
-                        Toast.makeText(this, "Permiso para acceder a ubicación precisa denegado.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "Permiso para acceder a ubicación precisa denegado.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }

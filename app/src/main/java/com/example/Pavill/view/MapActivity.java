@@ -40,6 +40,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.Pavill.R;
@@ -112,6 +113,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private FavoritesAdapter favoritesAdapter;
 
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
+
+    private static final String SHARED_PREFS_NAME = "PavillPrefs";
+    private static final String KEY_USER_NAME = "UserName";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -705,6 +709,16 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
 
         Button btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
+
+        // Obtener el TextView
+        TextView textViewName = findViewById(R.id.textViewName);
+
+        // Recuperar el nombre del usuario desde SharedPreferences
+        SharedPreferences sharedPreferences = this.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        String clienteNombre = sharedPreferences.getString("ClienteNombre", "cliente");
+
+        // Establecer el texto en el TextView
+        textViewName.setText("Hola, " + clienteNombre);
 
         // Inicializar adaptadores de sugerencias
         initializeSuggestionsAdapterOrigin();
