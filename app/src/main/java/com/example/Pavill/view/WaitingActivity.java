@@ -35,6 +35,7 @@ import com.example.Pavill.controller.DriverLocationController;
 import com.example.Pavill.controller.PedidoController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.RouteController;
+import com.example.Pavill.receiver.PedidoStatusReceiver;
 import com.example.Pavill.services.PedidoStatusService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -68,6 +69,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private String unidadCalificacion;
     private String conductorFoto;
 
+    private PedidoStatusReceiver pedidoStatusReceiver;
     // Variable global para indicar si está en tardanza (1 = tardanza, 0 = no tardanza)
     private int tardanzaFlag = 0;
 
@@ -530,38 +532,61 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         registerReceiver(pedidoStatusReceiver, filter);
     }
 
-    private final BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String status = intent.getStringExtra("status");
-            String message = intent.getStringExtra("message");
+    /**
+     * Registra el BroadcastReceiver para recibir actualizaciones del estado del pedido.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-            if ("CANCELADO".equalsIgnoreCase(status)) {
-                PedidoCancellationHelper.cancelProcess(WaitingActivity.this);
-                // Mostrar mensaje
-                Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
-            } else if ("EN_ESPERA".equalsIgnoreCase(status)) {
+        // Inicializa el PedidoStatusReceiver con un callback para manejar los cambios de estado
+        pedidoStatusReceiver = new PedidoStatusReceiver(status -> {
+            if (status == null) return;
 
-                // Mostrar mensaje indicando búsqueda de un nuevo conductor
-                Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
+            switch (status) {
+                case "CANCELADO":
+                    PedidoCancellationHelper.cancelProcess(WaitingActivity.this);
+                    Toast.makeText(WaitingActivity.this, "El pedido ha sido cancelado.", Toast.LENGTH_SHORT).show();
+                    break;
 
-                // Redirigir a SearchingActivity
-                Intent redirectIntent = new Intent(WaitingActivity.this, SearchingActivity.class);
-                redirectIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(redirectIntent);
-                finish();
-            } else if ("ACEPTADO".equalsIgnoreCase(status)) {
-                //Toast.makeText(WaitingActivity.this, "Pedido aceptado. Conductor en camino.", Toast.LENGTH_SHORT).show();
-                Log.d("WaitingActivity", "Pedido aceptado. Conductor en camino.");
-            } else if ("FINALIZADO".equalsIgnoreCase(status)) {
-                // Detener el servicio
-                PedidoServiceHelper.stopPedidoStatusService(WaitingActivity.this);
+                case "EN_ESPERA":
+                    Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
+                    Intent searchIntent = new Intent(WaitingActivity.this, SearchingActivity.class);
+                    searchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(searchIntent);
+                    finish();
+                    break;
 
-                // Manejar lógica de finalización si es necesario
-                Toast.makeText(WaitingActivity.this, "Pedido finalizado.", Toast.LENGTH_SHORT).show();
+                case "ACEPTADO":
+                    Log.d("WaitingActivity", "Pedido aceptado. Conductor en camino.");
+                    break;
+
+                case "FINALIZADO":
+                    PedidoServiceHelper.stopPedidoStatusService(WaitingActivity.this);
+                    Toast.makeText(WaitingActivity.this, "Pedido finalizado.", Toast.LENGTH_SHORT).show();
+                    break;
+
+                default:
+                    Log.d("WaitingActivity", "Estado desconocido: " + status);
+                    break;
             }
+        });
+
+        // Registra el receptor con el intent-filter
+        IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
+        registerReceiver(pedidoStatusReceiver, filter);
+    }
+
+    /**
+     * Desregistra el BroadcastReceiver cuando la actividad se pausa.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (pedidoStatusReceiver != null) {
+            unregisterReceiver(pedidoStatusReceiver);
         }
-    };
+    }
 
 
     /**

@@ -46,6 +46,10 @@
             android:exported="false"
             />
 
+        <receiver
+            android:name=".receiver.PedidoStatusReceiver"
+            android:enabled="true"
+            android:exported="false" />
 
         <!-- Declaración de MainActivity -->
         <activity

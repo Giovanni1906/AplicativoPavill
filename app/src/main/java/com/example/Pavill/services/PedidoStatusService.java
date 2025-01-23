@@ -22,10 +22,13 @@ public class PedidoStatusService extends Service {
     private String subEstadoAceptado = "ESPERA_CONDUCTOR"; // Subestado inicial predeterminado
     private String pedidoStatus = "EN_ESPERA"; // Estado inicial predeterminado
 
+    private boolean isServiceStopped = false; // Bandera para controlar la ejecución del servicio
+
     @Override
     public void onCreate() {
         super.onCreate();
         handler = new Handler();
+        isServiceStopped = false; // Asegúrate de reiniciar la bandera al crear el servicio
         startCheckingPedidoStatus();
         Log.d(TAG, "PedidoStatusService iniciado.");
     }
@@ -43,9 +46,7 @@ public class PedidoStatusService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (handler != null && statusChecker != null) {
-            handler.removeCallbacks(statusChecker);
-        }
+        stopStatusChecker(); // Detener el Runnable y limpiar el Handler
         Log.d(TAG, "PedidoStatusService destruido.");
     }
 
@@ -55,10 +56,15 @@ public class PedidoStatusService extends Service {
         return null;
     }
 
+    /**
+     * Inicia el chequeo periódico del estado del pedido.
+     */
     private void startCheckingPedidoStatus() {
         statusChecker = new Runnable() {
             @Override
             public void run() {
+                if (isServiceStopped) return; // No ejecutar si el servicio está detenido
+
                 new PedidoStatusController().checkPedidoStatus(PedidoStatusService.this, new PedidoStatusController.PedidoStatusCallback() {
                     @Override
                     public void onStatusReceived(String status, String message) {
@@ -84,15 +90,15 @@ public class PedidoStatusService extends Service {
 
                                     case "FINALIZADO":
                                         Log.d(TAG, "Subestado: FINALIZADO. Pedido completado.");
-                                        stopSelf(); // Finaliza el servicio
+                                        stopServiceAndBroadcast(); // Detener el servicio
                                         return;
                                 }
                                 break;
 
                             case "CANCELADO": // Pedido cancelado
                                 Log.d(TAG, "Estado: CANCELADO. El pedido ha sido cancelado.");
-                                stopSelf(); // Detener el servicio
-                                break;
+                                stopServiceAndBroadcast(); // Detener el servicio
+                                return;
 
                             default: // Estado desconocido
                                 Log.d(TAG, "Estado desconocido: " + status);
@@ -107,13 +113,15 @@ public class PedidoStatusService extends Service {
                         sendBroadcast(broadcastIntent);
 
                         // Continuar verificando mientras no sea cancelado o finalizado
-                        if (!status.equals("CANCELADO") && !status.equals("FINALIZADO")) {
+                        if (!isServiceStopped) {
                             handler.postDelayed(statusChecker, CHECK_INTERVAL);
                         }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
+                        if (isServiceStopped) return; // No procesar errores si el servicio está detenido
+
                         Log.e(TAG, "Error al verificar el estado del pedido: " + errorMessage);
                         handler.postDelayed(statusChecker, CHECK_INTERVAL);
                     }
@@ -122,6 +130,25 @@ public class PedidoStatusService extends Service {
         };
 
         handler.post(statusChecker); // Iniciar la primera ejecución
+    }
+
+    /**
+     * Detiene el servicio y limpia el `Handler` y el `Runnable`.
+     */
+    private void stopStatusChecker() {
+        isServiceStopped = true; // Actualiza la bandera para detener el Runnable
+        if (handler != null && statusChecker != null) {
+            handler.removeCallbacks(statusChecker); // Limpia todas las tareas pendientes en el Handler
+        }
+    }
+
+    /**
+     * Detiene el servicio de manera segura.
+     */
+    private void stopServiceAndBroadcast() {
+        stopStatusChecker(); // Detener el Runnable
+        stopSelf(); // Finalizar el servicio
+        Log.d(TAG, "PedidoStatusService detenido correctamente.");
     }
 
     private void showSearchingMessage() {

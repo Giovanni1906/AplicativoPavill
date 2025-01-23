@@ -32,6 +32,7 @@ import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.PedidoStatusController;
 import com.example.Pavill.controller.PublicidadController;
+import com.example.Pavill.receiver.PedidoStatusReceiver;
 import com.example.Pavill.services.PedidoStatusService;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -45,6 +46,8 @@ public class SearchingActivity extends AppCompatActivity {
     private boolean isCancelled = false;
     private LoadingDialog loadingDialog;
     private TemporaryData temporaryData;
+    private PedidoStatusReceiver pedidoStatusReceiver;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,13 +109,16 @@ public class SearchingActivity extends AppCompatActivity {
     }
 
     /**
-     * Receptor de cambios de estado del pedido.
+     * Registra el receptor de cambios de estado del pedido.
      */
-        private BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String status = intent.getStringExtra("status");
-            Log.d("SearchingActivity", "estado." + status);
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Inicializa el PedidoStatusReceiver con un callback para manejar los cambios de estado
+        pedidoStatusReceiver = new PedidoStatusReceiver(status -> {
+            Log.d("SearchingActivity", "Estado del pedido recibido: " + status);
+
             switch (status) {
                 case "ACEPTADO": // Pedido aprobado
                     navigateToWaitingActivity();
@@ -128,19 +134,13 @@ public class SearchingActivity extends AppCompatActivity {
                     break;
 
                 default:
-                    Log.d("SearchingActivity", "Desconocido o en espera.");
+                    Log.d("SearchingActivity", "Estado desconocido o en espera: " + status);
                     break;
             }
-        }
-    };
+        });
 
-    /**
-     * Registra el receptor de cambios de estado del pedido.
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
+        // Registra el receptor con el intent-filter
+        IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
         registerReceiver(pedidoStatusReceiver, filter);
     }
 
@@ -150,7 +150,9 @@ public class SearchingActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(pedidoStatusReceiver);
+        if (pedidoStatusReceiver != null) {
+            unregisterReceiver(pedidoStatusReceiver);
+        }
     }
 
     /**

@@ -22,6 +22,7 @@ import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.ProgressController;
 import com.example.Pavill.controller.RouteController;
+import com.example.Pavill.receiver.PedidoStatusReceiver;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -53,6 +54,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     private ProgressController progressController; // Controlador de progreso
     private BottomSheetBehavior<View> bottomSheetBehavior; // Manejador del BottomSheet
     private Polyline routePolyline; // Polyline para la ruta
+    private PedidoStatusReceiver pedidoStatusReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,29 +78,8 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onResume() {
         super.onResume();
 
-        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
-        registerReceiver(pedidoStatusReceiver, filter);
-    }
-
-    /**
-     * Desregistra el BroadcastReceiver cuando la actividad se pausa.
-     */
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        unregisterReceiver(pedidoStatusReceiver);
-    }
-
-    /**
-     * BroadcastReceiver para recibir actualizaciones del estado del pedido.
-     */
-    private final BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String status = intent.getStringExtra("status");
-            String message = intent.getStringExtra("message");
-
+        // Inicializa el PedidoStatusReceiver con un callback para manejar los cambios de estado
+        pedidoStatusReceiver = new PedidoStatusReceiver(status -> {
             if (status == null) return;
 
             switch (status) {
@@ -119,12 +100,26 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
                     break;
 
                 default:
-                    Log.d("ProgressActivity", "Estado del pedido: " + status + " - " + message);
+                    Log.d("ProgressActivity", "Estado del pedido: " + status);
                     break;
             }
-        }
-    };
+        });
 
+        // Registra el receptor con el intent-filter
+        IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
+        registerReceiver(pedidoStatusReceiver, filter);
+    }
+
+    /**
+     * Desregistra el BroadcastReceiver cuando la actividad se pausa.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (pedidoStatusReceiver != null) {
+            unregisterReceiver(pedidoStatusReceiver);
+        }
+    }
 
     /**
      * Inicializa los datos necesarios para la actividad.
