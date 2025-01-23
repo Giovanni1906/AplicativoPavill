@@ -3,6 +3,7 @@ package com.example.Pavill.view;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -60,7 +61,6 @@ public class SearchingActivity extends AppCompatActivity {
         // Solicitar permiso de notificación
         requestNotificationPermission();
     }
-
     /**
      * Inicializa la interfaz de usuario.
      */
@@ -108,14 +108,15 @@ public class SearchingActivity extends AppCompatActivity {
     /**
      * Receptor de cambios de estado del pedido.
      */
-    private BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
+        private BroadcastReceiver pedidoStatusReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String status = intent.getStringExtra("status");
-
+            Log.d("SearchingActivity", "estado." + status);
             switch (status) {
                 case "ACEPTADO": // Pedido aprobado
                     navigateToWaitingActivity();
+                    Log.d("SearchingActivity", "Pedido aceptado.");
                     break;
 
                 case "CANCELADO": // Pedido cancelado
@@ -123,6 +124,7 @@ public class SearchingActivity extends AppCompatActivity {
                     timerHandler.removeCallbacks(timerRunnable);
                     loadingDialog.dismiss();
                     PedidoCancellationHelper.cancelProcess(SearchingActivity.this);
+                    Log.d("SearchingActivity", "Pedido cancelado.");
                     break;
 
                 default:
@@ -181,9 +183,10 @@ public class SearchingActivity extends AppCompatActivity {
         if (!isCancelled) {
             isCancelled = true;
             timerHandler.removeCallbacks(timerRunnable);
-
+            Log.d("SearchingActivity", "intentando dirigir a waiting");
             Intent intent = new Intent(SearchingActivity.this, WaitingActivity.class);
             startActivity(intent);
+            Log.d("SearchingActivity", "dirigiendose a waiting");
             finish();
         }
     }
@@ -217,6 +220,7 @@ public class SearchingActivity extends AppCompatActivity {
                         .load(imageUrl)
                         .transform(new FitCenter()) // Ajustar la imagen
                         .into(adImageView);
+                        Log.d("SearchingActivity", "Publicidad cargada." + imageUrl);
             }
 
             @Override
@@ -258,12 +262,35 @@ public class SearchingActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso otorgado. Puedes publicar notificaciones.
-                Log.d("Permission", "Permiso POST_NOTIFICATIONS otorgado");
-            } else {
-                // Permiso denegado. Notifica al usuario.
-                Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(Manifest.permission.POST_NOTIFICATIONS)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        // Permiso de notificaciones otorgado
+                        Log.d("Permission", "Permiso POST_NOTIFICATIONS otorgado");
+                    } else {
+                        // Permiso de notificaciones denegado
+                        Toast.makeText(this, "Permiso para publicar notificaciones denegado.", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (permission.equals(Manifest.permission.FOREGROUND_SERVICE)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        // Permiso FOREGROUND_SERVICE otorgado
+                        Log.d("Permission", "Permiso FOREGROUND_SERVICE otorgado");
+                    } else {
+                        // Permiso FOREGROUND_SERVICE denegado
+                        Toast.makeText(this, "Permiso para usar servicios en primer plano denegado.", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        // Permiso de ubicación precisa otorgado
+                        Log.d("Permission", "Permiso ACCESS_FINE_LOCATION otorgado");
+                    } else {
+                        // Permiso de ubicación precisa denegado
+                        Toast.makeText(this, "Permiso para acceder a ubicación precisa denegado.", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         }
     }
@@ -272,9 +299,23 @@ public class SearchingActivity extends AppCompatActivity {
      * Solicitar permiso de notificación en versiones superiores a Android 13.
      */
     private void requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 o superior
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            String[] permissions = {
+                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.FOREGROUND_SERVICE,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+            };
+
+            boolean shouldRequest = false;
+            for (String permission : permissions) {
+                if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                    shouldRequest = true;
+                    break;
+                }
+            }
+
+            if (shouldRequest) {
+                requestPermissions(permissions, 1);
             }
         }
     }

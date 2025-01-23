@@ -127,6 +127,13 @@ public class PedidoStatusService extends Service {
                                 break;
                         }
 
+                        // Enviar un broadcast con el estado actualizado
+                        Intent broadcastIntent = new Intent("com.example.Pavill.PEDIDO_STATUS_UPDATE");
+                        broadcastIntent.putExtra("status", status);
+                        broadcastIntent.putExtra("message", message);
+                        broadcastIntent.putExtra("subEstado", subEstadoAceptado); // Incluye el subestado en caso sea relevante
+                        sendBroadcast(broadcastIntent);
+
                         // Continuar verificando mientras no sea cancelado o finalizado
                         if (!status.equals("CANCELADO") && !status.equals("FINALIZADO")) {
                             handler.postDelayed(statusChecker, CHECK_INTERVAL);
@@ -173,6 +180,7 @@ public class PedidoStatusService extends Service {
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOngoing(true) // Hace la notificación persistente
+                .setVibrate(null) // Desactiva cualquier vibración para esta notificación
                 .build();
 
         startForeground(1, notification);
@@ -188,6 +196,7 @@ public class PedidoStatusService extends Service {
                 .setSmallIcon(R.drawable.logo)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOngoing(true)
+                .setVibrate(null) // Desactiva cualquier vibración para esta notificación
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -204,6 +213,10 @@ public class PedidoStatusService extends Service {
                     "Pedido Status Channel",
                     NotificationManager.IMPORTANCE_HIGH
             );
+            serviceChannel.setDescription("Canal para notificaciones del estado del pedido");
+
+            // Deshabilitar vibración
+            serviceChannel.enableVibration(false); // Desactiva la vibración para el canal
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(serviceChannel);

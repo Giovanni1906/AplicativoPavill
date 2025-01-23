@@ -2,6 +2,7 @@ package com.example.Pavill.components;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 import com.example.Pavill.services.PedidoStatusService;
 
@@ -26,7 +27,11 @@ public class PedidoServiceHelper {
      */
     public static void startPedidoStatusService(Context context) {
         Intent serviceIntent = new Intent(context, PedidoStatusService.class);
-        context.startService(serviceIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent); // Usa startForegroundService para Android 8+.
+        } else {
+            context.startService(serviceIntent);
+        }
     }
 
     /**
