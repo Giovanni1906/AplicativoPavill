@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.Pavill.controller.PedidoStatusController;
 
@@ -110,7 +111,7 @@ public class PedidoStatusService extends Service {
                         broadcastIntent.putExtra("status", status);
                         broadcastIntent.putExtra("message", message);
                         broadcastIntent.putExtra("subEstado", subEstadoAceptado); // Incluye el subestado en caso sea relevante
-                        sendBroadcast(broadcastIntent);
+                        LocalBroadcastManager.getInstance(PedidoStatusService.this).sendBroadcast(broadcastIntent);
 
                         // Continuar verificando mientras no sea cancelado o finalizado
                         if (!isServiceStopped) {

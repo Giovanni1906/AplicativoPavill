@@ -43,7 +43,7 @@ public class CancelRequestController {
 
                         if ("L019".equals(respuesta)) {
                             Log.d("CancelRequestController", "Cancelación de pedido: El pedido se canceló correctamente.");
-                            callback.onSuccess("El pedido se canceló correctamente.");
+                            callback.onSuccess("El pedido se canceló correctamente." + response);
                         } else {
                             Log.e("CancelRequestController", "Cancelación de pedido: No se pudo cancelar el pedido. Código: " + respuesta);
                             callback.onFailure("No se pudo cancelar el pedido. Código: " + respuesta);

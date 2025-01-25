@@ -2,6 +2,7 @@ package com.example.Pavill.view;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -139,7 +140,7 @@ public class SearchingActivity extends AppCompatActivity {
 
         // Registra el receptor con el intent-filter
         IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
-        registerReceiver(pedidoStatusReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(pedidoStatusReceiver, filter);
     }
 
     /**
@@ -148,9 +149,7 @@ public class SearchingActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (pedidoStatusReceiver != null) {
-            unregisterReceiver(pedidoStatusReceiver);
-        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
     }
 
     /**
@@ -165,7 +164,7 @@ public class SearchingActivity extends AppCompatActivity {
                 timerHandler.removeCallbacks(timerRunnable);
                 loadingDialog.dismiss();
                 PedidoCancellationHelper.cancelProcess(SearchingActivity.this);
-
+                Toast.makeText(SearchingActivity.this, "Pedido cancelado con exito.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -218,7 +217,7 @@ public class SearchingActivity extends AppCompatActivity {
             public void onPublicidadReceived(String imageUrl) {
                 Glide.with(SearchingActivity.this)
                         .load(imageUrl)
-                        .transform(new FitCenter()) // Ajustar la imagen
+                        .fitCenter() // Asegura que la imagen se ajuste al tamaño del ImageView respetando sus proporciones
                         .into(adImageView);
                         Log.d("SearchingActivity", "Publicidad cargada." + imageUrl);
             }

@@ -3,6 +3,7 @@ package com.example.Pavill.view;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -110,9 +111,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         // Inicia el servicio para verificar el estado del pedido
         PedidoServiceHelper.startPedidoStatusService(this);
 
-
-        // Registra el BroadcastReceiver para escuchar actualizaciones del estado
-        registerPedidoStatusReceiver();
     }
 
     /**
@@ -527,11 +525,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-    private void registerPedidoStatusReceiver() {
-        IntentFilter filter = new IntentFilter("com.example.Pavill.PEDIDO_STATUS_UPDATE");
-        registerReceiver(pedidoStatusReceiver, filter);
-    }
-
     /**
      * Registra el BroadcastReceiver para recibir actualizaciones del estado del pedido.
      */
@@ -574,7 +567,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Registra el receptor con el intent-filter
         IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
-        registerReceiver(pedidoStatusReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(pedidoStatusReceiver, filter);
     }
 
     /**
@@ -584,7 +577,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onPause() {
         super.onPause();
         if (pedidoStatusReceiver != null) {
-            unregisterReceiver(pedidoStatusReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
         }
     }
 
@@ -609,6 +602,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                             .error(R.drawable.img_conductor)
                             .into(profileImage);
                     Log.d("Conductor foto:", "Imagen cargada exitosamente");
+                    Log.d("Conductor foto:", "Imagen en el tmeporary" + temporaryData.getConductorFoto());
                 } else {
                     // Usa la imagen por defecto
                     profileImage.setImageResource(R.drawable.img_conductor);
@@ -653,7 +647,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Desregistrar el BroadcastReceiver si está registrado
         try {
-            unregisterReceiver(pedidoStatusReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
         } catch (IllegalArgumentException e) {
             // Manejar el caso en que el receiver no esté registrado para evitar excepciones
             Log.w("WaitingActivity", "BroadcastReceiver no estaba registrado: " + e.getMessage());

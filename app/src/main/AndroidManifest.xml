@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <permission android:name="com.example.Pavill.PERMISSION_PEDIDO_STATUS_UPDATE"
+        android:protectionLevel="normal" />
+
     <!-- Permisos necesarios para el acceso a la ubicación -->
     <uses-feature
         android:name="android.hardware.camera"

@@ -113,7 +113,7 @@ public class ConfirmActivity extends AppCompatActivity {
                             long requestTime = System.currentTimeMillis();
                             TemporaryData.getInstance().setRequestTime(requestTime);
 
-                            // Redirigir a SearchingActivity sin enviar datos
+                            // Redirigir a SearchingActivity
                             Intent intent = new Intent(ConfirmActivity.this, SearchingActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
@@ -148,6 +148,10 @@ public class ConfirmActivity extends AppCompatActivity {
         setupFavoriteButton(clienteId);
     }
 
+    /**
+     * Ingresa la coordenada de destino a favoritos
+     * @param clienteId
+     */
     private void setupFavoriteButton(String clienteId) {
         TemporaryData tempData = TemporaryData.getInstance();
         LatLng destinationCoordinates = tempData.getDestinationCoordinates();
@@ -170,6 +174,9 @@ public class ConfirmActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Actualiza los text view y demás comnponentes UI
+     */
     private void updateUI() {
         TextView originTextView = findViewById(R.id.textOrigin);
         TextView destinationTextView = findViewById(R.id.textDestination);

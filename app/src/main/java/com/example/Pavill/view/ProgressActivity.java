@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.Pavill.R;
 import com.example.Pavill.components.BitmapUtils;
@@ -107,7 +108,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
 
         // Registra el receptor con el intent-filter
         IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
-        registerReceiver(pedidoStatusReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(pedidoStatusReceiver, filter);
     }
 
     /**
@@ -117,7 +118,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onPause() {
         super.onPause();
         if (pedidoStatusReceiver != null) {
-            unregisterReceiver(pedidoStatusReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
         }
     }
 

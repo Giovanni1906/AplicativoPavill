@@ -18,10 +18,11 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Imagen del taxi -->
+
         <ImageView
             android:id="@+id/imageTaxi"
             android:layout_width="wrap_content"
-            android:layout_height="80dp"
+            android:layout_height="110dp"
             android:layout_gravity="center"
             android:layout_marginBottom="8dp"
             android:contentDescription="Imagen del taxi"
@@ -31,7 +32,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tarifa aceptada"
-            android:textSize="12sp"
+            android:textSize="16sp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:textColor="@color/textColor" />
 
         <!-- Tarifa del viaje -->
@@ -39,11 +42,12 @@
             android:id="@+id/estimatedCost"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="40dp"
             android:text="s/ 00.00"
             android:textColor="@color/textColor"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/dmsans_bold"/>
 
             <!-- Layout para Origen -->
             <LinearLayout
@@ -96,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="40dp">
 
                 <ImageView
                     android:id="@+id/iconDestination"
@@ -146,7 +150,7 @@
             android:id="@+id/LayoutFeedback"
             style="@style/GeneralLinearLayoutStyle"
             android:layout_height="76dp"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="40dp">
 
             <ImageView
                 style="@style/GeneralImageViewStyle"
@@ -156,7 +160,7 @@
             <EditText
                 android:id="@+id/editReference"
                 style="@style/GeneralMultiEditTextStyle"
-                android:hint="Ingresar dirección exacta *"
+                android:hint="Ingresar dirección exacta y una referencia*"
                 android:inputType="text" />
         </LinearLayout>
 

@@ -44,9 +44,11 @@
             <!-- Imagen publicitaria -->
             <ImageView
                 android:id="@+id/ad_image"
+                android:layout_marginTop="32dp"
                 android:layout_width="match_parent"
-                android:layout_height="450dp"
-                android:scaleType="centerCrop" />
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter" />
         </LinearLayout>
 
         <!-- BottomSheet para el estado de búsqueda -->
