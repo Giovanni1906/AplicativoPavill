@@ -47,6 +47,7 @@ public class PedidoStatusController {
                                 assignConductorAndVehicleData(jsonResponse, context);
                                 callback.onStatusReceived("ACEPTADO", "Unidad asignada. ¡Unidad asignada!");
                                 Log.e("PedidoStatusController", "Pedido aceptado, respuesta: " + respuesta + " pedidoEstado: " + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                Log.d("PedidoStatusController", "respuesta: " + jsonResponse);
                                 break;
 
                             case "P006":
@@ -58,10 +59,12 @@ public class PedidoStatusController {
                                 } else if (pedidoEstado == 1) {
                                     // Pedido En espera
                                     Log.e("PedidoStatusController", "Se está buscando un taxista, , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                    Log.d("PedidoStatusController", "respuesta: " + jsonResponse);
                                     callback.onStatusReceived("EN_ESPERA", "Se está buscando un taxista, , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 } else {
                                     // Pedido en espera
                                     Log.e("PedidoStatusController", "Pedido desconocido, verificar el estado; , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                    Log.d("PedidoStatusController", "respuesta: " + jsonResponse);
                                     callback.onStatusReceived("DESCONOCIDO", "Pedido desconocido, verificar el estado; , respuesta: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
                                 }
                                 break;
@@ -69,6 +72,7 @@ public class PedidoStatusController {
                             default:
                                 // Respuesta no esperada
                                 callback.onError("Respuesta no reconocida: " + respuesta + "pedidoEstado" + pedidoEstado + " a BORDO: " + pedAbordoCliente);
+                                Log.d("PedidoStatusController", "respuesta: " + jsonResponse);
                                 break;
                         }
                     } catch (Exception e) {
@@ -165,6 +169,8 @@ public class PedidoStatusController {
         temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"));
         temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"));
         temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"));
+        temporaryData.setVehiculoUnidad(jsonResponse.optString("VehiculoUnidad", "N/A"));
+        Log.d("PedidoStatusController", "Datos conductor" + jsonResponse);
         Log.d("PedidoStatusController", "Foto de conductor inic" + jsonResponse.optString("ConductorFoto", ""));
 
     }

@@ -4,11 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <!-- Imagen de fondo -->
     <ImageView
+        android:id="@+id/backgroundPavill"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/main_background"
+        android:src="@color/cardview_dark_background"
         android:scaleType="centerCrop"
         android:contentDescription="Imagen de fondo" />
 

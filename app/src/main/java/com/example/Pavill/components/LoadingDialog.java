@@ -2,7 +2,9 @@ package com.example.Pavill.components;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 
 public class LoadingDialog {
@@ -17,6 +19,14 @@ public class LoadingDialog {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent); // Fondo transparente
         }
+
+        // Cargar el GIF usando Glide
+        ImageView loadingImage = dialog.findViewById(R.id.loadingImage);
+        Glide.with(context)
+                .asGif()
+                .load(R.drawable.loading) // Tu archivo loading.gif en el drawable
+                .into(loadingImage);
+
     }
 
     public void show() {

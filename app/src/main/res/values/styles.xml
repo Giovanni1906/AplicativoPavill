@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!--  Estilo para el splash de carga del inicio  -->
+    <style name="Theme.Pavill.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
     <!-- Estilo para el botón de formulario -->
     <style name="Button.Form" parent="android:Widget.Button">
         <item name="android:layout_width">match_parent</item>

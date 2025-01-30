@@ -31,26 +31,27 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tarifa aceptada"
+            android:text="Tarifa aproximada"
             android:textSize="16sp"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
             android:textColor="@color/textColor" />
 
         <!-- Tarifa del viaje -->
+
+        <!-- Layout para Origen -->
         <TextView
             android:id="@+id/estimatedCost"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
-            android:text="s/ 00.00"
+            android:fontFamily="@font/dmsans_bold"
+            android:text="Aún no hay tarifa"
             android:textColor="@color/textColor"
             android:textSize="40sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/dmsans_bold"/>
+            android:textStyle="bold" />
 
-            <!-- Layout para Origen -->
-            <LinearLayout
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"

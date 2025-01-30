@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.example.Pavill.R;
 import com.example.Pavill.components.DeviceIdentifier;
@@ -82,6 +83,14 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                     errorText.setVisibility(View.VISIBLE);
                 }
             }
+        });
+
+        // Configurar botón para regresar al MainActivity
+        CardView btnBackToMain = findViewById(R.id.btnBackToMain);
+        btnBackToMain.setOnClickListener(v -> {
+            Intent intent = new Intent(VerifyPhoneActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 

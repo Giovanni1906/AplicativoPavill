@@ -29,6 +29,7 @@
                 style="@style/FloatingActionCardStyle"
                 android:layout_centerVertical="true"
                 android:layout_alignParentEnd="true"
+                android:translationY="-90dp"
                 app:cardBackgroundColor="@color/secondaryColor">
                 <ImageView
                     style="@style/FloatingImageViewStyle"

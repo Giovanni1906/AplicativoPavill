@@ -69,6 +69,21 @@ public class LoginActivity extends AppCompatActivity {
                 errorText.setVisibility(View.VISIBLE);
             }
         });
+
+        // Texto para redirigir al Register
+        TextView textViewLogin = findViewById(R.id.textViewRegister);
+        textViewLogin.setOnClickListener(v -> {
+            // Redirigir al LoginActivity
+            Intent intent = new Intent(LoginActivity.this, VerifyPhoneActivity.class);
+            startActivity(intent);
+        });
+
+        // va hacia el recuperar contraseña
+        TextView recoverPasswordText = findViewById(R.id.RecuperarContraseña);
+        recoverPasswordText.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RecoverPasswordActivity.class);
+            startActivity(intent);
+        });
     }
 
     /**
@@ -82,6 +97,8 @@ public class LoginActivity extends AppCompatActivity {
      * Maneja el proceso de inicio de sesión.
      */
     private void login(String email, String password, String deviceId) {
+
+
         AuthController authController = new AuthController();
 
         // Mostrar indicador de carga

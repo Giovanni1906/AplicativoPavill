@@ -69,4 +69,3 @@ public class ArrivalMessageDialog extends DialogFragment {
         return dialog;
     }
 }
-

@@ -191,7 +191,7 @@ public class ConfirmActivity extends AppCompatActivity {
         if (estimatedCost != null && !estimatedCost.isEmpty()) {
             estimatedCostTextView.setText(estimatedCost);
         } else {
-            estimatedCostTextView.setText("s/ xx.xx");
+            estimatedCostTextView.setText("sin definir...");
         }
     }
 }

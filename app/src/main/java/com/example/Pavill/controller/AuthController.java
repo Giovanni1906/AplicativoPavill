@@ -47,7 +47,7 @@ public class AuthController {
                                     Log.d("AuthController", "Credenciales válidas. Acceso correcto" + respuesta);
                                     break;
                                 case "L013": // Credenciales incorrectas
-                                    callback.onFailure("Credenciales incorrectas. Inténtalo nuevamente.");
+                                    callback.onFailure("Correo electrónico o contraseña incorrecta.");
                                     Log.d("AuthController", "Credenciales incorrectas. Acceso denegado: " + respuesta);
 
                                     break;

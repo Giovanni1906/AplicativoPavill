@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,11 +21,13 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -45,12 +48,14 @@ import android.widget.Toast;
 
 import com.example.Pavill.R;
 import com.example.Pavill.components.BitmapUtils;
+import com.example.Pavill.components.CustomInfoWindowAdapter;
 import com.example.Pavill.components.FavoritesAdapter;
 import com.example.Pavill.components.FriendlyAddressHelper;
 import com.example.Pavill.components.MyClusterItem;
 import com.example.Pavill.components.NavigationHeaderInfo;
 import com.example.Pavill.components.TaxiClusterRenderer;
 import com.example.Pavill.components.TemporaryData;
+import com.example.Pavill.controller.CalcularTarifaController;
 import com.example.Pavill.controller.MapController;
 import com.example.Pavill.controller.NearbyTaxisController;
 import com.example.Pavill.controller.PlacesController;
@@ -112,11 +117,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private RecyclerView recyclerViewFavorites;
     private FavoritesAdapter favoritesAdapter;
 
+    private Marker locationMarker; // Guardar el marcador para actualizarlo
+
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
-
-    private static final String SHARED_PREFS_NAME = "PavillPrefs";
-    private static final String KEY_USER_NAME = "UserName";
-
+    private double defaultCost = 0.0; // costo por defecto
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,6 +146,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
         placesController = new PlacesController(this);
+
+
 
         // Inicializar UI
         initializeUI();
@@ -398,7 +404,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.d("Route", "Ruta trazada con éxito: " + distanceText + ", " + durationText);
                     TemporaryData.getInstance().setDistance(distanceText);
                     TemporaryData.getInstance().setDuration(durationText);
-                    TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", estimatedCost));
+//                  TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", estimatedCost));
+                    defaultCost = estimatedCost;
                 }
 
                 @Override
@@ -512,6 +519,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Callback cuando el mapa está listo
      * @param googleMap
      */
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -523,7 +531,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         if (checkLocationPermission()) {
             mMap.setMyLocationEnabled(true);
 
-            // Ocultar el botón de "ir a mi ubicación actual"
+            // Ocultar el botón predeterminado de "ir a mi ubicación actual"
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
             // Configurar ClusterManager
@@ -533,12 +541,13 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null) {
                     LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                    getCurrentLocationAndCenterMap();
                     fetchNearbyTaxis(currentLocation);
                 } else {
                     Toast.makeText(this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
                 }
             });
+
         } else {
             requestLocationPermission();
         }
@@ -559,6 +568,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         BitmapDescriptor taxiIcon = BitmapUtils.getProportionalBitmap(this, R.drawable.ic_car, iconSize);
         TaxiClusterRenderer renderer = new TaxiClusterRenderer(this, mMap, clusterManager, taxiIcon);
         clusterManager.setRenderer(renderer);
+
+        // Asignar el InfoWindowAdapter al ClusterManager para mensaje del icono personalizado
+        clusterManager.getMarkerCollection().setInfoWindowAdapter(new CustomInfoWindowAdapter(getLayoutInflater()));
+
+        // Aplicar clustering
+        clusterManager.cluster();
     }
 
     /**
@@ -648,7 +663,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     /**
-     * Obtiene la ubicación actual y centra el mapa.
+     * Obtiene la ubicación actual y centra el mapa con zoom más alto y ajusta la posición.
      */
     private void getCurrentLocationAndCenterMap() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -659,7 +674,34 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15)); // Centrar el mapa
+
+                // Mueve la cámara con zoom más alto
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
+
+                // Desplazar el icono hacia arriba un poco
+                LatLng iconPosition = new LatLng(
+                        currentLocation.latitude + 0.0003, // Ajustar altura
+                        currentLocation.longitude
+                );
+
+                // Redimensionar el icono im_here a 32px
+                BitmapDescriptor icon = BitmapUtils.getProportionalBitmap(this, R.drawable.im_here, 32);
+
+                // Si el marcador ya existe, solo actualizar su posición
+                if (locationMarker != null) {
+                    locationMarker.setPosition(iconPosition);
+                } else {
+                    // Agregar un nuevo marcador en la ubicación desplazada
+                    locationMarker = mMap.addMarker(new MarkerOptions()
+                            .position(iconPosition)
+                            .icon(icon)
+                            .anchor(0.5f, 1.0f)); // La punta del icono toca el centro del ícono azul
+                }
+
+                // Desplaza la vista hacia abajo para que el marcador aparezca más arriba en la pantalla
+                new Handler().postDelayed(() -> mMap.animateCamera(CameraUpdateFactory.scrollBy(0, 300)), 500);
+                // 300 píxeles hacia abajo (~1/4 de pantalla), ajusta según pruebas
+
             } else {
                 Toast.makeText(this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
             }
@@ -754,12 +796,68 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 TemporaryData tempData = TemporaryData.getInstance();
                 tempData.setOriginCoordinates(originLatLng);
                 tempData.setDestinationCoordinates(destinationLatLng);
+                CalculateAproximatedCost(originLatLng, destinationLatLng);
 
+            } else {
+                Toast.makeText(this, "Por favor selecciona tanto el origen como el destino.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void CalculateAproximatedCost(LatLng origin, LatLng destination) {
+        // Validar coordenadas no nulas
+        if (origin == null || destination == null) {
+            Log.e("CalculateAproximatedCost", "Coordenadas de origen o destino no válidas.");
+            return;
+        }
+
+        double originLat = origin.latitude;
+        double originLng = origin.longitude;
+        double destLat = destination.latitude;
+        double destLng = destination.longitude;
+
+        // Llamar al controlador
+        new CalcularTarifaController().calcularTarifa(this, originLat, originLng, destLat, destLng, new CalcularTarifaController.CalcularTarifaCallback() {
+            @Override
+            public void onSuccess(double tarifario, String respuesta) {
+                switch (respuesta) {
+                    case "P111":
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", tarifario));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Tarifa calculada exitosamente." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                    case "P112":
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": No se encontró tarifa bidireccional o sectorial." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                    case "P113":
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Coordenadas de destino no válidas." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                    case "P114":
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Coordenadas de origen no válidas." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                    case "P115":
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Origen y destino no están definidos o no son válidos." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                    default:
+                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Respuesta desconocida del servidor." + ", Monto: " + tarifario + " " +  defaultCost);
+                        break;
+                }
                 // Navegar a ConfirmActivity
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 startActivity(intent);
-            } else {
-                Toast.makeText(this, "Por favor selecciona tanto el origen como el destino.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                Log.e("CalculateAproximatedCost", "Error: " + errorMessage + "monto: " + defaultCost);
+                // Navegar a ConfirmActivity
+                Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+                startActivity(intent);
             }
         });
     }

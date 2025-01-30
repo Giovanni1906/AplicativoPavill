@@ -3,6 +3,8 @@ package com.example.Pavill.view;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +32,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONObject;
@@ -212,6 +215,8 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        applyMapStyle();
+
         // Verificar permisos de ubicación y habilitar la funcionalidad del mapa
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
@@ -219,6 +224,28 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
         } else {
             // Solicitar permisos de ubicación
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    /**
+     * Aplica el estilo del mapa basado en el tema del sistema.
+     */
+    private void applyMapStyle() {
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            // Modo nocturno: aplicar estilo oscuro
+            try {
+                boolean success = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_dark));
+                if (!success) {
+                    Log.e("MapActivity", "Error aplicando estilo oscuro.");
+                }
+            } catch (Resources.NotFoundException e) {
+                Log.e("MapActivity", "Archivo de estilo oscuro no encontrado.", e);
+            }
+        } else {
+            // Modo normal: no aplicar estilo (usar predeterminado)
+            mMap.setMapStyle(null);
         }
     }
 

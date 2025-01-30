@@ -54,15 +54,7 @@
             android:enabled="true"
             android:exported="false" />
 
-        <!-- Declaración de MainActivity -->
-        <activity
-            android:name=".view.MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+
 
         <!-- Declaración de MapActivity -->
         <activity
@@ -70,6 +62,18 @@
             android:windowSoftInputMode="stateHidden|adjustResize">
         </activity>
 
+        <!--   Splash activity como principal    -->
+        <activity android:name=".view.SplashActivity"
+            android:theme="@style/Theme.Pavill.Splash"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- MainActivity, pero sin el intent-filter para evitar que sea la primera -->
+        <activity android:name=".view.MainActivity" android:exported="true"/>
         <!-- Declaración de otras actividades -->
         <activity android:name=".view.LoginActivity" />
         <activity android:name=".view.HomeActivity" />
@@ -86,6 +90,9 @@
         <activity android:name=".view.RatingActivity" />
         <activity android:name=".view.VerifyPhoneActivity" />
         <activity android:name=".view.VerifyCodeActivity" />
+        <activity android:name=".view.RecoverPasswordActivity" />
+        <activity android:name=".view.CancelReasonActivity" />
+
 
     </application>
 

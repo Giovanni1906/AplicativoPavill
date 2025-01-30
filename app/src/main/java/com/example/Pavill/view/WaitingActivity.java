@@ -9,6 +9,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -46,6 +48,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -62,6 +65,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private boolean hasArrivalMessageShown = false; // Bandera para controlar el mensaje flotante
 
     private String conductorId;
+    private String vehiculoUnidad;
     private String conductorNombre;
     private String conductorTelefono;
     private String unidadPlaca;
@@ -69,6 +73,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private String unidadColor;
     private String unidadCalificacion;
     private String conductorFoto;
+
+    private int initialEstimatedTime = -1; // Tiempo inicial de llegada
+    private boolean isCountdownStarted = false; // Bandera para controlar el inicio del contador
+
 
     private PedidoStatusReceiver pedidoStatusReceiver;
     // Variable global para indicar si está en tardanza (1 = tardanza, 0 = no tardanza)
@@ -119,6 +127,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private void initializeUI() {
         // Inicializar campos de conductor
         conductorId = temporaryData.getConductorId();
+        vehiculoUnidad = temporaryData.getVehiculoUnidad();
         conductorNombre = temporaryData.getConductorNombre();
         conductorTelefono = temporaryData.getConductorTelefono();
         unidadPlaca = temporaryData.getUnidadPlaca();
@@ -150,13 +159,38 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         TextView textViewCarDetails = findViewById(R.id.textViewCarDetails);
         errorText = findViewById(R.id.errorText);
 
-        textViewDriverName.setText(conductorNombre);
-        textViewDriverCode.setText("Código: " + conductorId);
+        textViewDriverName.setText(toCapitalLetter(conductorNombre));
+        textViewDriverCode.setText(vehiculoUnidad);
         textViewCarDetails.setText("Modelo: " + unidadModelo+ " - " + unidadColor + " | Placa: " + unidadPlaca);
 
         // Configurar botones
         initializeBottomsUI();
     }
+
+    /**
+     * convierte a tipo de letra capital
+     * @param input
+     * @return
+     */
+    private String toCapitalLetter(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        StringBuilder capitalized = new StringBuilder();
+        String[] words = input.toLowerCase().split("\\s+"); // Convertir todo a minúscula y dividir por espacios
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                capitalized.append(Character.toUpperCase(word.charAt(0))) // Primera letra en mayúscula
+                        .append(word.substring(1)) // Resto en minúscula
+                        .append(" "); // Agregar espacio
+            }
+        }
+
+        return capitalized.toString().trim(); // Eliminar el espacio extra al final
+    }
+
 
     /**
      * Inicializa los botones de llamada, whatsapp y de cancelar búsqueda
@@ -176,12 +210,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         //Botón de mensaje de whatsapp
         findViewById(R.id.btnMessage).setOnClickListener(v -> {
             if (conductorTelefono != null && !conductorTelefono.isEmpty()) {
-                String clientName = getSharedPreferences("user_prefs", MODE_PRIVATE)
-                        .getString("ClienteNombre", "Cliente");
-                String message = "Soy " + clientName + ", pedí un pavill. Quisiera saber si hay alguna dificultad.";
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse("https://wa.me/" + conductorTelefono + "?text=" + Uri.encode(message)));
-                startActivity(intent);
+                MessageSelectionDialog dialog = new MessageSelectionDialog(conductorTelefono);
+                dialog.show(getSupportFragmentManager(), "MessageSelectionDialog");
             } else {
                 showError("Número de teléfono no disponible.");
             }
@@ -199,7 +229,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     temporaryData.clearData();
 
                     // Crear un intent para regresar al MapActivity
-                    Intent intent = new Intent(WaitingActivity.this, MapActivity.class);
+                    Intent intent = new Intent(WaitingActivity.this, CancelReasonActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
                     startActivity(intent);
                     finish(); // Finalizar la WaitingActivity
@@ -219,6 +249,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        applyMapStyle();
+
 
         if (originCoordinates != null && destinationCoordinates != null) {
             // Agregar marcadores
@@ -240,6 +273,28 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
             drawRoute(originCoordinates, destinationCoordinates);
+        }
+    }
+
+    /**
+     * Aplica el estilo del mapa basado en el tema del sistema.
+     */
+    private void applyMapStyle() {
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            // Modo nocturno: aplicar estilo oscuro
+            try {
+                boolean success = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_dark));
+                if (!success) {
+                    Log.e("MapActivity", "Error aplicando estilo oscuro.");
+                }
+            } catch (Resources.NotFoundException e) {
+                Log.e("MapActivity", "Archivo de estilo oscuro no encontrado.", e);
+            }
+        } else {
+            // Modo normal: no aplicar estilo (usar predeterminado)
+            mMap.setMapStyle(null);
         }
     }
 
@@ -297,17 +352,21 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                             animateMarkerTo(driverMarker, driverLocation);
                         }
 
-                        // Calcular el tiempo estimado de llegada
-                        int estimatedTimeToOrigin = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
+                        // Calcular el tiempo estimado de llegada solo la primera vez
+                        if (initialEstimatedTime == -1) {
+                            initialEstimatedTime = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
+                            Log.d("Tiempo inicial:", "Tiempo estimado inicial: " + initialEstimatedTime + " minutos");
 
-                        // Mostrar tiempo estimado
-                        TextView estimatedTimeView = findViewById(R.id.textViewETA);
-                        estimatedTimeView.setText("Tiempo estimado: " + estimatedTimeToOrigin + " minutos");
-                        Log.d("Tiempo estimado:", "Tiempo estimado: " + estimatedTimeToOrigin + " minutos");
+                            // Mostrar el tiempo inicial
+                            TextView estimatedTimeView = findViewById(R.id.textViewETA);
+                            estimatedTimeView.setText("Tiempo estimado: " + initialEstimatedTime + " minutos");
 
-                        // Iniciar el contador
-                        startEstimatedTimeCountdown(estimatedTimeToOrigin);
-
+                            // Iniciar el contador solo una vez
+                            if (!isCountdownStarted) {
+                                isCountdownStarted = true;
+                                startEstimatedTimeCountdown(initialEstimatedTime);
+                            }
+                        }
                         // Verificar si el conductor está cerca del origen
                         checkProximityToOrigin(driverLocation);
 
@@ -377,9 +436,9 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             public void run() {
                 if (remainingTime > 0) {
                     // Actualiza el texto con el tiempo restante
+                    // Actualiza el texto con el tiempo restante
                     estimatedTimeView.setText("Tiempo estimado: " + remainingTime + " minutos");
-                    Log.d("Tiempo estimado:", "Tiempo estimado: " + remainingTime + " minutos");
-
+                    Log.d("Tiempo estimado:", "Tiempo restante: " + remainingTime + " minutos");
                     remainingTime--;
 
                     // Repite el Runnable cada minuto (1000ms x 60)

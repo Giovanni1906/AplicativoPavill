@@ -11,18 +11,33 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
+import com.example.Pavill.controller.ObtenerFondoLoginController;
+
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends BaseActivity {
 
+    private static final String PREFS_NAME = "app_prefs";
+    private static final String KEY_IMAGE_URL = "background_image_url";
+
+    private ImageView backgroundPavill;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        backgroundPavill = findViewById(R.id.backgroundPavill);
+
+        // Cargar la imagen almacenada en SharedPreferences
+        cargarFondoDesdeStorage();
 
         // Solicitar permiso de notificación
         requestNotificationPermission();
@@ -37,6 +52,24 @@ public class MainActivity extends BaseActivity {
 
         // Inicializar la UI
         initializeUI();
+    }
+
+    /**
+     * Cargar fondo aleatorio
+     */
+    private void cargarFondoDesdeStorage() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String urlImagen = sharedPreferences.getString(KEY_IMAGE_URL, null);
+
+        if (urlImagen != null) {
+            Glide.with(this)
+                    .load(urlImagen)
+                    .centerCrop()
+                    .error(R.drawable.main_background) // Si falla, usa la imagen predeterminada
+                    .into(backgroundPavill);
+        } else {
+            backgroundPavill.setImageResource(R.drawable.main_background);
+        }
     }
 
     /**

@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
 import com.example.Pavill.R;
 import com.example.Pavill.controller.PhoneVerificationController;
 
@@ -55,6 +57,15 @@ public class VerifyCodeActivity extends AppCompatActivity {
         // Configurar el botón para verificar el código
         Button btnVerifyCode = findViewById(R.id.btnVerifyCode);
         btnVerifyCode.setOnClickListener(v -> verificarCodigo());
+
+        // Configurar botón para regresar al MainActivity
+        CardView btnBackToMain = findViewById(R.id.btnBackToMain);
+        btnBackToMain.setOnClickListener(v -> {
+            Intent intent = new Intent(VerifyCodeActivity.this, VerifyPhoneActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
     }
 
     /**

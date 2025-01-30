@@ -2,9 +2,10 @@ package com.example.Pavill.components;
 
 import com.google.android.gms.maps.model.LatLng;
 
-public class TemporaryData {
+public class  TemporaryData {
     private static TemporaryData instance;
 
+//    variables de pedido
     private String pedidoId;
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
@@ -19,6 +20,9 @@ public class TemporaryData {
     private String distance;
     private String duration;
     private String estimatedCost;
+    private String vehiculoUnidad;
+
+//    variables de aplicativo
 
 
     private long requestTime;
@@ -44,6 +48,8 @@ public class TemporaryData {
     public void setDestinationCoordinates(LatLng destinationCoordinates) { this.destinationCoordinates = destinationCoordinates; }
     public String getConductorId() { return conductorId; }
     public void setConductorId(String conductorId) { this.conductorId = conductorId; }
+    public String getVehiculoUnidad(){return vehiculoUnidad; }
+    public void setVehiculoUnidad(String vehiculoUnidad){this.vehiculoUnidad = vehiculoUnidad; }
     public String getConductorNombre() { return conductorNombre; }
     public void setConductorNombre(String conductorNombre) { this.conductorNombre = conductorNombre; }
     public String getConductorTelefono() { return conductorTelefono; }
@@ -88,11 +94,16 @@ public class TemporaryData {
         pedidoId = null;
         originCoordinates = null;
         destinationCoordinates = null;
+        conductorId = null;
         conductorNombre = null;
         conductorTelefono = null;
         conductorFoto = null;
         unidadPlaca = null;
         unidadModelo = null;
         unidadColor = null;
+        unidadCalificacion = null;
+        distance = null;
+        duration = null;
+        estimatedCost = null;
     }
 }

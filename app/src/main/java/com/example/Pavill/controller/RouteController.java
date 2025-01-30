@@ -162,15 +162,15 @@ public class RouteController {
         double durationKm = Double.parseDouble(durationText.replace(" km", "").replace(" m", ""));
         double estimatedCost;
 
-        if (durationKm <= 10) {
-            estimatedCost = (1.6) * durationKm; // Tarifa base 1.6 soles por km
+        if (durationKm <= 3) {
+            estimatedCost = (2) * durationKm; // Tarifa base 1.6 soles por km
         } else {
             estimatedCost = (1.5) * durationKm; // Tarifa de 1.5 soles por km
         }
 
         // Ajustar costo entre 6 y 20 soles
         if (estimatedCost < 6.0) estimatedCost = 6.0;
-        if (estimatedCost > 20.0) estimatedCost = 20.0;
+        if (estimatedCost > 25.0) estimatedCost = 20.0;
 
         return Math.round(estimatedCost);
     }

@@ -7,6 +7,8 @@
     <color name="secondaryColor">#FF6B00</color>
     <color name="alertColor">#FF0040</color>
     <color name="shadowColor">#33000000</color>
+    <color name="highlightColor">#FBBA00</color>
+    <color name="highlightVignetteColor">#FBBA00</color>
 <!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->
     <color name="backgroundColor">#F2F2F2</color> <!-- Blanco para modo claro -->
     <color name="boxBackgroundColor">#E0E0E0</color> <!-- Color del fondo del TextInput -->

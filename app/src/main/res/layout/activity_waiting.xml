@@ -36,15 +36,24 @@
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             android:background="@drawable/rounded_top_corners"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="0dp">
+
+        <!-- Sección superior con fondo gris -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_top_corners_gray"> <!-- Fondo gris -->
 
             <!-- Viñeta para subir y bajar el BottomSheet -->
             <View
+                android:layout_marginTop="16dp"
                 android:layout_width="40dp"
                 android:layout_height="4dp"
                 android:layout_gravity="center"
-                android:background="@drawable/rounded_corner"
-                android:layout_marginBottom="16dp" />
+                android:background="@drawable/rounded_top_corners_waiting"
+                android:layout_marginBottom="4dp"
+                />
 
             <!-- Texto "Tu pavill está en camino" -->
             <TextView
@@ -53,8 +62,9 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="Tu pavill está en camino"
-                android:textSize="16sp"
+                android:textSize="22dp"
                 android:textStyle="bold"
+                android:fontFamily="@font/dmsans_bold"
                 android:textColor="@color/textColor" />
 
             <!-- Texto "Dentro de: xx min" -->
@@ -64,9 +74,19 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="24dp"
-                android:text="Dentro de: xx min"
+                android:text="aproximadamente dentro de..."
+                android:fontFamily="@font/dmsans_bold"
                 android:textColor="@color/textColor"
-                android:textSize="12sp" />
+                android:textSize="14dp" />
+        </LinearLayout>
+
+        <!-- Sección inferior con fondo blanco -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/backgroundColor"> <!-- Fondo blanco para la sección inferior -->
 
             <!-- Foto circular del taxista con botones de mensaje y llamada -->
             <LinearLayout
@@ -90,8 +110,8 @@
                 <!-- Foto circular del taxista -->
                 <com.example.Pavill.components.CircularImageView
                     android:id="@+id/profile_image_conductor"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:src="@drawable/img_conductor"
                     android:contentDescription="Imagen de perfil"
                     android:layout_marginHorizontal="16dp" />
@@ -165,7 +185,8 @@
                 android:layout_gravity="center_horizontal"
                 android:gravity="center"
                 android:text="Juan Pérez"
-                android:textSize="18sp"
+                android:fontFamily="@font/dmsans_bold"
+                android:textSize="14dp"
                 android:textColor="@color/textColor"
                 android:textStyle="bold" />
 
@@ -175,8 +196,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Código: W-17"
-                android:textSize="12sp"
+                android:text="X-01"
+                android:textSize="14dp"
                 android:textColor="@color/textColor"
                 android:layout_marginBottom="8dp" />
 
@@ -187,12 +208,9 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="Modelo: Toyota Prius | Placa: ABC-123"
-                android:textSize="16sp"
+                android:textSize="14dp"
                 android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp" />
-
-
-
 
             <!-- Botón "Cancelar" -->
             <androidx.appcompat.widget.AppCompatButton
@@ -228,7 +246,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnCode" />
-
+        </LinearLayout>
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

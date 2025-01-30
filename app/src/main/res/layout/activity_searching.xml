@@ -31,20 +31,20 @@
             android:translationZ="1dp">
 
             <!-- Título del anuncio -->
-            <TextView
-                android:id="@+id/ad_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="¡Espacio publicitario!"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white" />
+<!--            <TextView-->
+<!--                android:id="@+id/ad_title"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:text="¡Espacio publicitario!"-->
+<!--                android:textSize="16sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textColor="@android:color/white" />-->
 
             <!-- Imagen publicitaria -->
             <ImageView
                 android:id="@+id/ad_image"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"

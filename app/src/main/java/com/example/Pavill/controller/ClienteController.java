@@ -10,9 +10,6 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.Pavill.R;
 import com.example.Pavill.components.VolleySingleton;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ClienteController {
 
     public interface EditarClienteCallback {
@@ -24,10 +21,21 @@ public class ClienteController {
                               String clienteNombre, String clienteEmail, String clienteCelular,
                               EditarClienteCallback callback) {
 
-        String url = context.getString(R.string.url_services);
+        String baseUrl = context.getString(R.string.url_services);
 
+        // Construir la URL con los parámetros
+        String url = baseUrl + "?Accion=EditarCliente"
+                + "&ClienteId=" + clienteId
+                + "&ClienteNumeroDocumento=" + clienteNumeroDocumento
+                + "&ClienteNombre=" + clienteNombre
+                + "&ClienteEmail=" + clienteEmail
+                + "&ClienteCelular=" + clienteCelular;
+
+        Log.d("ClienteController", "URL: " + url);
+
+        // Crear una solicitud GET
         StringRequest stringRequest = new StringRequest(
-                Request.Method.POST,
+                Request.Method.GET,
                 url,
                 new Response.Listener<String>() {
                     @Override
@@ -53,19 +61,7 @@ public class ClienteController {
                         callback.onFailure("Error de conexión al servidor.");
                     }
                 }
-        ) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("Accion", "EditarCliente");
-                params.put("ClienteId", clienteId);
-                params.put("ClienteNumeroDocumento", clienteNumeroDocumento);
-                params.put("ClienteNombre", clienteNombre);
-                params.put("ClienteEmail", clienteEmail);
-                params.put("ClienteCelular", clienteCelular);
-                return params;
-            }
-        };
+        );
 
         // Agregar la solicitud a la cola
         VolleySingleton.getInstance(context).addToRequestQueue(stringRequest);
