@@ -5,6 +5,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +38,7 @@ import com.example.Pavill.controller.CancelRequestController;
 import com.example.Pavill.controller.DriverLocationController;
 import com.example.Pavill.controller.PedidoController;
 import com.example.Pavill.controller.PedidoStatusController;
+import com.example.Pavill.controller.RecibirMensajeController;
 import com.example.Pavill.controller.RouteController;
 import com.example.Pavill.receiver.PedidoStatusReceiver;
 import com.example.Pavill.services.PedidoStatusService;
@@ -57,6 +59,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.List;
 
 public class WaitingActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private Handler mensajehandler = new Handler();
+    private Runnable runnable;
+    private static final int INTERVALO_CONSULTA = 5000; // Cada 5 segundos
 
     private GoogleMap mMap;
     private Marker driverMarker;
@@ -207,10 +213,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
-        //Botón de mensaje de whatsapp
+        //Botón de mensaje de chat
         findViewById(R.id.btnMessage).setOnClickListener(v -> {
             if (conductorTelefono != null && !conductorTelefono.isEmpty()) {
-                MessageSelectionDialog dialog = new MessageSelectionDialog(conductorTelefono);
+                MessageSelectionDialog dialog = new MessageSelectionDialog(WaitingActivity.this, conductorTelefono);
                 dialog.show(getSupportFragmentManager(), "MessageSelectionDialog");
             } else {
                 showError("Número de teléfono no disponible.");
@@ -627,6 +633,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         // Registra el receptor con el intent-filter
         IntentFilter filter = new IntentFilter(PedidoStatusReceiver.ACTION_PEDIDO_STATUS_UPDATE);
         LocalBroadcastManager.getInstance(this).registerReceiver(pedidoStatusReceiver, filter);
+
+        // Iniciar la escucha de mensajes
+        iniciarRecepcionMensajes();
+
     }
 
     /**
@@ -638,6 +648,53 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         if (pedidoStatusReceiver != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
         }
+
+        // Detener la escucha de mensajes
+        detenerRecepcionMensajes();
+    }
+
+    private void iniciarRecepcionMensajes() {
+        RecibirMensajeController recibirMensajeController = new RecibirMensajeController();
+
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                recibirMensajeController.recibirMensaje(WaitingActivity.this, new RecibirMensajeController.MensajeCallback() {
+                    @Override
+                    public void onSuccess(String mensajeCliente) {
+                        mostrarDialogoMensaje(mensajeCliente);
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Log.e("WaitActivity", "Error al recibir mensaje: " + errorMessage);
+                    }
+                });
+
+                // Volver a ejecutar después de INTERVALO_CONSULTA
+                mensajehandler.postDelayed(this, INTERVALO_CONSULTA);
+            }
+        };
+
+        // Ejecutar la primera vez
+        mensajehandler.post(runnable);
+    }
+
+    private void detenerRecepcionMensajes() {
+        if (mensajehandler != null && runnable != null) {
+            mensajehandler.removeCallbacks(runnable);
+        }
+    }
+
+    private void mostrarDialogoMensaje(String mensaje) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nuevo mensaje")
+                .setMessage(mensaje)
+                .setCancelable(false)
+                .setPositiveButton("Aceptar", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
 

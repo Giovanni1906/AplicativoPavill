@@ -1,27 +1,29 @@
 package com.example.Pavill.view;
 
 import android.app.Dialog;
-import android.content.Intent;
-import android.net.Uri;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.example.Pavill.R;
+import com.example.Pavill.controller.EnviarMensajeController;
 
 public class MessageSelectionDialog extends DialogFragment {
 
     private String conductorTelefono;
+    private Context context;
     private CheckBox checkProblemasConductor, checkDemoraExcesiva, checkCambiosDestino, checkOtrosMotivos;
 
-    public MessageSelectionDialog(String conductorTelefono) {
+    public MessageSelectionDialog(Context context, String conductorTelefono) {
         this.conductorTelefono = conductorTelefono;
+        this.context = context;
     }
 
     @Nullable
@@ -65,14 +67,28 @@ public class MessageSelectionDialog extends DialogFragment {
         String mensaje = null;
 
         if (checkProblemasConductor.isChecked()) {
-            mensaje = "Hola, tengo problemas con el conductor.";
+            mensaje = "Espere un momento.";
         } else if (checkDemoraExcesiva.isChecked()) {
-            mensaje = "Hola, el servicio está tardando demasiado.";
+            mensaje = "Ya estoy afuera.";
         } else if (checkCambiosDestino.isChecked()) {
-            mensaje = "Hola, quiero cambiar mi destino.";
+            mensaje = "Ok.";
         } else if (checkOtrosMotivos.isChecked()) {
-            mensaje = "Hola, tengo otra consulta sobre el servicio.";
+            mensaje = "gracias.";
         }
+
+        EnviarMensajeController enviarMensajeController = new EnviarMensajeController();
+        enviarMensajeController.enviarMensaje(context, mensaje, new EnviarMensajeController.MensajeCallback() {
+            @Override
+            public void onSuccess(String respuesta) {
+                Log.d("Mensaje", "Enviado correctamente: " + respuesta);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Log.e("Mensaje", "Error al enviar: " + errorMessage);
+            }
+        });
+
 
         dismiss(); // Cerrar la ventana flotante después de enviar
     }
