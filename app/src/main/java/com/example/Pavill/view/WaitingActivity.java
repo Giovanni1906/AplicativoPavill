@@ -225,16 +225,13 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         //Botón de cancelar pedido
         findViewById(R.id.btnCancelSearch).setOnClickListener(v -> {
+
             new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
                 @Override
                 public void onSuccess(String message) {
                     Toast.makeText(WaitingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
 
-                    // limpiar TemporaryData
-                    temporaryData = TemporaryData.getInstance();
-                    temporaryData.clearData();
-
-                    // Crear un intent para regresar al MapActivity
+                    // Crear un intent para ir al cancel reason activity
                     Intent intent = new Intent(WaitingActivity.this, CancelReasonActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Limpia la pila de actividades
                     startActivity(intent);
@@ -248,6 +245,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             });
 
         });
+
         //Botón de continuar
         findViewById(R.id.btnOnBoard).setOnClickListener(v -> checkAndProceedToProgress());
     }

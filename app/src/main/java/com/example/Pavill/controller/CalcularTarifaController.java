@@ -45,20 +45,17 @@ public class CalcularTarifaController {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
-                        double tarifarioMonto = jsonResponse.optDouble("TarifarioMonto", 0.0);
 
-                        // Manejo de respuesta basada en el código
-                        switch (respuesta) {
-                            case "P111":
-                            case "P112":
-                            case "P113":
-                            case "P114":
-                            case "P115":
-                                callback.onSuccess(tarifarioMonto, respuesta);
-                                break;
-                            default:
-                                callback.onFailure("Respuesta desconocida del servidor.");
-                                break;
+                        double tarifarioMonto = 0.0;
+                        if (jsonResponse.has("TarifarioMonto") && !jsonResponse.isNull("TarifarioMonto")) {
+                            tarifarioMonto = jsonResponse.optDouble("TarifarioMonto", 0.0);
+                        }
+
+                        if (respuesta.equals("P111") || respuesta.equals("P112") || respuesta.equals("P113") || respuesta.equals("P114") || respuesta.equals("P115")) {
+                            Log.d(TAG, "Respuesta: " + jsonResponse);
+                            callback.onSuccess(tarifarioMonto, respuesta);
+                        } else {
+                            callback.onFailure("Respuesta desconocida del servidor.");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error procesando la respuesta: ", e);

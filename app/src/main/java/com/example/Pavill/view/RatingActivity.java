@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,7 +26,7 @@ import com.example.Pavill.components.DeviceIdentifier;
 import com.example.Pavill.components.PedidoCancellationHelper;
 import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
-import com.example.Pavill.controller.CalificarFinalizarPedidoController;
+import com.example.Pavill.controller.RatingController;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -45,11 +47,16 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private int currentRating = 0; // Variable global para la calificación
+    private String selectedFeedback = ""; // Motivo seleccionado
+
     private double currentLatitude = 0.0; // Variable global para la latitud
     private double currentLongitude = 0.0; // Variable global para la longitud
 
     private String conductorFoto;
     private TemporaryData temporaryData;
+
+    private EditText editTextFeedback;
+    private RadioGroup radioGroupOpciones;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,22 +66,18 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
 
-        // Inicializar el cliente de ubicación
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        // Inicializar UI
+        circularImage();
+        setupStarRating();
+        setupRadioButtons();
+        setupSubmitButton();
 
-        // Inicializar el mapa
+        // Configuración del mapa
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-
-        circularImage();
-
-        // Configuración de las estrellas para la calificación
-        setupStarRating();
-
-        // Configurar el botón de envío de calificación
-        setupSubmitButton();
     }
 
     private void circularImage(){
@@ -130,65 +133,71 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     }
 
     /**
+     * Configura la selección de feedback con RadioButtons
+     */
+    private void setupRadioButtons() {
+        radioGroupOpciones = findViewById(R.id.radioGroupOpciones);
+        editTextFeedback = findViewById(R.id.editTextFeedback);
+
+        radioGroupOpciones.setOnCheckedChangeListener((group, checkedId) -> {
+            RadioButton selectedRadioButton = findViewById(checkedId);
+            if (selectedRadioButton != null) {
+                selectedFeedback = selectedRadioButton.getText().toString();
+            }
+        });
+    }
+
+
+    /**
      * Configurar el botón de envío de calificación.
      */
     private void setupSubmitButton() {
         findViewById(R.id.btn_submit_rating).setOnClickListener(v -> {
-            // Obtener el comentario ingresado por el usuario
-            EditText commentEditText = findViewById(R.id.editTextFeedback);
-            String comment = commentEditText.getText().toString();
+            String comentarioAdicional = editTextFeedback.getText().toString().trim();
 
-            if (currentRating == 0) {
-                Toast.makeText(this, "Por favor selecciona una calificación.", Toast.LENGTH_SHORT).show();
+            if (selectedFeedback.isEmpty()) {
+                Toast.makeText(this, "Por favor selecciona un motivo.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (comment.isEmpty()) {
-                Toast.makeText(this, "Por favor ingresa un comentario.", Toast.LENGTH_SHORT).show();
-                return;
+            // Concatenar motivo + comentario (si existe)
+            String comentarioFinal = selectedFeedback;
+            if (!comentarioAdicional.isEmpty()) {
+                comentarioFinal += " - " + comentarioAdicional;
             }
-
-            // Obtener el identificador del dispositivo
-            String deviceIdentifier = DeviceIdentifier.getUniqueIdentifier(this);
 
             // Obtener el PedidoId desde TemporaryData
-            String pedidoId = TemporaryData.getInstance().getPedidoId();
-
+            String pedidoId = temporaryData.getPedidoId();
             if (pedidoId == null || pedidoId.isEmpty()) {
-                Toast.makeText(this, "No se encontró el PedidoId.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error: PedidoId no encontrado.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Llamar a la función para enviar los datos
-            sendCalification(pedidoId, currentRating, comment, currentLatitude, currentLongitude);
+            // Llamar al controlador
+            new RatingController().enviarCalificacion(this, pedidoId, currentRating, comentarioFinal, new RatingController.RatingCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    Toast.makeText(RatingActivity.this, "Gracias por tu calificación.", Toast.LENGTH_SHORT).show();
+                    finalizarProceso();
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    Toast.makeText(RatingActivity.this, "Error al enviar calificación: " + errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 
     /**
-     * Enviar la calificación y manejar las respuestas del servidor.
+     * Finaliza el proceso y regresa a la pantalla principal
      */
-    private void sendCalification(String pedidoId, int calificacion, String comentario, double lat, double lng) {
-        new CalificarFinalizarPedidoController().calificarFinalizarPedido(
-                this,
-                pedidoId,
-                calificacion,
-                comentario,
-                lat,
-                lng,
-                new CalificarFinalizarPedidoController.CalificarPedidoCallback() {
-                    @Override
-                    public void onSuccess(String message, JSONObject response) {
-                        Log.d("RatingActivity", "Calificación enviada exitosamente: " + message);
-                        Toast.makeText(RatingActivity.this, "Gracias por tu calificación.", Toast.LENGTH_SHORT).show();
-                        calificationProcess();
-                    }
-
-                    @Override
-                    public void onFailure(String errorMessage) {
-                        Log.e("RatingActivity", "Error al calificar: " + errorMessage);
-                        Toast.makeText(RatingActivity.this, "Error al enviar la calificación: " + errorMessage, Toast.LENGTH_SHORT).show();
-                    }
-                });
+    private void finalizarProceso() {
+        TemporaryData.getInstance().clearData();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     /**

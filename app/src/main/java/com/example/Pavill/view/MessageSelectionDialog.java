@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +21,7 @@ public class MessageSelectionDialog extends DialogFragment {
 
     private String conductorTelefono;
     private Context context;
-    private CheckBox checkProblemasConductor, checkDemoraExcesiva, checkCambiosDestino, checkOtrosMotivos;
+    private RadioGroup radioGroupOpciones;
 
     public MessageSelectionDialog(Context context, String conductorTelefono) {
         this.conductorTelefono = conductorTelefono;
@@ -31,17 +33,8 @@ public class MessageSelectionDialog extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_message_selection, container, false);
 
-        // CheckBoxes
-        checkProblemasConductor = view.findViewById(R.id.checkProblemasConductor);
-        checkDemoraExcesiva = view.findViewById(R.id.checkDemoraExcesiva);
-        checkCambiosDestino = view.findViewById(R.id.checkCambiosDestino);
-        checkOtrosMotivos = view.findViewById(R.id.checkOtrosMotivos);
-
-        // Listeners de selección
-        view.findViewById(R.id.optionProblemasConductor).setOnClickListener(v -> selectOption(checkProblemasConductor));
-        view.findViewById(R.id.optionDemoraExcesiva).setOnClickListener(v -> selectOption(checkDemoraExcesiva));
-        view.findViewById(R.id.optionCambiosDestino).setOnClickListener(v -> selectOption(checkCambiosDestino));
-        view.findViewById(R.id.optionOtrosMotivos).setOnClickListener(v -> selectOption(checkOtrosMotivos));
+        // Referencia al RadioGroup
+        radioGroupOpciones = view.findViewById(R.id.radioGroupOpciones);
 
         // Botón "Enviar"
         view.findViewById(R.id.btnEnviar).setOnClickListener(v -> enviarMensaje());
@@ -52,28 +45,19 @@ public class MessageSelectionDialog extends DialogFragment {
         return view;
     }
 
-    private void selectOption(CheckBox selectedCheckBox) {
-        // Desmarcar todos los CheckBoxes
-        checkProblemasConductor.setChecked(false);
-        checkDemoraExcesiva.setChecked(false);
-        checkCambiosDestino.setChecked(false);
-        checkOtrosMotivos.setChecked(false);
-
-        // Marcar solo el seleccionado
-        selectedCheckBox.setChecked(true);
-    }
-
     private void enviarMensaje() {
         String mensaje = null;
 
-        if (checkProblemasConductor.isChecked()) {
-            mensaje = "Espere un momento.";
-        } else if (checkDemoraExcesiva.isChecked()) {
-            mensaje = "Ya estoy afuera.";
-        } else if (checkCambiosDestino.isChecked()) {
-            mensaje = "Ok.";
-        } else if (checkOtrosMotivos.isChecked()) {
-            mensaje = "gracias.";
+        // Verificar qué opción está seleccionada
+        int selectedId = radioGroupOpciones.getCheckedRadioButtonId();
+        if (selectedId == -1) {
+            Log.e("Mensaje", "No se seleccionó ninguna opción.");
+            return;
+        }
+
+        RadioButton selectedRadioButton = radioGroupOpciones.findViewById(selectedId);
+        if (selectedRadioButton != null) {
+            mensaje = selectedRadioButton.getText().toString(); // Obtiene el texto del RadioButton seleccionado
         }
 
         EnviarMensajeController enviarMensajeController = new EnviarMensajeController();
@@ -88,7 +72,6 @@ public class MessageSelectionDialog extends DialogFragment {
                 Log.e("Mensaje", "Error al enviar: " + errorMessage);
             }
         });
-
 
         dismiss(); // Cerrar la ventana flotante después de enviar
     }

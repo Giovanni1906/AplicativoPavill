@@ -2,62 +2,105 @@ package com.example.Pavill.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.TemporaryData;
+import com.example.Pavill.controller.CancelPedidoController;
 
 public class CancelReasonActivity extends AppCompatActivity {
 
     private EditText editMotivo;
-    private TextView tvProblemasConductor, tvDemoraExcesiva, tvCambiosDestino, tvOtrosMotivos;
+    private RadioGroup radioGroupOpciones;
+    private RadioButton optionProblemasConductor, optionDemoraExcesiva, optionOtrosMotivos;
+    private TemporaryData temporaryData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cancel);
 
+        // Inicializar TemporaryData
+        temporaryData = TemporaryData.getInstance();
+
         // Referencias a las vistas
-        editMotivo = findViewById(R.id.edit_phone);
-        tvProblemasConductor = findViewById(R.id.tvProblemasConductor);
-        tvDemoraExcesiva = findViewById(R.id.tvDemoraExcesiva);
-        tvCambiosDestino = findViewById(R.id.tvCambiosDestino);
-        tvOtrosMotivos = findViewById(R.id.tvOtrosMotivos);
+        editMotivo = findViewById(R.id.edit_motivo);
+        radioGroupOpciones = findViewById(R.id.radioGroupOpciones);
+        optionProblemasConductor = findViewById(R.id.optionProblemasConductor);
+        optionDemoraExcesiva = findViewById(R.id.optionDemoraExcesiva);
+        optionOtrosMotivos = findViewById(R.id.optionOtrosMotivos);
 
-        // Configurar los listeners para las viñetas
-        setupBulletListeners();
+        // Configurar los listeners para los radio buttons
+//        setupRadioListeners();
 
-        // Listener para el botón "Enviar"
+        // Botón "Enviar"
         findViewById(R.id.edit_button).setOnClickListener(v -> enviarMotivo());
     }
 
-    private void setupBulletListeners() {
-        tvProblemasConductor.setOnClickListener(v -> editMotivo.setText("Problemas con el conductor"));
-        tvDemoraExcesiva.setOnClickListener(v -> editMotivo.setText("Demora excesiva"));
-        tvCambiosDestino.setOnClickListener(v -> editMotivo.setText("Cambios en el destino"));
-        tvOtrosMotivos.setOnClickListener(v -> editMotivo.setText("Otros motivos"));
-    }
+//    private void setupRadioListeners() {
+//        optionProblemasConductor.setOnClickListener(v -> editMotivo.setText("Problemas con el conductor"));
+//        optionDemoraExcesiva.setOnClickListener(v -> editMotivo.setText("Demora excesiva"));
+//        optionOtrosMotivos.setOnClickListener(v -> editMotivo.setText("Otros motivos"));
+//    }
 
     private void enviarMotivo() {
-        String motivo = editMotivo.getText().toString().trim();
+        String motivoSeleccionado = "";
+        String comentarioAdicional = editMotivo.getText().toString().trim();
 
-        if (motivo.isEmpty()) {
-            Toast.makeText(this, "Por favor seleccione o escriba un motivo.", Toast.LENGTH_SHORT).show();
+        int selectedId = radioGroupOpciones.getCheckedRadioButtonId();
+        if (selectedId == R.id.optionProblemasConductor) {
+            motivoSeleccionado = "Problemas con el conductor";
+        } else if (selectedId == R.id.optionDemoraExcesiva) {
+            motivoSeleccionado = "Demora excesiva";
+        } else if (selectedId == R.id.optionOtrosMotivos) {
+            motivoSeleccionado = "Otros motivos";
+        }
+
+        if (motivoSeleccionado.isEmpty()) {
+            Toast.makeText(this, "Por favor seleccione un motivo.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Aquí puedes enviar el motivo a un servidor si es necesario
+        // Obtener el PedidoId desde TemporaryData
+        String pedidoId = TemporaryData.getInstance().getPedidoId();
+        if (pedidoId == null || pedidoId.isEmpty()) {
+            Toast.makeText(this, "Error interno, intente nuevamente", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Mostrar mensaje de éxito
-        Toast.makeText(this, "Registrado correctamente", Toast.LENGTH_SHORT).show();
+        // Llamar al controlador
+        new CancelPedidoController().cancelarPedido(
+                this,
+                pedidoId,
+                motivoSeleccionado,
+                comentarioAdicional,
+                new CancelPedidoController.CancelPedidoCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        Toast.makeText(CancelReasonActivity.this, "Cancelación exitosa", Toast.LENGTH_SHORT).show();
 
-        // Redirigir al MapActivity
-        Intent intent = new Intent(CancelReasonActivity.this, MapActivity.class);
-        startActivity(intent);
-        finish();
+                        // limpiar TemporaryData
+                        temporaryData = TemporaryData.getInstance();
+                        temporaryData.clearData();
+
+                        // Redirigir al MapActivity
+                        Intent intent = new Intent(CancelReasonActivity.this, MapActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Toast.makeText(CancelReasonActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
     }
 }

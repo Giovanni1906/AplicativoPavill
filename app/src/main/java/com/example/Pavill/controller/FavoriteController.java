@@ -30,7 +30,7 @@ public class FavoriteController {
 
                 // Validar ClienteId antes de enviar
                 if (clienteId == null || clienteId.isEmpty()) {
-                    showToast(context, "El ClienteId no puede estar vacío.");
+                    showToast(context, "Tenemos problemas con su cuenta de usuario");
                     Log.e(TAG, "Error: ClienteId vacío.");
                     return;
                 }

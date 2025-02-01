@@ -140,7 +140,7 @@ public class ConfirmActivity extends AppCompatActivity {
 
         // Validar que clienteId esté disponible
         if (clienteId == null) {
-            Toast.makeText(this, "ClienteId no encontrado en SharedPreferences", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Problemas internos con su cuenta, vuelva a iniciar sesión", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -181,6 +181,7 @@ public class ConfirmActivity extends AppCompatActivity {
         TextView originTextView = findViewById(R.id.textOrigin);
         TextView destinationTextView = findViewById(R.id.textDestination);
         TextView estimatedCostTextView = findViewById(R.id.estimatedCost);
+        TextView withoutCostTextView = findViewById(R.id.withoutCost);
 
         originTextView.setText(originAddress);
         destinationTextView.setText(destinationAddress);
@@ -188,10 +189,14 @@ public class ConfirmActivity extends AppCompatActivity {
         // Mostrar el costo estimado desde TemporaryData
         TemporaryData temporaryData = TemporaryData.getInstance();
         String estimatedCost = temporaryData.getEstimatedCost();
-        if (estimatedCost != null && !estimatedCost.isEmpty()) {
+        if (estimatedCost != null && !estimatedCost.isEmpty() && !estimatedCost.equals("N/A")) {
             estimatedCostTextView.setText(estimatedCost);
+            estimatedCostTextView.setVisibility(View.VISIBLE);
+            withoutCostTextView.setVisibility(View.GONE);
+
         } else {
-            estimatedCostTextView.setText("sin definir...");
+            estimatedCostTextView.setVisibility(View.GONE);
+            withoutCostTextView.setVisibility(View.VISIBLE);
         }
     }
 }

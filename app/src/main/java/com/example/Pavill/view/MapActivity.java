@@ -26,6 +26,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -649,8 +650,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     private void checkIfLocationIsEnabled() {
         // Comprobar si el GPS está activado
-        android.location.LocationManager locationManager = (android.location.LocationManager) getSystemService(LOCATION_SERVICE);
-        boolean isGpsEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
         if (!isGpsEnabled) {
             // Mostrar un cuadro de diálogo para activar la ubicación
@@ -680,12 +681,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
                 // Desplazar el icono hacia arriba un poco
                 LatLng iconPosition = new LatLng(
-                        currentLocation.latitude + 0.0003, // Ajustar altura
+                        currentLocation.latitude, // Ajustar altura
                         currentLocation.longitude
                 );
 
                 // Redimensionar el icono im_here a 32px
-                BitmapDescriptor icon = BitmapUtils.getProportionalBitmap(this, R.drawable.im_here, 32);
+                BitmapDescriptor icon = BitmapUtils.getProportionalBitmap(this, R.drawable.ic_here, 56);
 
                 // Si el marcador ya existe, solo actualizar su posición
                 if (locationMarker != null) {
@@ -695,7 +696,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     locationMarker = mMap.addMarker(new MarkerOptions()
                             .position(iconPosition)
                             .icon(icon)
-                            .anchor(0.5f, 1.0f)); // La punta del icono toca el centro del ícono azul
+                            .anchor(0.5f, 1.0f) // La punta del icono toca el centro del ícono azul
+                    );
+//
                 }
 
                 // Desplaza la vista hacia abajo para que el marcador aparezca más arriba en la pantalla
@@ -724,7 +727,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 checkIfLocationIsEnabled();
             } else {
                 // Permiso denegado
-                Toast.makeText(this, "Permiso de ubicación denegado.", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "Permiso de ubicación denegado.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -816,44 +819,29 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         double destLat = destination.latitude;
         double destLng = destination.longitude;
 
+
+
         // Llamar al controlador
         new CalcularTarifaController().calcularTarifa(this, originLat, originLng, destLat, destLng, new CalcularTarifaController.CalcularTarifaCallback() {
             @Override
             public void onSuccess(double tarifario, String respuesta) {
-                switch (respuesta) {
-                    case "P111":
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", tarifario));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Tarifa calculada exitosamente." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
-                    case "P112":
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": No se encontró tarifa bidireccional o sectorial." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
-                    case "P113":
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Coordenadas de destino no válidas." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
-                    case "P114":
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Coordenadas de origen no válidas." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
-                    case "P115":
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Origen y destino no están definidos o no son válidos." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
-                    default:
-                        TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
-                        Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ": Respuesta desconocida del servidor." + ", Monto: " + tarifario + " " +  defaultCost);
-                        break;
+                String tarifa = "N/A";
+
+                if (tarifario > 0) {
+                    tarifa = String.format(Locale.getDefault(), "S/ %.2f", tarifario);
                 }
-                // Navegar a ConfirmActivity
+
+                Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ", Monto: " + tarifario);
+
+                TemporaryData.getInstance().setEstimatedCost(tarifa);
+
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 startActivity(intent);
             }
 
             @Override
             public void onFailure(String errorMessage) {
-                TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "Aún no hay tarifa"));
+                TemporaryData.getInstance().setEstimatedCost( "N/A");
                 Log.e("CalculateAproximatedCost", "Error: " + errorMessage + "monto: " + defaultCost);
                 // Navegar a ConfirmActivity
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
@@ -965,7 +953,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Convertir color a hue
         float[] hsv = new float[3];
-        android.graphics.Color.colorToHSV(color, hsv);
+        Color.colorToHSV(color, hsv);
 
         // Eliminar marcador anterior si es necesario
         if (isOrigin) {

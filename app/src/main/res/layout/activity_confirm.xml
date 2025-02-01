@@ -46,9 +46,23 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
             android:fontFamily="@font/dmsans_bold"
-            android:text="Aún no hay tarifa"
+            android:text="s/ XX.XX"
             android:textColor="@color/textColor"
             android:textSize="40sp"
+            android:visibility="visible"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/withoutCost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="40dp"
+            android:fontFamily="@font/dmsans_bold"
+            android:gravity="center"
+            android:text="Tarifa no encontrada, contáctenos para poder añadir esta nueva ruta."
+            android:textColor="@color/textColor"
+            android:textSize="16sp"
+            android:visibility="gone"
             android:textStyle="bold" />
 
         <LinearLayout

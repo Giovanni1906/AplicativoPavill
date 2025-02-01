@@ -74,6 +74,15 @@
                 android:contentDescription="Imagen del taxista"
                 android:layout_marginBottom="16dp"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Selecciona una puntuación"
+                android:textSize="12sp"
+                android:textColor="@color/textColor"
+                android:layout_marginBottom="16dp"/>
+
             <!-- 5 estrellas para calificación -->
             <LinearLayout
                 android:id="@+id/starRatingLayout"
@@ -126,93 +135,59 @@
             </LinearLayout>
 
             <!-- Viñetas con checkbox -->
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <RadioGroup
+                android:id="@+id/radioGroupOpciones"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="32dp">
 
-                <!-- Problemas con el conductor -->
-                <LinearLayout
-                    android:id="@+id/optionProblemasConductor"
+                <androidx.appcompat.widget.AppCompatRadioButton
+                    android:id="@+id/optionLLegoATiempo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
+                    android:button="@drawable/custom_radio_button"
+                    android:theme="@style/CustomRadioButtonTheme"
+                    android:text="Llegó a tiempo"
+                    app:buttonCompat="@null"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="16dp"
+                    android:layout_marginStart="8dp"
+                    android:focusable="false"/>
 
-                    <CheckBox
-                        android:id="@+id/checkProblemasConductor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:textColor="@color/primaryColor"
-                        android:focusableInTouchMode="false" />
 
-                    <TextView
-                        android:id="@+id/tvProblemasConductor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Llegó a tiempo"
-                        android:textSize="16sp"
-                        android:textColor="@color/textColor"
-                        android:layout_marginStart="8dp"/>
-                </LinearLayout>
-
-                <!-- Demora excesiva -->
-                <LinearLayout
+                <androidx.appcompat.widget.AppCompatRadioButton
                     android:id="@+id/optionDemoraExcesiva"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
+                    android:button="@drawable/custom_radio_button"
+                    android:theme="@style/CustomRadioButtonTheme"
+                    android:text="Demora excesiva"
+                    app:buttonCompat="@null"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="16dp"
+                    android:layout_marginStart="8dp"
+                    android:focusable="false"/>
 
-                    <CheckBox
-                        android:id="@+id/checkDemoraExcesiva"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:focusableInTouchMode="false"/>
-
-                    <TextView
-                        android:id="@+id/tvDemoraExcesiva"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Demora excesiva"
-                        android:textSize="16sp"
-                        android:textColor="@color/textColor"
-                        android:layout_marginStart="8dp"/>
-                </LinearLayout>
-
-                <!-- Otros motivos -->
-                <LinearLayout
+                <androidx.appcompat.widget.AppCompatRadioButton
                     android:id="@+id/optionOtrosMotivos"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
-
-                    <CheckBox
-                        android:id="@+id/checkOtrosMotivos"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:focusableInTouchMode="false"/>
-
-                    <TextView
-                        android:id="@+id/tvOtrosMotivos"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Otros motivos"
-                        android:textSize="16sp"
-                        android:textColor="@color/textColor"
-                        android:layout_marginStart="8dp"/>
-                </LinearLayout>
-
-            </LinearLayout>
+                    android:button="@drawable/custom_radio_button"
+                    android:theme="@style/CustomRadioButtonTheme"
+                    android:text="Otros motivos"
+                    app:buttonCompat="@null"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="16dp"
+                    android:layout_marginStart="8dp"
+                    android:focusable="false"/>
+            </RadioGroup>
 
             <!-- Input para comentarios -->
             <LinearLayout
@@ -222,6 +197,7 @@
                 <EditText
                     style="@style/GeneralEditTextStyle"
                     android:id="@+id/editTextFeedback"
+                    android:layout_height="76dp"
                     android:hint="Déjanos tu comentario."
                     android:inputType="text" />
             </LinearLayout>
@@ -233,7 +209,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/button_alternative"
+                android:layout_marginBottom="16dp"
                 android:text="¡Listo!"/>
+
+            <TextView
+                android:id="@+id/ErrorText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textColor="@color/alertColor"
+                android:visibility="gone"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnCode" />
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

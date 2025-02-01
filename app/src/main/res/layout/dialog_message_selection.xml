@@ -2,143 +2,100 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:padding="20dp"
+    android:padding="30dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
     android:background="@drawable/rounded_corner">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Seleccione un mensaje para enviar"
-        android:textSize="18sp"
+        android:text="Seleccione una opcion para "
+        android:textSize="16sp"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/textColor" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="enviar un mensaje al conductor"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"
         android:textColor="@color/textColor" />
 
     <!-- Viñetas con checkbox -->
-    <LinearLayout
+    <RadioGroup
+        android:id="@+id/radioGroupOpciones"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp">
+        android:orientation="vertical">
 
-        <!-- Problemas con el conductor -->
-        <LinearLayout
-            android:id="@+id/optionProblemasConductor"
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionSaldreAhora"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical">
+            android:button="@drawable/custom_radio_button"
+            android:theme="@style/CustomRadioButtonTheme"
+            android:text="Saldré ahora"
+            app:buttonCompat="@null"
+            android:textColor="@color/textColor"
+            android:textSize="16sp"
+            android:paddingStart="16dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:focusable="false"/>
 
-            <CheckBox
-                android:id="@+id/checkProblemasConductor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:textColor="@color/primaryColor"
-                android:focusableInTouchMode="false" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Espere un momento"
-                android:textSize="16sp"
-                android:textColor="@color/textColor"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Demora excesiva -->
-        <LinearLayout
-            android:id="@+id/optionDemoraExcesiva"
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionEstoyAfuera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical">
+            app:buttonCompat="@null"
+            android:button="@drawable/custom_radio_button"
+            android:theme="@style/CustomRadioButtonTheme"
+            android:text="Estoy Afuera"
+            android:textColor="@color/textColor"
+            android:textSize="16sp"
+            android:paddingStart="16dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:focusable="false"/>
 
-            <CheckBox
-                android:id="@+id/checkDemoraExcesiva"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:focusableInTouchMode="false"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ya estoy afuera"
-                android:textSize="16sp"
-                android:textColor="@color/textColor"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Cambios en el destino -->
-        <LinearLayout
-            android:id="@+id/optionCambiosDestino"
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionEspereme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical">
-
-            <CheckBox
-                android:id="@+id/checkCambiosDestino"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:focusableInTouchMode="false"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ok"
-                android:textSize="16sp"
-                android:textColor="@color/textColor"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Otros motivos -->
-        <LinearLayout
-            android:id="@+id/optionOtrosMotivos"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical">
-
-            <CheckBox
-                android:id="@+id/checkOtrosMotivos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:focusableInTouchMode="false"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Gracias"
-                android:textSize="16sp"
-                android:textColor="@color/textColor"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-    </LinearLayout>
+            app:buttonCompat="@null"
+            android:button="@drawable/custom_radio_button"
+            android:theme="@style/CustomRadioButtonTheme"
+            android:text="Espereme 1 min"
+            android:textColor="@color/textColor"
+            android:textSize="16sp"
+            android:paddingStart="16dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:focusable="false"/>
+    </RadioGroup>
 
     <!-- Botones -->
-    <Button
+    <!-- Botón "OK" para confirmar -->
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnEnviar"
+        style="@style/Button.Form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enviar"
-        android:background="@drawable/button_gradient" />
-
-    <Button
-        android:id="@+id/btnCancelar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Cancelar"
         android:background="@drawable/button_alternative"
-        android:layout_marginTop="8dp" />
+        android:text="Enviar" />
+
+    <!-- Botón "OK" para confirmar -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCancelar"
+        style="@style/Button.Form"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_gradient"
+        android:text="Cancelar" />
 </LinearLayout>

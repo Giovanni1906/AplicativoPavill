@@ -107,7 +107,7 @@ public class ProgressController {
                 break;
 
             default:
-                showToast("Respuesta desconocida del servidor: " + respuesta);
+                showToast("Problemas con su conexión de internet: " + respuesta);
                 Log.e("ProgressController", "Pedido finalizado mal, servidor: " + jsonResponse);
 
                 break;

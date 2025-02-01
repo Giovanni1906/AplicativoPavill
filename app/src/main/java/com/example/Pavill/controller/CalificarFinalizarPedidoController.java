@@ -38,7 +38,7 @@ public class CalificarFinalizarPedidoController {
         String identificador = sharedPreferences.getString("Identificador", "");
 
         if (identificador.isEmpty()) {
-            callback.onFailure("Identificador no encontrado en SharedPreferences.");
+            callback.onFailure("Problemas internos con el modelo de tu celular, favor de darle los permisos necesarios a la aplicación");
             return;
         }
 
