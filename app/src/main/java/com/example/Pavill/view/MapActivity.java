@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -26,9 +27,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -62,8 +66,10 @@ import com.example.Pavill.controller.NearbyTaxisController;
 import com.example.Pavill.controller.PlacesController;
 import com.example.Pavill.components.SuggestionsAdapter;
 import com.example.Pavill.controller.RouteController;
-import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -74,6 +80,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -119,6 +127,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private FavoritesAdapter favoritesAdapter;
 
     private Marker locationMarker; // Guardar el marcador para actualizarlo
+
+    private boolean firstTimeLoading = true;
 
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
     private double defaultCost = 0.0; // costo por defecto
@@ -659,6 +669,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             startActivity(intent);
         } else {
+            firstTimeLoading = true;
             getCurrentLocationAndCenterMap();
         }
     }
@@ -666,50 +677,135 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     /**
      * Obtiene la ubicación actual y centra el mapa con zoom más alto y ajusta la posición.
      */
+    @SuppressLint("MissingPermission")
     private void getCurrentLocationAndCenterMap() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (!checkLocationPermission()) {
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        // 1️⃣ Obtener ubicación rápida (para mostrar algo inmediato)
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        updateMapWithLocation(location);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Location", "Error obteniendo ubicación inicial", e);
+                    requestFastLocationUpdate(); // Forzar actualización si hay un error
+                });
 
-                // Mueve la cámara con zoom más alto
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
-
-                // Desplazar el icono hacia arriba un poco
-                LatLng iconPosition = new LatLng(
-                        currentLocation.latitude, // Ajustar altura
-                        currentLocation.longitude
-                );
-
-                // Redimensionar el icono im_here a 32px
-                BitmapDescriptor icon = BitmapUtils.getProportionalBitmap(this, R.drawable.ic_here, 56);
-
-                // Si el marcador ya existe, solo actualizar su posición
-                if (locationMarker != null) {
-                    locationMarker.setPosition(iconPosition);
-                } else {
-                    // Agregar un nuevo marcador en la ubicación desplazada
-                    locationMarker = mMap.addMarker(new MarkerOptions()
-                            .position(iconPosition)
-                            .icon(icon)
-                            .anchor(0.5f, 1.0f) // La punta del icono toca el centro del ícono azul
-                    );
-//
-                }
-
-                // Desplaza la vista hacia abajo para que el marcador aparezca más arriba en la pantalla
-                new Handler().postDelayed(() -> mMap.animateCamera(CameraUpdateFactory.scrollBy(0, 300)), 500);
-                // 300 píxeles hacia abajo (~1/4 de pantalla), ajusta según pruebas
-
-            } else {
-                Toast.makeText(this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // 2️⃣ Luego, forzar una actualización precisa en segundo plano
+        requestFastLocationUpdate();
+        // 2️⃣ Asegurar que el círculo azul aparece inmediatamente
+        if (mMap != null) {
+            mMap.setMyLocationEnabled(true);
+        }
     }
+
+    /**
+     * Solicita actualizaciones constantes de ubicación para mantener sincronizado el círculo azul con `ic_here`.
+     */
+    @SuppressLint("MissingPermission")
+    private void requestContinuousLocationUpdates() {
+        LocationRequest locationRequest;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Para Android 12+ (API 31+)
+            locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000)
+                    .setMinUpdateIntervalMillis(1000)
+                    .setWaitForAccurateLocation(false) // No esperar precisión absoluta para evitar retrasos
+                    .build();
+        } else {
+            // Para versiones anteriores
+            locationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(2000) // Ubicación actualizada cada 2 segundos
+                    .setFastestInterval(1000);
+        }
+
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+                for (Location loc : locationResult.getLocations()) {
+                    updateMapWithLocation(loc);
+                }
+            }
+        };
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+    }
+
+
+    /**
+     * Método para actualizar la ubicación en el mapa y centrar la cámara en la ubicación actual.
+     */
+    private void updateMapWithLocation(Location location) {
+        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        // Asegurar que el círculo azul y el `ic_here` estén sincronizados
+        if (locationMarker == null) {
+            locationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(currentLocation)
+                    .icon(BitmapUtils.getProportionalBitmap(this, R.drawable.ic_here, 56))
+                    .anchor(0.5f, 1.0f) // Centrar el icono
+            );
+        } else {
+            locationMarker.setPosition(currentLocation);
+        }
+
+        // Asegurar que el círculo azul también aparece más rápido
+        if (mMap != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+        }
+
+        // Mover la cámara solo si es la primera vez o el usuario no ha movido el mapa
+        if (firstTimeLoading) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
+            // Desplaza la vista para que el marcador no quede oculto por la interfaz
+            new Handler().postDelayed(() -> mMap.animateCamera(CameraUpdateFactory.scrollBy(0, 250)), 500);
+            firstTimeLoading = false;
+        }
+    }
+
+    /**
+     *  🚀 Método que fuerza la obtención de ubicación inmediatamente si `getLastLocation()` falla.
+     */
+    @SuppressLint("MissingPermission")
+    private void requestFastLocationUpdate() {
+        LocationRequest locationRequest;
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+                for (Location loc : locationResult.getLocations()) {
+                    updateMapWithLocation(loc);
+                    fusedLocationClient.removeLocationUpdates(this); // Detener actualizaciones tras recibir la primera ubicación
+                    break;
+                }
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 500)
+                    .setMinUpdateIntervalMillis(500) // 🔥 Obtener ubicación lo más rápido posible
+                    .setWaitForAccurateLocation(false) // No esperar demasiado por precisión extrema
+                    .build();
+        } else {
+            locationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(500) // 🔥 Obtener ubicación rápido
+                    .setFastestInterval(500);
+        }
+
+        // Solicitar una única actualización rápida
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+    }
+
 
     /**
      * Maneja la respuesta del permiso de ubicación
@@ -857,6 +953,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private void GotoMyLocation(CardView btnMyLocation) {
         btnMyLocation.setOnClickListener(v -> {
             if (mMap != null && checkLocationPermission()) {
+                firstTimeLoading = true;
                 getCurrentLocationAndCenterMap(); // Centrar el mapa en la ubicación actual
             } else {
                 Toast.makeText(this, "Permisos de ubicación no otorgados.", Toast.LENGTH_SHORT).show();

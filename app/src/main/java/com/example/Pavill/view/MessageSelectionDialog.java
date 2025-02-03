@@ -7,13 +7,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+
 import com.example.Pavill.R;
 import com.example.Pavill.controller.EnviarMensajeController;
 
@@ -21,7 +21,9 @@ public class MessageSelectionDialog extends DialogFragment {
 
     private String conductorTelefono;
     private Context context;
-    private RadioGroup radioGroupOpciones;
+
+    private RadioButton selectedRadioButton = null;
+    private LinearLayout selectedLayout = null;
 
     public MessageSelectionDialog(Context context, String conductorTelefono) {
         this.conductorTelefono = conductorTelefono;
@@ -33,8 +35,10 @@ public class MessageSelectionDialog extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_message_selection, container, false);
 
-        // Referencia al RadioGroup
-        radioGroupOpciones = view.findViewById(R.id.radioGroupOpciones);
+        // Configurar opciones dentro del layout
+        setupOption(view, R.id.optionSaldreAhora, R.id.OptionSaldreAhora);
+        setupOption(view, R.id.optionEstoyAfuera, R.id.OptionEstoyAfuera);
+        setupOption(view, R.id.optionEspereme, R.id.OptionEspereme);
 
         // Botón "Enviar"
         view.findViewById(R.id.btnEnviar).setOnClickListener(v -> enviarMensaje());
@@ -45,31 +49,63 @@ public class MessageSelectionDialog extends DialogFragment {
         return view;
     }
 
-    private void enviarMensaje() {
-        String mensaje = null;
+    /**
+     * Configura la selección y deselección de opciones manualmente.
+     */
+    private void setupOption(View view, int layoutId, int radioButtonId) {
+        LinearLayout layoutOption = view.findViewById(layoutId);
+        RadioButton radioButton = view.findViewById(radioButtonId);
 
-        // Verificar qué opción está seleccionada
-        int selectedId = radioGroupOpciones.getCheckedRadioButtonId();
-        if (selectedId == -1) {
-            Log.e("Mensaje", "No se seleccionó ninguna opción.");
+        layoutOption.setOnClickListener(v -> {
+            if (selectedRadioButton == radioButton) {
+                // Si se vuelve a tocar la misma opción, se deselecciona
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+                selectedRadioButton = null;
+                selectedLayout = null;
+                return;
+            }
+
+            if (selectedRadioButton != null) {
+                // Deseleccionar la opción anterior
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+            }
+
+            // Seleccionar la nueva opción
+            radioButton.setChecked(true);
+            layoutOption.setBackgroundResource(R.drawable.custom_radio_background_selected);
+
+            // Guardar selección
+            selectedRadioButton = radioButton;
+            selectedLayout = layoutOption;
+        });
+
+        // También aseguramos que el RadioButton responde al toque
+        radioButton.setOnClickListener(v -> layoutOption.performClick());
+    }
+
+    /**
+     * Envía el mensaje seleccionado
+     */
+    private void enviarMensaje() {
+        if (selectedRadioButton == null) {
+            Log.e("MensajeSelectionDialog", "No se seleccionó ninguna opción.");
             return;
         }
 
-        RadioButton selectedRadioButton = radioGroupOpciones.findViewById(selectedId);
-        if (selectedRadioButton != null) {
-            mensaje = selectedRadioButton.getText().toString(); // Obtiene el texto del RadioButton seleccionado
-        }
+        String mensaje = selectedRadioButton.getText().toString(); // Obtiene el texto del RadioButton seleccionado
 
         EnviarMensajeController enviarMensajeController = new EnviarMensajeController();
         enviarMensajeController.enviarMensaje(context, mensaje, new EnviarMensajeController.MensajeCallback() {
             @Override
             public void onSuccess(String respuesta) {
-                Log.d("Mensaje", "Enviado correctamente: " + respuesta);
+                Log.d("MensajeSelectionDialog", "Enviado correctamente: " + respuesta);
             }
 
             @Override
             public void onFailure(String errorMessage) {
-                Log.e("Mensaje", "Error al enviar: " + errorMessage);
+                Log.e("MensajeSelectionDialog", "Error al enviar: " + errorMessage);
             }
         });
 
