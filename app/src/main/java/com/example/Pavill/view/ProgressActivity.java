@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.ProgressController;
 import com.example.Pavill.controller.RouteController;
 import com.example.Pavill.receiver.PedidoStatusReceiver;
+import com.example.Pavill.services.PedidoStatusService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -71,8 +73,13 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         initializeButtons();
         initializeBottomSheet();
 
-        // Asegúrate de iniciar el servicio PedidoStatusService
-        PedidoServiceHelper.startPedidoStatusService(this);
+        // Iniciar el servicio de seguimiento de pedidos
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.startForegroundService(serviceIntent); // Para Android 8+
+        } else {
+            this.startService(serviceIntent);
+        }
     }
 
     /**

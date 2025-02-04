@@ -17,6 +17,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -122,8 +123,13 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         loadConductorPhoto();
 
-        // Inicia el servicio para verificar el estado del pedido
-        PedidoServiceHelper.startPedidoStatusService(this);
+        // Iniciar el servicio de seguimiento de pedidos
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.startForegroundService(serviceIntent); // Para Android 8+
+        } else {
+            this.startService(serviceIntent);
+        }
 
     }
 

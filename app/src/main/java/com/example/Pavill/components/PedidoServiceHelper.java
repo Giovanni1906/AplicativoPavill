@@ -25,9 +25,14 @@ public class PedidoServiceHelper {
      *
      * @param context El contexto desde donde se llama.
      */
+
     public static void startPedidoStatusService(Context context) {
         Intent serviceIntent = new Intent(context, PedidoStatusService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent); // Para Android 8+
+        } else {
             context.startService(serviceIntent);
+        }
     }
 
     /**
@@ -37,6 +42,8 @@ public class PedidoServiceHelper {
      */
     public static void stopPedidoStatusService(Context context) {
         Intent serviceIntent = new Intent(context, PedidoStatusService.class);
-        context.stopService(serviceIntent);
+        serviceIntent.setAction("STOP_FOREGROUND_SERVICE");
+        context.startService(serviceIntent);
     }
+
 }

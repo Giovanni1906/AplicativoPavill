@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,8 +60,17 @@ public class SearchingActivity extends AppCompatActivity {
         initializeUI();
         startTimer(); // Iniciar el temporizador
 
+        // Guardar el estado del pedido en SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("pedido_activo", true).apply();
+
         // Iniciar el servicio de seguimiento de pedidos
-        PedidoServiceHelper.startPedidoStatusService(this);
+        Intent serviceIntent = new Intent(this, PedidoStatusService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.startForegroundService(serviceIntent); // Para Android 8+
+        } else {
+            this.startService(serviceIntent);
+        }
 
     }
     /**

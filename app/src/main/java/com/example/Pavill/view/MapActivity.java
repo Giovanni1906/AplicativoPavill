@@ -29,10 +29,12 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -137,6 +139,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+
+        checkBatteryOptimization();
+
         // Inicializa la sección de favoritos antes de cualquier uso
         initializeFavoritesSection();
 
@@ -169,6 +174,17 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Inicializar BottomSheet y DrawerLayout
         initializeBottomSheetAndDrawer();
+    }
+
+    private void checkBatteryOptimization() {
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Log.d("MapActivity", "Solicitando exclusión de optimización de batería.");
+        }
     }
 
     /**

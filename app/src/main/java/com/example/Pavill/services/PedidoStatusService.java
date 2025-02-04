@@ -1,15 +1,26 @@
 package com.example.Pavill.services;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.example.Pavill.R;
 import com.example.Pavill.controller.PedidoStatusController;
 
 public class PedidoStatusService extends Service {
@@ -28,21 +39,75 @@ public class PedidoStatusService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        startForeground(1, createNotification()); // Inicia el servicio en primer plano con una notificación
+
         handler = new Handler();
         isServiceStopped = false; // Asegúrate de reiniciar la bandera al crear el servicio
         startCheckingPedidoStatus();
         Log.d(TAG, "PedidoStatusService iniciado.");
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.hasExtra("nuevoSubEstado")) {
-            String nuevoSubEstado = intent.getStringExtra("nuevoSubEstado");
-            cambiarSubEstadoAceptado(nuevoSubEstado); // Llama al método para cambiar el subestado
+    /**
+     * Crea una notificación para el servicio en primer plano.
+     * @return
+     */
+    private Notification createNotification() {
+        String channelId = "pedido_status_channel";
+
+        // Crear el canal de notificación (Solo para Android 8+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Estado del Pedido",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
         }
 
-        return START_STICKY; // Permite que el servicio se reinicie automáticamente si se detiene
+        // Crear la notificación
+        return new NotificationCompat.Builder(this, channelId)
+                .setContentTitle("Pavill")
+                .setContentText("Tienes una carrera en proceso...")
+                .setSmallIcon(R.drawable.logo) // Cambia esto por un ícono válido en tu app
+                .setOngoing(true) // La notificación no se puede deslizar para cerrar
+                .build();
     }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            if ("STOP_FOREGROUND_SERVICE".equals(intent.getAction())) {
+                stopServiceAndBroadcast();
+                return START_NOT_STICKY;
+            }
+
+            if (intent.hasExtra("nuevoSubEstado")) {
+                String nuevoSubEstado = intent.getStringExtra("nuevoSubEstado");
+                cambiarSubEstadoAceptado(nuevoSubEstado);
+            }
+        }
+
+        // Verificar optimización de batería
+        checkBatteryOptimization();
+
+        return START_STICKY; // Mantiene el servicio activo
+    }
+
+    private void checkBatteryOptimization() {
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Log.d(TAG, "Solicitando exclusión de optimización de batería.");
+        }
+    }
+
+
 
     @Override
     public void onDestroy() {
@@ -147,7 +212,12 @@ public class PedidoStatusService extends Service {
      * Detiene el servicio de manera segura.
      */
     private void stopServiceAndBroadcast() {
+        // Marcar el pedido como finalizado en SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
+        prefs.edit().putBoolean("pedido_activo", false).apply();
+
         stopStatusChecker(); // Detener el Runnable
+        stopForeground(true); // Detener el ForegroundService
         stopSelf(); // Finalizar el servicio
         Log.d(TAG, "PedidoStatusService detenido correctamente.");
     }
