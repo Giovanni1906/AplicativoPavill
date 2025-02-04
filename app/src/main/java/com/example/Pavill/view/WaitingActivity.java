@@ -180,21 +180,21 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
      */
     private String toCapitalLetter(String input) {
         if (input == null || input.isEmpty()) {
-            return input;
+            return "";  // En lugar de devolver null, devolvemos un string vacío
         }
 
         StringBuilder capitalized = new StringBuilder();
-        String[] words = input.toLowerCase().split("\\s+"); // Convertir todo a minúscula y dividir por espacios
+        String[] words = input.toLowerCase().split("\\s+");
 
         for (String word : words) {
             if (!word.isEmpty()) {
                 capitalized.append(Character.toUpperCase(word.charAt(0))) // Primera letra en mayúscula
-                        .append(word.substring(1)) // Resto en minúscula
-                        .append(" "); // Agregar espacio
+                        .append(word.substring(1))
+                        .append(" ");
             }
         }
 
-        return capitalized.toString().trim(); // Eliminar el espacio extra al final
+        return capitalized.toString().trim();  // Eliminamos el espacio extra al final
     }
 
 

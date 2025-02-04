@@ -135,59 +135,40 @@
             </LinearLayout>
 
             <!-- Viñetas con checkbox -->
-            <RadioGroup
-                android:id="@+id/radioGroupOpciones"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="32dp">
+            <LinearLayout
+                android:id="@+id/optionLLegoATiempo"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionLLegoATiempo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Llegó a tiempo"
-                    app:buttonCompat="@null"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:background="@android:color/transparent"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:focusable="false"/>
+                    android:id="@+id/optionLLegoATiempoRadio"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Llegó a tiempo"/>
+            </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/optionDemoraExcesiva"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionDemoraExcesiva"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Demora excesiva"
-                    app:buttonCompat="@null"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:background="@android:color/transparent"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:focusable="false"/>
+                    android:id="@+id/optionDemoraExcesivaRadio"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Demora excesiva"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/optionOtrosMotivos"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked"
+                android:layout_marginBottom="24dp">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionOtrosMotivos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Otros motivos"
-                    app:buttonCompat="@null"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:background="@android:color/transparent"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:focusable="false"/>
-            </RadioGroup>
+                    android:id="@+id/optionOtrosMotivosRadio"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Otros motivos"/>
+            </LinearLayout>
+
 
             <!-- Input para comentarios -->
             <LinearLayout

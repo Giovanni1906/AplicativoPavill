@@ -29,75 +29,38 @@
 <!--    viñetas-->
     <LinearLayout
         android:id="@+id/optionSaldreAhora"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_radio_background"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:layout_marginTop="8dp"
+        style="@style/CustomRadioOptionLayout"
         android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
 
         <androidx.appcompat.widget.AppCompatRadioButton
             android:id="@+id/OptionSaldreAhora"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/CustomRadioButtonStyle"
             app:buttonCompat="@null"
-            android:button="@drawable/custom_radio_button"
-            android:theme="@style/CustomRadioButtonTheme"
-            android:text="Saldré ahora"
-            android:textColor="@color/textColor"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:focusable="false"/>
+            android:text="Saldré ahora"/>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/optionEstoyAfuera"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_radio_background"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:layout_marginTop="8dp"
-        android:onClick="onRadioOptionClicked">
+        style="@style/CustomRadioOptionLayout"
+        android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
 
         <androidx.appcompat.widget.AppCompatRadioButton
             android:id="@+id/OptionEstoyAfuera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/CustomRadioButtonStyle"
             app:buttonCompat="@null"
-            android:button="@drawable/custom_radio_button"
-            android:theme="@style/CustomRadioButtonTheme"
-            android:text="Estoy Afuera"
-            android:textColor="@color/textColor"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:focusable="false"/>
+            android:text="Estoy Afuera"/>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/optionEspereme"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_radio_background"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:layout_marginTop="8dp"
-        android:onClick="onRadioOptionClicked">
+        style="@style/CustomRadioOptionLayout"
+        android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
 
         <androidx.appcompat.widget.AppCompatRadioButton
             android:id="@+id/OptionEspereme"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/CustomRadioButtonStyle"
             app:buttonCompat="@null"
-            android:button="@drawable/custom_radio_button"
-            android:theme="@style/CustomRadioButtonTheme"
-            android:text="Espereme 1 min"
-            android:textColor="@color/textColor"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:focusable="false"
-            android:clickable="false"/>
+            android:text="Espereme 1 min"/>
     </LinearLayout>
 
 

@@ -26,7 +26,8 @@
             android:orientation="vertical"
             android:elevation="2dp"
             android:layout_gravity="top"
-            android:translationZ="1dp">
+            android:translationZ="1dp"
+            >
 
             <!-- Título del anuncio -->
 <!--            <TextView-->
@@ -42,7 +43,6 @@
             <!-- Imagen publicitaria -->
             <ImageView
                 android:id="@+id/ad_image"
-                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"

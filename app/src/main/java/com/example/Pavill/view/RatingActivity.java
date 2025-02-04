@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -56,7 +57,12 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     private TemporaryData temporaryData;
 
     private EditText editTextFeedback;
-    private RadioGroup radioGroupOpciones;
+
+    private LinearLayout optionLLegoATiempo, optionDemoraExcesiva, optionOtrosMotivos;
+    private RadioButton radioLLegoATiempo, radioDemoraExcesiva, radioOtrosMotivos;
+
+    private RadioButton selectedRadioButton = null;
+    private LinearLayout selectedLayout = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,15 +142,57 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
      * Configura la selección de feedback con RadioButtons
      */
     private void setupRadioButtons() {
-        radioGroupOpciones = findViewById(R.id.radioGroupOpciones);
+        // Referencias a las vistas
         editTextFeedback = findViewById(R.id.editTextFeedback);
+        optionLLegoATiempo = findViewById(R.id.optionLLegoATiempo);
+        optionDemoraExcesiva = findViewById(R.id.optionDemoraExcesiva);
+        optionOtrosMotivos = findViewById(R.id.optionOtrosMotivos);
 
-        radioGroupOpciones.setOnCheckedChangeListener((group, checkedId) -> {
-            RadioButton selectedRadioButton = findViewById(checkedId);
-            if (selectedRadioButton != null) {
-                selectedFeedback = selectedRadioButton.getText().toString();
+        radioLLegoATiempo = findViewById(R.id.optionLLegoATiempoRadio);
+        radioDemoraExcesiva = findViewById(R.id.optionDemoraExcesivaRadio);
+        radioOtrosMotivos = findViewById(R.id.optionOtrosMotivosRadio);
+
+        // Configurar selección manual de opciones
+        setupOption(optionLLegoATiempo, radioLLegoATiempo, "Llegó a tiempo");
+        setupOption(optionDemoraExcesiva, radioDemoraExcesiva, "Demora excesiva");
+        setupOption(optionOtrosMotivos, radioOtrosMotivos, "Otros motivos");
+    }
+
+    /**
+     * Configura la selección y deselección de opciones manualmente.
+     */
+    private void setupOption(LinearLayout layoutOption, RadioButton radioButton, String feedback) {
+        layoutOption.setOnClickListener(v -> {
+            if (selectedRadioButton == radioButton) {
+                // Si se vuelve a tocar la misma opción, se deselecciona
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+                selectedRadioButton = null;
+                selectedLayout = null;
+                selectedFeedback = "";
+                editTextFeedback.setText("");
+                return;
             }
+
+            if (selectedRadioButton != null) {
+                // Deseleccionar la opción anterior
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+            }
+
+            // Seleccionar la nueva opción
+            radioButton.setChecked(true);
+            layoutOption.setBackgroundResource(R.drawable.custom_radio_background_selected);
+            selectedFeedback = feedback;
+            editTextFeedback.setText(feedback);
+
+            // Guardar selección
+            selectedRadioButton = radioButton;
+            selectedLayout = layoutOption;
         });
+
+        // También aseguramos que el RadioButton responde al toque
+        radioButton.setOnClickListener(v -> layoutOption.performClick());
     }
 
 

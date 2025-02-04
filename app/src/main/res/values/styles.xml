@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Estilo para el LinearLayout que actúa como opción seleccionable -->
+    <style name="CustomRadioOptionLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/custom_radio_background</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
+    <!-- Estilo para el RadioButton personalizado -->
+    <style name="CustomRadioButtonStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:button">@drawable/custom_radio_button</item>
+        <item name="android:theme">@style/CustomRadioButtonTheme</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:focusable">false</item>
+        <item name="android:focusableInTouchMode">false</item>
+        <item name="android:background">@null</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
     <!--  Estilo para el splash de carga del inicio  -->
     <style name="Theme.Pavill.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowNoTitle">true</item>

@@ -2,11 +2,10 @@ package com.example.Pavill.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,9 +17,12 @@ import com.example.Pavill.controller.CancelPedidoController;
 public class CancelReasonActivity extends AppCompatActivity {
 
     private EditText editMotivo;
-    private RadioGroup radioGroupOpciones;
-    private RadioButton optionProblemasConductor, optionDemoraExcesiva, optionOtrosMotivos;
+    private LinearLayout optionProblemasConductor, optionDemoraExcesiva, optionOtrosMotivos;
+    private RadioButton radioProblemasConductor, radioDemoraExcesiva, radioOtrosMotivos;
     private TemporaryData temporaryData;
+    private RadioButton selectedRadioButton = null;
+    private LinearLayout selectedLayout = null;
+    private String motivoSeleccionado = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,36 +34,62 @@ public class CancelReasonActivity extends AppCompatActivity {
 
         // Referencias a las vistas
         editMotivo = findViewById(R.id.edit_motivo);
-        radioGroupOpciones = findViewById(R.id.radioGroupOpciones);
         optionProblemasConductor = findViewById(R.id.optionProblemasConductor);
         optionDemoraExcesiva = findViewById(R.id.optionDemoraExcesiva);
         optionOtrosMotivos = findViewById(R.id.optionOtrosMotivos);
 
-        // Configurar los listeners para los radio buttons
-//        setupRadioListeners();
+        radioProblemasConductor = findViewById(R.id.OptionProblemasConductor);
+        radioDemoraExcesiva = findViewById(R.id.OptionDemoraExcesiva);
+        radioOtrosMotivos = findViewById(R.id.OptionOtrosMotivos);
+
+        // Configurar selección manual de opciones
+        setupOption(optionProblemasConductor, radioProblemasConductor, "Problemas con el conductor");
+        setupOption(optionDemoraExcesiva, radioDemoraExcesiva, "Demora excesiva");
+        setupOption(optionOtrosMotivos, radioOtrosMotivos, "Otros motivos");
 
         // Botón "Enviar"
         findViewById(R.id.edit_button).setOnClickListener(v -> enviarMotivo());
     }
 
-//    private void setupRadioListeners() {
-//        optionProblemasConductor.setOnClickListener(v -> editMotivo.setText("Problemas con el conductor"));
-//        optionDemoraExcesiva.setOnClickListener(v -> editMotivo.setText("Demora excesiva"));
-//        optionOtrosMotivos.setOnClickListener(v -> editMotivo.setText("Otros motivos"));
-//    }
+    /**
+     * Configura la selección y deselección de opciones manualmente.
+     */
+    private void setupOption(LinearLayout layoutOption, RadioButton radioButton, String motivo) {
+        layoutOption.setOnClickListener(v -> {
+            if (selectedRadioButton == radioButton) {
+                // Si se vuelve a tocar la misma opción, se deselecciona
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+                selectedRadioButton = null;
+                selectedLayout = null;
+                motivoSeleccionado = "";
+                editMotivo.setText("");
+                return;
+            }
+
+            if (selectedRadioButton != null) {
+                // Deseleccionar la opción anterior
+                selectedRadioButton.setChecked(false);
+                selectedLayout.setBackgroundResource(R.drawable.custom_radio_background);
+            }
+
+            // Seleccionar la nueva opción
+            radioButton.setChecked(true);
+            layoutOption.setBackgroundResource(R.drawable.custom_radio_background_selected);
+            motivoSeleccionado = motivo;
+            editMotivo.setText(motivo);
+
+            // Guardar selección
+            selectedRadioButton = radioButton;
+            selectedLayout = layoutOption;
+        });
+
+        // También aseguramos que el RadioButton responde al toque
+        radioButton.setOnClickListener(v -> layoutOption.performClick());
+    }
 
     private void enviarMotivo() {
-        String motivoSeleccionado = "";
         String comentarioAdicional = editMotivo.getText().toString().trim();
-
-        int selectedId = radioGroupOpciones.getCheckedRadioButtonId();
-        if (selectedId == R.id.optionProblemasConductor) {
-            motivoSeleccionado = "Problemas con el conductor";
-        } else if (selectedId == R.id.optionDemoraExcesiva) {
-            motivoSeleccionado = "Demora excesiva";
-        } else if (selectedId == R.id.optionOtrosMotivos) {
-            motivoSeleccionado = "Otros motivos";
-        }
 
         if (motivoSeleccionado.isEmpty()) {
             Toast.makeText(this, "Por favor seleccione un motivo.", Toast.LENGTH_SHORT).show();
@@ -87,7 +115,6 @@ public class CancelReasonActivity extends AppCompatActivity {
                         Toast.makeText(CancelReasonActivity.this, "Cancelación exitosa", Toast.LENGTH_SHORT).show();
 
                         // limpiar TemporaryData
-                        temporaryData = TemporaryData.getInstance();
                         temporaryData.clearData();
 
                         // Redirigir al MapActivity

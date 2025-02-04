@@ -45,55 +45,39 @@
                 android:textColor="@color/textColor" />
 
             <!-- Viñetas con checkbox -->
-            <RadioGroup
-                android:id="@+id/radioGroupOpciones"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+            <LinearLayout
+                android:id="@+id/optionProblemasConductor"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionProblemasConductor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Problemas con el conductor"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@android:color/transparent"
-                    android:focusable="false" />
+                    android:id="@+id/OptionProblemasConductor"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Problemas con el conductor"/>
+            </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/optionDemoraExcesiva"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionDemoraExcesiva"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Demora excesiva"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@android:color/transparent"
-                    android:focusable="false"/>
+                    android:id="@+id/OptionDemoraExcesiva"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Demora excesiva"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/optionOtrosMotivos"
+                style="@style/CustomRadioOptionLayout"
+                android:onClick="onRadioOptionClicked">
 
                 <androidx.appcompat.widget.AppCompatRadioButton
-                    android:id="@+id/optionOtrosMotivos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/custom_radio_button"
-                    android:theme="@style/CustomRadioButtonTheme"
-                    android:text="Otros motivos"
-                    android:textColor="@color/textColor"
-                    android:textSize="16sp"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@android:color/transparent"
-                    android:focusable="false"/>
-            </RadioGroup>
+                    android:id="@+id/OptionOtrosMotivos"
+                    style="@style/CustomRadioButtonStyle"
+                    android:text="Otros motivos"/>
+            </LinearLayout>
+
 
             <!-- Layout para contener los campos del formulario -->
             <LinearLayout
