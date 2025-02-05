@@ -31,6 +31,7 @@ public class CancelReasonActivity extends AppCompatActivity {
 
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
         // Referencias a las vistas
         editMotivo = findViewById(R.id.edit_motivo);
@@ -97,7 +98,7 @@ public class CancelReasonActivity extends AppCompatActivity {
         }
 
         // Obtener el PedidoId desde TemporaryData
-        String pedidoId = TemporaryData.getInstance().getPedidoId();
+        String pedidoId = temporaryData.getPedidoId();
         if (pedidoId == null || pedidoId.isEmpty()) {
             Toast.makeText(this, "Error interno, intente nuevamente", Toast.LENGTH_SHORT).show();
             return;
@@ -115,7 +116,7 @@ public class CancelReasonActivity extends AppCompatActivity {
                         Toast.makeText(CancelReasonActivity.this, "Cancelación exitosa", Toast.LENGTH_SHORT).show();
 
                         // limpiar TemporaryData
-                        temporaryData.clearData();
+                        temporaryData.clearData(CancelReasonActivity.this);
 
                         // Redirigir al MapActivity
                         Intent intent = new Intent(CancelReasonActivity.this, MapActivity.class);

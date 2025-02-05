@@ -23,6 +23,7 @@ public class DriverLocationController {
     public void fetchDriverLocation(Context context, DriverLocationCallback callback) {
         String url = context.getString(R.string.url_services_ubicacion);
         TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
 
         String pedidoId = temporaryData.getPedidoId();
         String conductorId = temporaryData.getConductorId(); // Obtén el conductor ID del TemporaryData

@@ -71,6 +71,8 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
 
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
+
 
         // Inicializar UI
         circularImage();
@@ -241,7 +243,7 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
      * Finaliza el proceso y regresa a la pantalla principal
      */
     private void finalizarProceso() {
-        TemporaryData.getInstance().clearData();
+        temporaryData.clearData(this);
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -254,7 +256,7 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     private void calificationProcess(){
             //Marcar viaje finalizado
             PedidoServiceHelper.updateSubPedidoState(this, "Finalizado");
-            TemporaryData.getInstance().clearData();
+            temporaryData.clearData(this);
             // Detener el servicio PedidoStatusService
             PedidoServiceHelper.stopPedidoStatusService(this);
 

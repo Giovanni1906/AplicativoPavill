@@ -211,9 +211,18 @@ public class PedidoStatusService extends Service {
                     public void onError(String errorMessage) {
                         if (isServiceStopped) return; // No procesar errores si el servicio está detenido
 
-                        Log.e(TAG, "Error al verificar el estado del pedido: " + errorMessage);
-                        handler.postDelayed(statusChecker, CHECK_INTERVAL);
+                        Log.e(TAG, "Error crítico al verificar el estado del pedido: " + errorMessage);
+
+                        // 🔴 Guardar en SharedPreferences que hubo un error y detener el servicio
+                        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
+                        prefs.edit()
+                                .putBoolean("error_pedido", true)
+                                .apply();
+
+                        // 🔴 Detener el servicio completamente
+                        stopServiceAndBroadcast();
                     }
+
                 });
             }
         };
@@ -235,6 +244,7 @@ public class PedidoStatusService extends Service {
      * Detiene el servicio de manera segura.
      */
     private void stopServiceAndBroadcast() {
+        Log.e(TAG, "PedidoStatusService detenido debido a un error crítico.");
         // Marcar el pedido como finalizado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
         prefs.edit()
@@ -243,8 +253,10 @@ public class PedidoStatusService extends Service {
                 .putBoolean("pedido_activo", false)
                 .apply();
 
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
         // 🔹 Limpiar `TemporaryData`
-        TemporaryData.getInstance().clearData(this);
+        temporaryData.clearData(this);
 
 
         stopStatusChecker(); // Detener el Runnable

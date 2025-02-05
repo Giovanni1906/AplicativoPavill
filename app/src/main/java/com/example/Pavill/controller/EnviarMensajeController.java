@@ -24,7 +24,9 @@ public class EnviarMensajeController {
         String SERVICE_URL = getServiceUrl(context); // Obtiene la URL del servicio
 
         // Obtén el PedidoId de TemporaryData
-        String pedidoId = TemporaryData.getInstance().getPedidoId();
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+        String pedidoId = temporaryData.getPedidoId();
         if (pedidoId == null || pedidoId.isEmpty()) {
             callback.onFailure("No hay un PedidoId disponible.");
             return;

@@ -104,6 +104,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
         // Inicializar coordenadas de origen y destino
         originCoordinates = temporaryData.getOriginCoordinates();
@@ -706,7 +707,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
      * Obtiene la foto del conductor y la guarda en TemporaryData.
      */
     private void loadConductorPhoto() {
-        String conductorId = TemporaryData.getInstance().getConductorId();
+        String conductorId = temporaryData.getConductorId();
 
         new PedidoStatusController().fetchConductorPhoto(this, conductorId, new PedidoStatusController.FetchConductorPhotoCallback() {
             @Override

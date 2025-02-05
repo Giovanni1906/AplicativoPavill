@@ -68,9 +68,10 @@ public class RequestTaxiController {
                             case "P001": // Pedido registrado correctamente
                                 // Guarda datos en TemporaryData
                                 TemporaryData temporaryData = TemporaryData.getInstance();
-                                temporaryData.setPedidoId(jsonResponse.optString("PedidoId"));
-                                temporaryData.setOriginCoordinates(new LatLng(originLat, originLng));
-                                temporaryData.setDestinationCoordinates(new LatLng(destinationLat, destinationLng));
+                                temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+                                temporaryData.setPedidoId(jsonResponse.optString("PedidoId"), context);
+                                temporaryData.setOriginCoordinates(new LatLng(originLat, originLng), context);
+                                temporaryData.setDestinationCoordinates(new LatLng(destinationLat, destinationLng), context);
 
                                 callback.onSuccess("Pedido registrado con éxito.");
                                 Log.d("RequestTaxiController", "Pedido registrado con éxito: " + jsonResponse);

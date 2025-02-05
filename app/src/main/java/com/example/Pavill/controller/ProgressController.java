@@ -34,9 +34,11 @@ public class ProgressController {
      */
     public void finishTravel() {
         // Obtener datos necesarios desde TemporaryData
-        TemporaryData tempData = TemporaryData.getInstance();
-        String pedidoId = tempData.getPedidoId();
-        String conductorId = tempData.getConductorId();
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+
+        String pedidoId = temporaryData.getPedidoId();
+        String conductorId = temporaryData.getConductorId();
 
         // Validar que los datos necesarios estén disponibles
         if (pedidoId == null || conductorId == null) {

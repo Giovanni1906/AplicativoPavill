@@ -61,11 +61,15 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     private BottomSheetBehavior<View> bottomSheetBehavior; // Manejador del BottomSheet
     private Polyline routePolyline; // Polyline para la ruta
     private PedidoStatusReceiver pedidoStatusReceiver;
+    private TemporaryData temporaryData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
+
+        temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
         initializeData();
         initializeMap();
@@ -137,7 +141,6 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
      */
     private void initializeData() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // Inicializar el cliente de ubicación
-        TemporaryData temporaryData = TemporaryData.getInstance();
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
 

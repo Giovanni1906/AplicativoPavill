@@ -34,6 +34,7 @@ public class ConfirmActivity extends AppCompatActivity {
     private LoadingDialog loadingDialog;
     private TextView errorText;
 
+    private TemporaryData temporaryData;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,11 +51,13 @@ public class ConfirmActivity extends AppCompatActivity {
         findViewById(R.id.btnCancel).setOnClickListener(v -> onBackPressed());
 
         // Obtener las coordenadas directamente desde TemporaryData
-        TemporaryData tempData = TemporaryData.getInstance();
+        temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
-        if (tempData.getOriginCoordinates() != null && tempData.getDestinationCoordinates() != null) {
-            originCoordinates = tempData.getOriginCoordinates();
-            destinationCoordinates = tempData.getDestinationCoordinates();
+
+        if (temporaryData.getOriginCoordinates() != null && temporaryData.getDestinationCoordinates() != null) {
+            originCoordinates = temporaryData.getOriginCoordinates();
+            destinationCoordinates = temporaryData.getDestinationCoordinates();
 
             // Usar Geocoder para obtener direcciones amigables
             FriendlyAddressHelper.getFriendlyAddress(this, originCoordinates.latitude, originCoordinates.longitude, new FriendlyAddressHelper.AddressCallback() {
@@ -111,7 +114,7 @@ public class ConfirmActivity extends AppCompatActivity {
 
                             // Registrar el tiempo del pedido
                             long requestTime = System.currentTimeMillis();
-                            TemporaryData.getInstance().setRequestTime(requestTime);
+                            temporaryData.setRequestTime(requestTime, ConfirmActivity.this);
 
                             // Redirigir a SearchingActivity
                             Intent intent = new Intent(ConfirmActivity.this, SearchingActivity.class);
@@ -153,8 +156,7 @@ public class ConfirmActivity extends AppCompatActivity {
      * @param clienteId
      */
     private void setupFavoriteButton(String clienteId) {
-        TemporaryData tempData = TemporaryData.getInstance();
-        LatLng destinationCoordinates = tempData.getDestinationCoordinates();
+        LatLng destinationCoordinates = temporaryData.getDestinationCoordinates();
         String destinationAddress = this.destinationAddress != null ? this.destinationAddress : "Destino no disponible";
 
         ImageView heartButton = findViewById(R.id.favoriteButton);
@@ -187,7 +189,6 @@ public class ConfirmActivity extends AppCompatActivity {
         destinationTextView.setText(destinationAddress);
 
         // Mostrar el costo estimado desde TemporaryData
-        TemporaryData temporaryData = TemporaryData.getInstance();
         String estimatedCost = temporaryData.getEstimatedCost();
         if (estimatedCost != null && !estimatedCost.isEmpty() && !estimatedCost.equals("N/A")) {
             estimatedCostTextView.setText(estimatedCost);

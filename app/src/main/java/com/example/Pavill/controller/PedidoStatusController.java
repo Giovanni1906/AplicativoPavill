@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class PedidoStatusController {
 
+    TemporaryData temporaryData;
     public interface PedidoStatusCallback {
         void onStatusReceived(String status, String message);
         void onError(String errorMessage);
@@ -25,7 +26,10 @@ public class PedidoStatusController {
     public void checkPedidoStatus(Context context, PedidoStatusCallback callback) {
         String url = context.getString(R.string.url_services_pedido);
 
-        String pedidoId = TemporaryData.getInstance().getPedidoId();
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+
+        String pedidoId = temporaryData.getPedidoId();
         if (pedidoId == null || pedidoId.isEmpty()) {
             callback.onError("No se encontró un ID de pedido válido.");
             return;
@@ -114,7 +118,9 @@ public class PedidoStatusController {
 
                         // Guarda la foto en TemporaryData
                         String conductorFoto = jsonResponse.optString("ConductorFoto", "Desconocido");
-                        TemporaryData.getInstance().setConductorFoto(conductorFoto);
+                        TemporaryData temporaryData = TemporaryData.getInstance();
+                        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+                        temporaryData.setConductorFoto(conductorFoto, context);
 
                         // Llama al callback de éxito
                         if (callback != null) {
@@ -161,15 +167,16 @@ public class PedidoStatusController {
      */
     private void assignConductorAndVehicleData(JSONObject jsonResponse, Context context) {
         TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
 
-        temporaryData.setConductorId(jsonResponse.optString("ConductorId", "Desconocido"));
-        temporaryData.setConductorNombre(jsonResponse.optString("ConductorNombre", "Desconocido"));
-        temporaryData.setConductorTelefono(jsonResponse.optString("ConductorCelular", "N/A"));
-        temporaryData.setUnidadPlaca(jsonResponse.optString("VehiculoPlaca", "N/A"));
-        temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"));
-        temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"));
-        temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"));
-        temporaryData.setVehiculoUnidad(jsonResponse.optString("VehiculoUnidad", "N/A"));
+        temporaryData.setConductorId(jsonResponse.optString("ConductorId", "Desconocido"), context);
+        temporaryData.setConductorNombre(jsonResponse.optString("ConductorNombre", "Desconocido"), context);
+        temporaryData.setConductorTelefono(jsonResponse.optString("ConductorCelular", "N/A"), context);
+        temporaryData.setUnidadPlaca(jsonResponse.optString("VehiculoPlaca", "N/A"), context);
+        temporaryData.setUnidadModelo(jsonResponse.optString("VehiculoModelo", "N/A"), context);
+        temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"), context);
+        temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"), context);
+        temporaryData.setVehiculoUnidad(jsonResponse.optString("VehiculoUnidad", "N/A"), context);
         Log.d("PedidoStatusController", "Datos conductor" + jsonResponse);
         Log.d("PedidoStatusController", "Foto de conductor inic" + jsonResponse.optString("ConductorFoto", ""));
 

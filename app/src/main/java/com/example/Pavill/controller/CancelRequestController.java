@@ -25,8 +25,12 @@ public class CancelRequestController {
     public void cancelRequest(Context context, CancelRequestCallback callback) {
         String SERVICE_URL = getServiceUrl(context); // Obtiene la URL correcta
 
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+
+
         // Obtener el PedidoId desde TemporaryData
-        String pedidoId = TemporaryData.getInstance().getPedidoId();
+        String pedidoId = temporaryData.getPedidoId();
 
         if (pedidoId == null || pedidoId.isEmpty()) {
             callback.onFailure("No se encontró un ID de pedido válido para cancelar.");

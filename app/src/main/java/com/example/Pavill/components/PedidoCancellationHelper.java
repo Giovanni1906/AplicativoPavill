@@ -21,7 +21,8 @@ public class PedidoCancellationHelper {
 
         // Limpiar TemporaryData
         TemporaryData temporaryData = TemporaryData.getInstance();
-        temporaryData.clearData();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+        temporaryData.clearData(context);
 
         // Detener el servicio PedidoStatusService
         PedidoServiceHelper.stopPedidoStatusService(context);

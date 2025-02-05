@@ -134,11 +134,16 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
     private double defaultCost = 0.0; // costo por defecto
+
+    private TemporaryData temporaryData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
         checkBatteryOptimization();
 
@@ -441,9 +446,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 @Override
                 public void onRouteSuccess(List<LatLng> polylinePoints, String distanceText, String durationText, double estimatedCost) {
                     Log.d("Route", "Ruta trazada con éxito: " + distanceText + ", " + durationText);
-                    TemporaryData.getInstance().setDistance(distanceText);
-                    TemporaryData.getInstance().setDuration(durationText);
-//                  TemporaryData.getInstance().setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", estimatedCost));
+                    temporaryData.setDistance(distanceText, MapActivity.this);
+                    temporaryData.setDuration(durationText, MapActivity.this);
+//                  temporaryData.setEstimatedCost(String.format(Locale.getDefault(), "s/ %.2f", estimatedCost));
                     defaultCost = estimatedCost;
                 }
 
@@ -920,9 +925,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         btnRequestTaxi.setOnClickListener(v -> {
             if (originLatLng != null && destinationLatLng != null) {
                 // Guardar las coordenadas en TemporaryData
-                TemporaryData tempData = TemporaryData.getInstance();
-                tempData.setOriginCoordinates(originLatLng);
-                tempData.setDestinationCoordinates(destinationLatLng);
+                temporaryData.setOriginCoordinates(originLatLng, MapActivity.this);
+                temporaryData.setDestinationCoordinates(destinationLatLng, MapActivity.this);
                 CalculateAproximatedCost(originLatLng, destinationLatLng);
 
             } else {
@@ -957,7 +961,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
                 Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ", Monto: " + tarifario);
 
-                TemporaryData.getInstance().setEstimatedCost(tarifa);
+                temporaryData.setEstimatedCost(tarifa, MapActivity.this);
 
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 startActivity(intent);
@@ -965,7 +969,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void onFailure(String errorMessage) {
-                TemporaryData.getInstance().setEstimatedCost( "N/A");
+                temporaryData.setEstimatedCost( "N/A", MapActivity.this);
                 Log.e("CalculateAproximatedCost", "Error: " + errorMessage + "monto: " + defaultCost);
                 // Navegar a ConfirmActivity
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
