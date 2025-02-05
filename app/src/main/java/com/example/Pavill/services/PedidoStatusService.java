@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.PedidoStatusController;
 
 public class PedidoStatusService extends Service {
@@ -151,6 +152,14 @@ public class PedidoStatusService extends Service {
                         Log.d(TAG, "Estado del pedido recibido: " + status + " - " + message);
 
                         pedidoStatus = status; // Actualiza el estado global
+
+                        // Guardar estado en SharedPreferences
+                        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("pedido_status", status);
+                        editor.putString("pedido_subestado", subEstadoAceptado); // Guardar el subestado si aplica
+                        editor.apply();
+
                         switch (status) {
                             case "EN_ESPERA": // Pedido en espera
                                 Log.d(TAG, "Estado: EN_ESPERA. Buscando conductor...");
@@ -228,7 +237,15 @@ public class PedidoStatusService extends Service {
     private void stopServiceAndBroadcast() {
         // Marcar el pedido como finalizado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
-        prefs.edit().putBoolean("pedido_activo", false).apply();
+        prefs.edit()
+                .remove("pedido_status")
+                .remove("pedido_subestado")
+                .putBoolean("pedido_activo", false)
+                .apply();
+
+        // 🔹 Limpiar `TemporaryData`
+        TemporaryData.getInstance().clearData(this);
+
 
         stopStatusChecker(); // Detener el Runnable
         stopForeground(true); // Detener el ForegroundService

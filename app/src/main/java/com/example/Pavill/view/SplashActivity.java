@@ -9,6 +9,7 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.ObtenerFondoLoginController;
 
 public class SplashActivity extends AppCompatActivity {
@@ -22,8 +23,52 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Iniciar la carga de la imagen del fondo
-        cargarFondoLogin();
+        // 🔹 Restaurar los datos temporales antes de verificar el estado del pedido
+        TemporaryData.getInstance().loadFromPreferences(this);
+
+        // Iniciar la verificación del estado del pedido
+        verificarEstadoPedido();
+    }
+
+    /**
+     * Verifica el estado del pedido guardado y redirige a la actividad correspondiente.
+     */
+    private void verificarEstadoPedido() {
+        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
+        String pedidoStatus = prefs.getString("pedido_status", ""); // Estado principal
+        String subEstado = prefs.getString("pedido_subestado", ""); // Subestado en caso de "ACEPTADO"
+
+        Intent intent = null;
+
+        if (!pedidoStatus.isEmpty()) {
+            switch (pedidoStatus) {
+                case "EN_ESPERA":
+                    intent = new Intent(this, SearchingActivity.class);
+                    break;
+
+                case "ACEPTADO":
+                    if ("ESPERA_CONDUCTOR".equals(subEstado)) {
+                        intent = new Intent(this, WaitingActivity.class);
+                    } else if ("A_BORDO".equals(subEstado)) {
+                        intent = new Intent(this, ProgressActivity.class);
+                    }
+                    break;
+
+                case "FINALIZADO":
+                case "CANCELADO":
+                    // No hacer nada, el usuario irá a MainActivity normalmente.
+                    break;
+            }
+        }
+
+        if (intent != null) {
+            // Si hay un pedido activo, redirigir inmediatamente
+            startActivity(intent);
+            finish(); // Cerrar `SplashActivity`
+        } else {
+            // Si no hay pedido, cargar la imagen de fondo y esperar el timeout
+            cargarFondoLogin();
+        }
     }
 
     private void cargarFondoLogin() {
