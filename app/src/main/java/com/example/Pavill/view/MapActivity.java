@@ -163,8 +163,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         placesController = new PlacesController(this);
 
-
-
         // Inicializar UI
         initializeUI();
         setupLocationButtons();
@@ -178,14 +176,28 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     private void checkBatteryOptimization() {
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            Log.d("MapActivity", "Solicitando exclusión de optimización de batería.");
+        if (pm == null) return; // Si no hay PowerManager, salir
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    // Verificar si existe una actividad que pueda manejar este Intent
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    } else {
+                        Log.w("MapActivity", "No se encontró una actividad para manejar la optimización de batería.");
+                    }
+                } catch (Exception e) {
+                    Log.e("MapActivity", "Error al intentar abrir configuración de batería: " + e.getMessage());
+                }
+            }
         }
     }
+
 
     /**
      * Configura los botones para establecer la ubicación actual como origen o destino.
