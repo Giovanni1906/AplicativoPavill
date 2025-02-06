@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.controller.CancelPedidoController;
 
@@ -24,10 +25,15 @@ public class CancelReasonActivity extends AppCompatActivity {
     private LinearLayout selectedLayout = null;
     private String motivoSeleccionado = "";
 
+    private LoadingDialog loadingDialog;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cancel);
+
+        loadingDialog = new LoadingDialog(this);
 
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
@@ -92,7 +98,10 @@ public class CancelReasonActivity extends AppCompatActivity {
     private void enviarMotivo() {
         String comentarioAdicional = editMotivo.getText().toString().trim();
 
+        loadingDialog.show();
+
         if (motivoSeleccionado.isEmpty()) {
+            loadingDialog.dismiss();
             Toast.makeText(this, "Por favor seleccione un motivo.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -100,6 +109,7 @@ public class CancelReasonActivity extends AppCompatActivity {
         // Obtener el PedidoId desde TemporaryData
         String pedidoId = temporaryData.getPedidoId();
         if (pedidoId == null || pedidoId.isEmpty()) {
+            loadingDialog.dismiss();
             Toast.makeText(this, "Error interno, intente nuevamente", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -113,6 +123,7 @@ public class CancelReasonActivity extends AppCompatActivity {
                 new CancelPedidoController.CancelPedidoCallback() {
                     @Override
                     public void onSuccess(String message) {
+                        loadingDialog.dismiss();
                         Toast.makeText(CancelReasonActivity.this, "Cancelación exitosa", Toast.LENGTH_SHORT).show();
 
                         // limpiar TemporaryData
@@ -126,6 +137,7 @@ public class CancelReasonActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(String errorMessage) {
+                        loadingDialog.dismiss();
                         Toast.makeText(CancelReasonActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 }

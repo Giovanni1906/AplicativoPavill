@@ -31,6 +31,7 @@ import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 import com.example.Pavill.components.CircularImageView;
 import com.example.Pavill.components.DistanceUtils;
+import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.PedidoCancellationHelper;
 import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
@@ -84,6 +85,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private int initialEstimatedTime = -1; // Tiempo inicial de llegada
     private boolean isCountdownStarted = false; // Bandera para controlar el inicio del contador
 
+    private LoadingDialog loadingDialog;
 
     private PedidoStatusReceiver pedidoStatusReceiver;
     // Variable global para indicar si está en tardanza (1 = tardanza, 0 = no tardanza)
@@ -101,6 +103,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_waiting);
+
+        loadingDialog = new LoadingDialog(this);
 
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
@@ -211,10 +215,13 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     public void initializeBottomsUI(){
         //Botón de llamada
         findViewById(R.id.btnCallDriver).setOnClickListener(v -> {
+
             if (conductorTelefono != null && !conductorTelefono.isEmpty()) {
+                loadingDialog.show();
                 Intent intent = new Intent(Intent.ACTION_DIAL);
                 intent.setData(Uri.parse("tel:" + conductorTelefono));
                 startActivity(intent);
+                loadingDialog.dismiss();
             } else {
                 showError("Número de teléfono no disponible.");
             }
@@ -232,10 +239,11 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         //Botón de cancelar pedido
         findViewById(R.id.btnCancelSearch).setOnClickListener(v -> {
-
+            loadingDialog.show();
             new CancelRequestController().cancelRequest(this, new CancelRequestController.CancelRequestCallback() {
                 @Override
                 public void onSuccess(String message) {
+                    loadingDialog.dismiss();
                     Toast.makeText(WaitingActivity.this, "Búsqueda cancelada.", Toast.LENGTH_SHORT).show();
 
                     // Crear un intent para ir al cancel reason activity
@@ -247,6 +255,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
                 @Override
                 public void onFailure(String errorMessage) {
+                    loadingDialog.dismiss();
                     showError(errorMessage);
                 }
             });
@@ -562,6 +571,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             return;
         }
 
+        loadingDialog.show();
+
         // Obtén las coordenadas del vehículo desde el DriverLocationController
         new DriverLocationController().fetchDriverLocation(this, new DriverLocationController.DriverLocationCallback() {
             @Override
@@ -575,6 +586,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 new PedidoController().marcarAbordo(WaitingActivity.this, pedidoId, conductorId, lat, lng, tardanza, new PedidoController.AbordoCallback() {
                     @Override
                     public void onSuccess(String message) {
+                        loadingDialog.dismiss();
                         // Redirigir a ProgressActivity
                         Intent intent = new Intent(WaitingActivity.this, ProgressActivity.class);
                         startActivity(intent);
@@ -583,6 +595,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
                     @Override
                     public void onFailure(String errorMessage) {
+                        loadingDialog.dismiss();
                         showError(errorMessage); // Mostrar error si no se pudo marcar como "A bordo"
                     }
                 });

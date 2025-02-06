@@ -12,7 +12,10 @@
     <color name="greencolor">#4CAF50</color>
 <!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->
     <color name="backgroundColor">#F2F2F2</color> <!-- Blanco para modo claro -->
+    <color name="ArrivalBackgroundColor">#FFFFFF</color> <!-- Blanco para modo claro -->
     <color name="boxBackgroundColor">#E0E0E0</color> <!-- Color del fondo del TextInput -->
     <color name="glowBackgroundColor" > #40410099 </color>
+    <color name="viewColor">#CCCCCC</color>
+
     <!-- values/colors.xml -->
 </resources>

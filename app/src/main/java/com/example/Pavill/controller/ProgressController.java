@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.Pavill.R;
+import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.TemporaryData;
 import com.example.Pavill.view.ProgressActivity;
 import com.example.Pavill.view.RatingActivity;
@@ -21,6 +22,9 @@ public class ProgressController {
 
     private Context context;
 
+    private LoadingDialog loadingDialog;
+
+
     /**
      * Constructor de la clase ProgressController.
      * @param context Contexto de la actividad actual.
@@ -33,6 +37,7 @@ public class ProgressController {
      * Finaliza el viaje actual.
      */
     public void finishTravel() {
+
         // Obtener datos necesarios desde TemporaryData
         TemporaryData temporaryData = TemporaryData.getInstance();
         temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
@@ -45,6 +50,9 @@ public class ProgressController {
             Toast.makeText(context, "Faltan datos para finalizar el viaje.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // 🔹 Mostrar el diálogo de carga
+        loadingDialog.show();
 
         // Crear un nuevo hilo para realizar la solicitud HTTP
         new Thread(() -> {
@@ -71,13 +79,19 @@ public class ProgressController {
                 // Procesar la respuesta
                 String response = responseBuilder.toString();
                 JSONObject jsonResponse = new JSONObject(response);
-
                 String respuesta = jsonResponse.getString("Respuesta");
+
+                ((ProgressActivity) context).runOnUiThread(() -> loadingDialog.dismiss());
+
                 handleResponse(respuesta, jsonResponse);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                showToast("Error al finalizar el viaje: " + e.getMessage());
+                // 🔹 Ocultar el loading dialog si ocurre un error
+                ((ProgressActivity) context).runOnUiThread(() -> {
+                    loadingDialog.dismiss();
+                    Toast.makeText(context, "Error al finalizar el viaje: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
         }).start();
     }

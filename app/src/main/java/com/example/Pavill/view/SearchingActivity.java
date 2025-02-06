@@ -180,7 +180,7 @@ public class SearchingActivity extends AppCompatActivity {
             @Override
             public void onFailure(String errorMessage) {
                 loadingDialog.dismiss();
-                Toast.makeText(SearchingActivity.this, "Error al cancelar el pedido.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchingActivity.this, "Error al cancelar el pedido, intente nuevamente.", Toast.LENGTH_SHORT).show();
             }
         });
     }

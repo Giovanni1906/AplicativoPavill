@@ -3,5 +3,5 @@
     android:shape="rectangle">
 
     <corners android:radius="16dp" />
-    <solid android:color="@color/ArrivalBackgroundColor"/> <!-- Color de fondo gris claro -->
+    <solid android:color="@color/viewColor"/> <!-- Color de fondo gris claro -->
 </shape>

@@ -10,8 +10,8 @@
     <color name="highlightColor">#E6E6E6</color>
     <color name="graycolor">#2C2F33</color>    <!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->
     <color name="backgroundColor">#2C2F33</color> <!-- Blanco para modo claro -->
+    <color name="ArrivalBackgroundColor">#2C2F33</color> <!-- Blanco para modo claro -->
     <color name="boxBackgroundColor">#424242</color> <!-- Color del fondo del TextInput -->
     <color name="glowBackgroundColor" > #50E0E0E0 </color>
-
     <!-- values/colors.xml -->
 </resources>

@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide;
 import com.example.Pavill.R;
 import com.example.Pavill.components.CircularImageView;
 import com.example.Pavill.components.DeviceIdentifier;
+import com.example.Pavill.components.LoadingDialog;
 import com.example.Pavill.components.PedidoCancellationHelper;
 import com.example.Pavill.components.PedidoServiceHelper;
 import com.example.Pavill.components.TemporaryData;
@@ -64,15 +65,19 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
     private RadioButton selectedRadioButton = null;
     private LinearLayout selectedLayout = null;
 
+    private LoadingDialog loadingDialog;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rating);
 
+        loadingDialog = new LoadingDialog(this);
+
         // Inicializar TemporaryData
         temporaryData = TemporaryData.getInstance();
         temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
-
 
         // Inicializar UI
         circularImage();
@@ -203,9 +208,11 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
      */
     private void setupSubmitButton() {
         findViewById(R.id.btn_submit_rating).setOnClickListener(v -> {
+            loadingDialog.show();
             String comentarioAdicional = editTextFeedback.getText().toString().trim();
 
             if (selectedFeedback.isEmpty()) {
+                loadingDialog.dismiss();
                 Toast.makeText(this, "Por favor selecciona un motivo.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -219,6 +226,7 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
             // Obtener el PedidoId desde TemporaryData
             String pedidoId = temporaryData.getPedidoId();
             if (pedidoId == null || pedidoId.isEmpty()) {
+                loadingDialog.dismiss();
                 Toast.makeText(this, "Error: PedidoId no encontrado.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -227,12 +235,14 @@ public class RatingActivity extends AppCompatActivity implements OnMapReadyCallb
             new RatingController().enviarCalificacion(this, pedidoId, currentRating, comentarioFinal, new RatingController.RatingCallback() {
                 @Override
                 public void onSuccess(String message) {
+                    loadingDialog.dismiss();
                     Toast.makeText(RatingActivity.this, "Gracias por tu calificación.", Toast.LENGTH_SHORT).show();
                     finalizarProceso();
                 }
 
                 @Override
                 public void onFailure(String errorMessage) {
+                    loadingDialog.dismiss();
                     Toast.makeText(RatingActivity.this, "Error al enviar calificación: " + errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });

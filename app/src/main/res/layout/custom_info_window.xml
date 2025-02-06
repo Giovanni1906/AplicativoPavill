@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="10dp"
-    android:background="@color/highlightColor"> <!-- Color de fondo amarillo -->
+    android:background="@drawable/info_window_background"> <!-- Color de fondo amarillo -->
 
     <TextView
         android:id="@+id/info_title"

@@ -30,6 +30,8 @@ public class RatingController {
     ) {
         String SERVICE_URL = context.getString(R.string.url_services);
 
+        calificacion = calificacion + 1;
+
         String url = SERVICE_URL + "?Accion=CalificarFinalizarPedido&PedidoId=" + pedidoId +
                 "&PedidoCalificacion=" + calificacion + "&PedidoComentario=" + comentario;
 

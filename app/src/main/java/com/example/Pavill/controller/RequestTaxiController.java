@@ -40,6 +40,12 @@ public class RequestTaxiController {
     ) {
         String SERVICE_URL = getServiceUrl(context); // Obtiene la URL del servicio
 
+        //Obtén la tarifa del temporary
+        TemporaryData temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+
+        String tarifa = temporaryData.getEstimatedCost();
+
         // Obtén los datos compartidos desde SharedPreferences
         SharedPreferences sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
 
@@ -49,6 +55,7 @@ public class RequestTaxiController {
         String clienteCelular = sharedPreferences.getString("ClienteCelular", "");
         String clienteEmail = sharedPreferences.getString("ClienteEmail", "");
         String identificador = sharedPreferences.getString("Identificador", "");
+
         String appVersion = context.getString(R.string.app_version_number);
 
         if (clienteId.isEmpty() || identificador.isEmpty()) {
@@ -67,8 +74,7 @@ public class RequestTaxiController {
                         switch (respuesta) {
                             case "P001": // Pedido registrado correctamente
                                 // Guarda datos en TemporaryData
-                                TemporaryData temporaryData = TemporaryData.getInstance();
-                                temporaryData.loadFromPreferences(context);  // 🔹 Restaurar datos guardados
+
                                 temporaryData.setPedidoId(jsonResponse.optString("PedidoId"), context);
                                 temporaryData.setOriginCoordinates(new LatLng(originLat, originLng), context);
                                 temporaryData.setDestinationCoordinates(new LatLng(destinationLat, destinationLng), context);
@@ -112,9 +118,8 @@ public class RequestTaxiController {
                 params.put("ClienteNombre", clienteNombre);
                 params.put("ClienteCelular", clienteCelular);
                 params.put("ClienteEmail", clienteEmail);
-                params.put("Favorito", "1");
+                params.put("Favorito", "2");
                 params.put("Identificador", identificador);
-                params.put("PedidoCalculoTarifa", "1");
                 params.put("ClienteAppVersion", appVersion);
                 return params;
             }
