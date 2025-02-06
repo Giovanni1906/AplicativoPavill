@@ -37,6 +37,7 @@ public class ProgressController {
      * Finaliza el viaje actual.
      */
     public void finishTravel() {
+        loadingDialog = new LoadingDialog(context);
 
         // Obtener datos necesarios desde TemporaryData
         TemporaryData temporaryData = TemporaryData.getInstance();

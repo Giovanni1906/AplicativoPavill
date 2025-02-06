@@ -263,7 +263,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
                 routePolyline = mMap.addPolyline(new PolylineOptions()
                         .addAll(route)
                         .width(10)
-                        .color(getResources().getColor(R.color.primaryColor)) // Color primario para la ruta
+                        .color(getResources().getColor(R.color.secondaryColor)) // Color primario para la ruta
                         .geodesic(true));
 
                 // Ajustar la cámara para mostrar la ruta completa
