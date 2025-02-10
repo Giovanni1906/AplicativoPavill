@@ -28,6 +28,8 @@ public class RequestTaxiController {
         void onFailure(String errorMessage);
     }
 
+    private boolean isRequesting = false;
+
     public void requestTaxi(
             Context context,
             String originAddress,
@@ -39,6 +41,14 @@ public class RequestTaxiController {
             String reference,
             RequestTaxiCallback callback
     ) {
+        if (isRequesting) {
+            Log.d("RequestTaxiController", "Ya se está procesando un pedido. Ignorando nueva solicitud.");
+            return;
+        }
+
+        isRequesting = true; // Marcar que estamos enviando una solicitud
+
+
         String SERVICE_URL = getServiceUrl(context); // Obtiene la URL del servicio
 
         //Obtén la tarifa del temporary
@@ -61,6 +71,7 @@ public class RequestTaxiController {
 
         if (clienteId.isEmpty() || identificador.isEmpty()) {
             callback.onFailure("Información del cliente no encontrada.");
+            isRequesting = false; // Liberar el flag
             return;
         }
 
@@ -68,6 +79,7 @@ public class RequestTaxiController {
 
         StringRequest request = new StringRequest(Request.Method.POST, SERVICE_URL,
                 response -> {
+                    isRequesting = false; // Liberar el flag después de la respuesta
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
@@ -101,8 +113,10 @@ public class RequestTaxiController {
                         callback.onFailure("Error al procesar la respuesta del servidor.");
                     }
                 },
-                error -> callback.onFailure("Error al conectar con el servidor.")
-        ) {
+                error -> {
+                    isRequesting = false; // Liberar el flag si hay error
+                    callback.onFailure("Error al conectar con el servidor.");
+                }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
