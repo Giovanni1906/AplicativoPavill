@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -31,7 +29,7 @@
         <TextView
             android:id="@+id/tvBackToMainText"
             style="@style/BackToMainTextStyle"
-            android:text="Volver al inicio" />
+            android:text="Volver" />
     </LinearLayout>
 
 
@@ -43,23 +41,22 @@
         android:id="@+id/formLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="16dp"
-        android:layout_marginTop="64dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-        app:layout_constraintVertical_bias="0.499">
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
-            android:text="Ingrese su número de celular\npara recibir el código"
             android:gravity="center"
+            android:text="Ingrese su número de celular\npara recibir el código"
             android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -97,10 +94,10 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:textColor="@color/alertColor"
-            android:visibility="gone"
             android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnCode" />
 
     </LinearLayout>

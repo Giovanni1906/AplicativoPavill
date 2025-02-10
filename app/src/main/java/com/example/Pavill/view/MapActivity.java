@@ -952,16 +952,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Llamar al controlador
         new CalcularTarifaController().calcularTarifa(this, originLat, originLng, destLat, destLng, new CalcularTarifaController.CalcularTarifaCallback() {
             @Override
-            public void onSuccess(double tarifario, String respuesta) {
-                String tarifa = "N/A";
-
-                if (tarifario > 0) {
-                    tarifa = String.format(Locale.getDefault(), "S/ %.2f", tarifario);
-                }
+            public void onSuccess(String tarifario, String respuesta) {
 
                 Log.d("CalculateAproximatedCost", "Respuesta " + respuesta + ", Monto: " + tarifario);
 
-                temporaryData.setEstimatedCost(tarifa, MapActivity.this);
+                temporaryData.setEstimatedCost(tarifario, MapActivity.this);
 
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 startActivity(intent);

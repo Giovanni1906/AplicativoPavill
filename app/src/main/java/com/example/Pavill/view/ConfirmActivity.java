@@ -9,6 +9,7 @@ import com.example.Pavill.controller.RequestTaxiController;
 import com.google.android.gms.maps.model.LatLng;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -179,6 +180,7 @@ public class ConfirmActivity extends AppCompatActivity {
     /**
      * Actualiza los text view y demás comnponentes UI
      */
+    @SuppressLint("SetTextI18n")
     private void updateUI() {
         TextView originTextView = findViewById(R.id.textOrigin);
         TextView destinationTextView = findViewById(R.id.textDestination);
@@ -190,10 +192,18 @@ public class ConfirmActivity extends AppCompatActivity {
 
         // Mostrar el costo estimado desde TemporaryData
         String estimatedCost = temporaryData.getEstimatedCost();
-        if (estimatedCost != null && !estimatedCost.isEmpty() && !estimatedCost.equals("N/A")) {
-            estimatedCostTextView.setText(estimatedCost);
-            estimatedCostTextView.setVisibility(View.VISIBLE);
-            withoutCostTextView.setVisibility(View.GONE);
+        if (estimatedCost != null && !estimatedCost.isEmpty() && !estimatedCost.equals("N/A")  ) {
+            Log.d("ConfirmActivity", "Estimated Cost: " + estimatedCost);
+            float estimatedCostFloat = Float.parseFloat(estimatedCost);
+            if (estimatedCostFloat > 0.0f) {
+                Log.d("ConfirmActivity", "Estimated Cost: " + estimatedCostFloat);
+                estimatedCostTextView.setText("s/" + estimatedCost);
+                estimatedCostTextView.setVisibility(View.VISIBLE);
+                withoutCostTextView.setVisibility(View.GONE);
+            }else {
+                estimatedCostTextView.setVisibility(View.GONE);
+                withoutCostTextView.setVisibility(View.VISIBLE);
+            }
 
         } else {
             estimatedCostTextView.setVisibility(View.GONE);

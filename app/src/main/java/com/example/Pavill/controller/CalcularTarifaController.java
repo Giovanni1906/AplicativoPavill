@@ -15,7 +15,7 @@ public class CalcularTarifaController {
     private static final String TAG = "CalcularTarifaCtrl";
 
     public interface CalcularTarifaCallback {
-        void onSuccess(double tarifarioMonto, String respuesta);
+        void onSuccess(String tarifarioMonto, String respuesta);
         void onFailure(String errorMessage);
     }
 
@@ -46,9 +46,9 @@ public class CalcularTarifaController {
                         JSONObject jsonResponse = new JSONObject(response);
                         String respuesta = jsonResponse.optString("Respuesta");
 
-                        double tarifarioMonto = 0.0;
+                        String tarifarioMonto = "N/A";
                         if (jsonResponse.has("TarifarioMonto") && !jsonResponse.isNull("TarifarioMonto")) {
-                            tarifarioMonto = jsonResponse.optDouble("TarifarioMonto", 0.0);
+                            tarifarioMonto = jsonResponse.optString("TarifarioMonto", "N/A");
                         }
 
                         if (respuesta.equals("P111") || respuesta.equals("P112") || respuesta.equals("P113") || respuesta.equals("P114") || respuesta.equals("P115")) {

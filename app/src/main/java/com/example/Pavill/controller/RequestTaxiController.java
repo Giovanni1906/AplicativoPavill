@@ -3,6 +3,7 @@ package com.example.Pavill.controller;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.view.View;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -121,6 +122,13 @@ public class RequestTaxiController {
                 params.put("Favorito", "2");
                 params.put("Identificador", identificador);
                 params.put("ClienteAppVersion", appVersion);
+                if (tarifa != null && !tarifa.isEmpty() && !tarifa.equals("N/A")  ) {
+                    float estimatedCostFloat = Float.parseFloat(tarifa);
+                    if (estimatedCostFloat > 0.0f) {
+                        params.put("PedidoPrecioServicioInicial", tarifa);
+                        params.put("Precio", tarifa);
+                    }
+                }
                 return params;
             }
         };
