@@ -40,7 +40,9 @@ public class PedidoStatusService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(1, createNotification()); // Inicia el servicio en primer plano con una notificación
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(1, createNotification());
+        }
 
         handler = new Handler();
         isServiceStopped = false; // Asegúrate de reiniciar la bandera al crear el servicio

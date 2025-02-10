@@ -142,18 +142,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        // Inicializar el cliente de ubicación ANTES de cualquier uso
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         temporaryData = TemporaryData.getInstance();
         temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
         checkBatteryOptimization();
+        checkIfLocationIsEnabled();
 
         // Inicializa la sección de favoritos antes de cualquier uso
         initializeFavoritesSection();
 
         routeController = new RouteController(this);
-
-        // Inicializar FusedLocationProviderClient
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Verificar permisos de ubicación
         checkLocationPermission();
@@ -588,7 +589,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     getCurrentLocationAndCenterMap();
                     fetchNearbyTaxis(currentLocation);
                 } else {
-                    Toast.makeText(this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Solicitando ubicación actual...", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -712,6 +713,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     @SuppressLint("MissingPermission")
     private void getCurrentLocationAndCenterMap() {
+        if (fusedLocationClient == null) {
+            Log.e("MapActivity", "FusedLocationProviderClient es NULL, inicializando...");
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        }
+
         if (!checkLocationPermission()) {
             return;
         }
@@ -775,6 +781,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Método para actualizar la ubicación en el mapa y centrar la cámara en la ubicación actual.
      */
     private void updateMapWithLocation(Location location) {
+        if (mMap == null) {
+            Log.e("MapActivity", "mMap es NULL, no se puede actualizar la ubicación.");
+            return;
+        }
+
         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
         // Asegurar que el círculo azul y el `ic_here` estén sincronizados
@@ -983,7 +994,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 firstTimeLoading = true;
                 getCurrentLocationAndCenterMap(); // Centrar el mapa en la ubicación actual
             } else {
-                Toast.makeText(this, "Permisos de ubicación no otorgados.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Problemas con los permisos de ubicación.", Toast.LENGTH_SHORT).show();
             }
         });
     }

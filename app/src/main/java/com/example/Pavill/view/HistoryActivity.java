@@ -1,8 +1,6 @@
 package com.example.Pavill.view;
 import com.example.Pavill.R;
 import com.example.Pavill.components.NavigationHeaderInfo;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.material.navigation.NavigationView;
 
 import android.Manifest;
