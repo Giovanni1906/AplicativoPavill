@@ -211,11 +211,34 @@ public class VerifyCodeActivity extends AppCompatActivity {
                 codeBox4.getText().toString();
 
         if (enteredCode.equalsIgnoreCase(verificationCode)) {
-            // Código correcto, redirigir al siguiente paso
-            Intent intent = new Intent(VerifyCodeActivity.this, RegisterActivity.class);
-            intent.putExtra("phoneNumber", phoneNumber); // Pasar el número de teléfono
-            startActivity(intent);
-            finish();
+            // Obtener el origen y la acción
+            Intent intent = getIntent();
+            String origin = intent.getStringExtra("origin");
+            String action = intent.getStringExtra("action");
+
+            Intent nextIntent;
+
+            if ("ProfileActivity".equals(origin)) {
+                if ("changePassword".equals(action)) {
+                    // Si la acción es cambiar contraseña, redirigir a ChangePasswordActivity
+                    nextIntent = new Intent(VerifyCodeActivity.this, ChangePasswordActivity.class);
+                    startActivity(nextIntent);
+                    finish();
+                } else if ("changePhoneNumber".equals(action)) {
+                    // Si la acción es cambiar número de teléfono, regresar a ProfileActivity
+                    nextIntent = new Intent(VerifyCodeActivity.this, ProfileActivity.class);
+                    nextIntent.putExtra("action", "changePhoneSuccess");
+                    startActivity(nextIntent);
+                    finish();
+                }
+            } else {
+                // Si viene de otro lugar, ir a RegisterActivity (o Main si aplica)
+                nextIntent = new Intent(VerifyCodeActivity.this, RegisterActivity.class);
+                startActivity(nextIntent);
+                finish();
+            }
+
+
         } else {
             // Código incorrecto, mostrar error
             TextView tvErrorMessage = findViewById(R.id.errorText);

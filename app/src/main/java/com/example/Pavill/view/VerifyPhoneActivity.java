@@ -36,6 +36,11 @@ public class VerifyPhoneActivity extends AppCompatActivity {
 
         LoadingDialog loadingDialog = new LoadingDialog(this);
 
+        // Recuperar el intent de origen
+        Intent intent = getIntent();
+        String origin = intent.getStringExtra("origin");
+        String action = intent.getStringExtra("action");
+
         btnCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,11 +64,20 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                                 public void onSuccess(String verificationCode, String fullPhoneNumber) {
                                     loadingDialog.dismiss(); // Ocultar el indicador de carga
                                     // Aquí rediriges al VerifyCodeActivity o haces lo necesario con el código
-                                    Intent intent = new Intent(VerifyPhoneActivity.this, VerifyCodeActivity.class);
-                                    intent.putExtra("ClienteCodigoVerificacion", verificationCode); // Código recibido del servicio
-                                    intent.putExtra("ClienteCelularCompleto", fullPhoneNumber); // Número del usuario
-                                    intent.putExtra("Clienteidentificador", deviceId); // Identificador del celular
-                                    startActivity(intent);
+                                    Intent verifyIntent = new Intent(VerifyPhoneActivity.this, VerifyCodeActivity.class);
+                                    verifyIntent.putExtra("ClienteCodigoVerificacion", verificationCode); // Código recibido del servicio
+                                    verifyIntent.putExtra("ClienteCelularCompleto", fullPhoneNumber); // Número del usuario
+                                    verifyIntent.putExtra("Clienteidentificador", deviceId); // Identificador del celular
+
+                                    // Mantener el origen y acción
+                                    if (origin != null) {
+                                        verifyIntent.putExtra("origin", origin);
+                                    }
+                                    if (action != null) {
+                                        verifyIntent.putExtra("action", action);
+                                    }
+
+                                    startActivity(verifyIntent);
                                     finish();
 
                                 }
@@ -85,11 +99,25 @@ public class VerifyPhoneActivity extends AppCompatActivity {
             }
         });
 
-        // Configurar botón para regresar al MainActivity
+        // Configurar botón para regresar a la actividad de origen
         CardView btnBackToMain = findViewById(R.id.btnBackToMain);
         btnBackToMain.setOnClickListener(v -> {
-            Intent intent = new Intent(VerifyPhoneActivity.this, MainActivity.class);
-            startActivity(intent);
+            Intent backIntent;
+
+            if ("ProfileActivity".equals(origin)) {
+                // Regresar a ProfileActivity con la acción correspondiente
+                backIntent = new Intent(VerifyPhoneActivity.this, ProfileActivity.class);
+                if ("changePassword".equals(action)) {
+                    backIntent.putExtra("action", "changePasswordInterrupted");
+                } else if ("changePhoneNumber".equals(action)) {
+                    backIntent.putExtra("action", "changePhoneInterrupted");
+                }
+            } else {
+                // Si viene de otra actividad, regresar al MainActivity
+                backIntent = new Intent(VerifyPhoneActivity.this, MainActivity.class);
+            }
+
+            startActivity(backIntent);
             finish();
         });
     }

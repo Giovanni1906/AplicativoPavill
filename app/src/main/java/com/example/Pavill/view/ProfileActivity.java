@@ -58,6 +58,10 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Referencias a los TextView
+        TextView changePhone = findViewById(R.id.ChangePhone);
+        TextView changePassword = findViewById(R.id.ChangePassword);
+
         // Referencias a los inputs
         EditText editDNI = findViewById(R.id.edit_dni);
         EditText editName = findViewById(R.id.edit_name);
@@ -85,6 +89,22 @@ public class ProfileActivity extends AppCompatActivity {
             } else {
                 requestPermissions();
             }
+        });
+
+        // Evento para cambiar número de celular
+        changePhone.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, VerifyPhoneActivity.class);
+            intent.putExtra("origin", "ProfileActivity");
+            intent.putExtra("action", "changePhoneNumber");
+            startActivity(intent);
+        });
+
+        // Evento para cambiar contraseña
+        changePassword.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, VerifyPhoneActivity.class);
+            intent.putExtra("origin", "ProfileActivity");
+            intent.putExtra("action", "changePassword");
+            startActivity(intent);
         });
 
         // Configurar botón para guardar cambios
@@ -444,6 +464,20 @@ public class ProfileActivity extends AppCompatActivity {
         editEmail.setText(email);
         editName.setText(name);
         editPhone.setText(phone);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Intent intent = getIntent();
+        String action = intent.getStringExtra("action");
+
+        if ("changePasswordSuccess".equals(action)) {
+            Toast.makeText(this, "Contraseña cambiada con éxito", Toast.LENGTH_SHORT).show();
+        } else if ("changePhoneSuccess".equals(action)) {
+            Toast.makeText(this, "Número cambiado con éxito", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
