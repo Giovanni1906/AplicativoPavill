@@ -171,14 +171,14 @@
 
 
         <!-- Texto para cambiar nunmero de celular -->
-        <TextView
-            android:id="@+id/ChangePhone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cambiar número de celular"
-            android:textColor="?attr/colorPrimary"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp" />
+<!--        <TextView-->
+<!--            android:id="@+id/ChangePhone"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Cambiar número de celular"-->
+<!--            android:textColor="?attr/colorPrimary"-->
+<!--            android:textStyle="bold"-->
+<!--            android:layout_marginTop="16dp" />-->
 
         <!-- Texto para cambiar contraseña -->
         <TextView

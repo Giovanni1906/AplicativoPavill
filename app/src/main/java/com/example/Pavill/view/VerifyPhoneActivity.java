@@ -41,61 +41,58 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         String origin = intent.getStringExtra("origin");
         String action = intent.getStringExtra("action");
 
-        btnCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String phoneNumber = textPhone.getText().toString().trim();
-                if (isValidPhone(phoneNumber)) {
-                    String deviceId = DeviceIdentifier.getUniqueIdentifier(VerifyPhoneActivity.this);
-                    String appVersion = getAppVersion();
+        btnCode.setOnClickListener(v -> {
+            String phoneNumber = textPhone.getText().toString().trim();
+            if (isValidPhone(phoneNumber)) {
+                String deviceId = DeviceIdentifier.getUniqueIdentifier(VerifyPhoneActivity.this);
+                String appVersion = getAppVersion();
 
-                    // Mostrar el indicador de carga
-                    loadingDialog.show();
+                // Mostrar el indicador de carga
+                loadingDialog.show();
 
-                    // Llamar al controlador para enviar los datos al servicio
-                    PhoneVerificationController controller = new PhoneVerificationController();
-                    controller.verifyPhone(
-                            VerifyPhoneActivity.this,
-                            phoneNumber,  // El número ingresado por el usuario
-                            deviceId,     // Identificador del dispositivo
-                            appVersion,   // Versión de la app
-                            new PhoneVerificationController.Callback() {
-                                @Override
-                                public void onSuccess(String verificationCode, String fullPhoneNumber) {
-                                    loadingDialog.dismiss(); // Ocultar el indicador de carga
-                                    // Aquí rediriges al VerifyCodeActivity o haces lo necesario con el código
-                                    Intent verifyIntent = new Intent(VerifyPhoneActivity.this, VerifyCodeActivity.class);
-                                    verifyIntent.putExtra("ClienteCodigoVerificacion", verificationCode); // Código recibido del servicio
-                                    verifyIntent.putExtra("ClienteCelularCompleto", fullPhoneNumber); // Número del usuario
-                                    verifyIntent.putExtra("Clienteidentificador", deviceId); // Identificador del celular
+                // Llamar al controlador para enviar los datos al servicio
+                PhoneVerificationController controller = new PhoneVerificationController();
+                controller.verifyPhone(
+                        VerifyPhoneActivity.this,
+                        phoneNumber,  // El número ingresado por el usuario
+                        deviceId,     // Identificador del dispositivo
+                        appVersion,   // Versión de la app
+                        new PhoneVerificationController.Callback() {
+                            @Override
+                            public void onSuccess(String verificationCode, String fullPhoneNumber) {
+                                loadingDialog.dismiss(); // Ocultar el indicador de carga
+                                // Aquí rediriges al VerifyCodeActivity o haces lo necesario con el código
+                                Intent verifyIntent = new Intent(VerifyPhoneActivity.this, VerifyCodeActivity.class);
+                                verifyIntent.putExtra("ClienteCodigoVerificacion", verificationCode); // Código recibido del servicio
+                                verifyIntent.putExtra("ClienteCelularCompleto", fullPhoneNumber); // Número del usuario
+                                verifyIntent.putExtra("Clienteidentificador", deviceId); // Identificador del celular
 
-                                    // Mantener el origen y acción
-                                    if (origin != null) {
-                                        verifyIntent.putExtra("origin", origin);
-                                    }
-                                    if (action != null) {
-                                        verifyIntent.putExtra("action", action);
-                                    }
-
-                                    startActivity(verifyIntent);
-                                    finish();
-
+                                // Mantener el origen y acción
+                                if (origin != null) {
+                                    verifyIntent.putExtra("origin", origin);
+                                }
+                                if (action != null) {
+                                    verifyIntent.putExtra("action", action);
                                 }
 
-                                @Override
-                                public void onFailure(String errorMessage) {
-                                    loadingDialog.dismiss(); // Ocultar el indicador de carga
+                                startActivity(verifyIntent);
+                                finish();
 
-                                    // Muestra el error debajo del botón en el TextView correspondiente
-                                    errorText.setText(errorMessage);
-                                    errorText.setVisibility(View.VISIBLE);
-                                }
                             }
-                    );
-                } else {
-                    errorText.setText("Número de celular inválido.");
-                    errorText.setVisibility(View.VISIBLE);
-                }
+
+                            @Override
+                            public void onFailure(String errorMessage) {
+                                loadingDialog.dismiss(); // Ocultar el indicador de carga
+
+                                // Muestra el error debajo del botón en el TextView correspondiente
+                                errorText.setText(errorMessage);
+                                errorText.setVisibility(View.VISIBLE);
+                            }
+                        }
+                );
+            } else {
+                errorText.setText("Número de celular inválido.");
+                errorText.setVisibility(View.VISIBLE);
             }
         });
 

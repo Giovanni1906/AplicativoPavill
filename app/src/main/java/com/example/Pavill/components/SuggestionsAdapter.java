@@ -46,7 +46,7 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
 
     @Override
     public int getItemCount() {
-        return suggestions != null ? Math.min(suggestions.size(), 3) : 0; // Mostrar máximo 5 sugerencias
+        return suggestions != null ? Math.min(suggestions.size(), 3) : 0; // Mostrar máximo 3 sugerencias
     }
 
     static class SuggestionViewHolder extends RecyclerView.ViewHolder {

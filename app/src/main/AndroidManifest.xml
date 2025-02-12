@@ -103,8 +103,7 @@
         <activity android:name=".view.VerifyCodeActivity" />
         <activity android:name=".view.RecoverPasswordActivity" />
         <activity android:name=".view.CancelReasonActivity" />
-
-
+        <activity android:name=".view.ChangePasswordActivity" />
     </application>
 
 </manifest>

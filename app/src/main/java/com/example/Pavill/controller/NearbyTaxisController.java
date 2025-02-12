@@ -109,8 +109,6 @@ public class NearbyTaxisController {
                 return params;
             }
         };
-
         queue.add(request);
     }
-
 }
