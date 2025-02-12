@@ -705,14 +705,15 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void mostrarDialogoMensaje(String mensaje) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Nuevo mensaje")
-                .setMessage(mensaje)
-                .setCancelable(false)
-                .setPositiveButton("Aceptar", (dialog, which) -> dialog.dismiss());
+        ArrivalMessageDialog arrivalMessageDialog = new ArrivalMessageDialog();
+        arrivalMessageDialog.setDriverName(mensaje); // Configura el mensaje a mostrar
+        arrivalMessageDialog.setButtonText("Aceptar"); // Configura el texto del botón
 
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        arrivalMessageDialog.setOnConfirmClickListener(() -> {
+            // Puedes agregar aquí cualquier acción después de cerrar el diálogo
+        });
+
+        arrivalMessageDialog.show(getSupportFragmentManager(), "ArrivalMessageDialog");
     }
 
 

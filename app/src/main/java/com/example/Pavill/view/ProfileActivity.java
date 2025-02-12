@@ -59,7 +59,7 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         // Referencias a los TextView
-        TextView changePhone = findViewById(R.id.ChangePhone);
+//        TextView changePhone = findViewById(R.id.ChangePhone);
         TextView changePassword = findViewById(R.id.ChangePassword);
 
         // Referencias a los inputs
@@ -91,13 +91,13 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
-        // Evento para cambiar número de celular
-        changePhone.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, VerifyPhoneActivity.class);
-            intent.putExtra("origin", "ProfileActivity");
-            intent.putExtra("action", "changePhoneNumber");
-            startActivity(intent);
-        });
+//        // Evento para cambiar número de celular
+//        changePhone.setOnClickListener(v -> {
+//            Intent intent = new Intent(ProfileActivity.this, VerifyPhoneActivity.class);
+//            intent.putExtra("origin", "ProfileActivity");
+//            intent.putExtra("action", "changePhoneNumber");
+//            startActivity(intent);
+//        });
 
         // Evento para cambiar contraseña
         changePassword.setOnClickListener(v -> {
@@ -475,9 +475,10 @@ public class ProfileActivity extends AppCompatActivity {
 
         if ("changePasswordSuccess".equals(action)) {
             Toast.makeText(this, "Contraseña cambiada con éxito", Toast.LENGTH_SHORT).show();
-        } else if ("changePhoneSuccess".equals(action)) {
-            Toast.makeText(this, "Número cambiado con éxito", Toast.LENGTH_SHORT).show();
         }
+//        } else if ("changePhoneSuccess".equals(action)) {
+//            Toast.makeText(this, "Número cambiado con éxito", Toast.LENGTH_SHORT).show();
+//        }
     }
 
 }

@@ -74,7 +74,7 @@ public class PedidoStatusService extends Service {
         return new NotificationCompat.Builder(this, channelId)
                 .setContentTitle("Pavill")
                 .setContentText("Tienes una carrera en proceso...")
-                .setSmallIcon(R.drawable.logo) // Cambia esto por un ícono válido en tu app
+                .setSmallIcon(R.drawable.icono_pavill) // Cambia esto por un ícono válido en tu app
                 .setOngoing(true) // La notificación no se puede deslizar para cerrar
                 .build();
     }

@@ -74,7 +74,8 @@
             <EditText
                 android:id="@+id/textPhone"
                 style="@style/GeneralEditTextStyle"
-                android:hint="Celular" />
+                android:hint="Celular"
+                android:inputType="phone"/>
         </LinearLayout>
 
         <!-- Botón para iniciar sesión -->
