@@ -65,7 +65,7 @@
                 android:layout_marginBottom="16dp"/>
 
             <!-- Foto circular del taxista -->
-            <com.example.Pavill.components.CircularImageView
+            <radiotaxipavill.radiotaxipavillapp.components.CircularImageView
                 android:id="@+id/driverImage"
                 android:layout_width="120dp"
                 android:layout_height="120dp"

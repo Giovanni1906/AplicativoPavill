@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center">
 
-            <com.example.Pavill.components.CircularImageView
+            <radiotaxipavill.radiotaxipavillapp.components.CircularImageView
                 android:id="@+id/profile_image"
                 android:layout_width="100dp"
                 android:layout_height="100dp"

@@ -107,7 +107,7 @@
                     app:tint="@color/textColor" />
 
                 <!-- Foto circular del taxista -->
-                <com.example.Pavill.components.CircularImageView
+                <radiotaxipavill.radiotaxipavillapp.components.CircularImageView
                     android:id="@+id/profile_image_conductor"
                     android:layout_width="80dp"
                     android:layout_height="80dp"

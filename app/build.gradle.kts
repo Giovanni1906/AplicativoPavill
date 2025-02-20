@@ -1,18 +1,35 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
 
 android {
-    namespace = "com.example.Pavill"
+    namespace = "radiotaxipavill.radiotaxipavillapp"
     compileSdk = 34
 
+    // Cargar las propiedades del archivo key.properties
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = Properties().apply {
+        load(FileInputStream(keystorePropertiesFile))
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+        }
+    }
+
     defaultConfig {
-        applicationId = "com.example.Pavill"
+        applicationId = "radiotaxipavill.radiotaxipavillapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-
+        versionCode = 203
+        versionName = "2.01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

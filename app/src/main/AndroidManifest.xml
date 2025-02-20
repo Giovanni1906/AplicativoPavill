@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <permission android:name="com.example.Pavill.PERMISSION_PEDIDO_STATUS_UPDATE"
+    <permission android:name="radiotaxipavill.radiotaxipavillapp.PERMISSION_PEDIDO_STATUS_UPDATE"
         android:protectionLevel="normal" />
 
     <!-- Permisos necesarios para el acceso a la ubicación -->
@@ -45,19 +45,20 @@
 
         <!-- Declaración del PedidoStatusService -->
         <service
-            android:name=".services.PedidoStatusService"
+            android:name="radiotaxipavill.radiotaxipavillapp.services.PedidoStatusService"
             android:enabled="true"
             android:foregroundServiceType="location"
             android:exported="false"
             />
 
         <receiver
-            android:name=".receiver.PedidoStatusReceiver"
+            android:name="radiotaxipavill.radiotaxipavillapp.receiver.PedidoStatusReceiver"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <!-- Agregar BootCompletedReceiver -->
         <receiver
-            android:name=".receiver.BootCompletedReceiver"
+            android:name="radiotaxipavill.radiotaxipavillapp.receiver.BootCompletedReceiver"
             android:exported="false"
             android:enabled="true">
             <intent-filter>
@@ -69,12 +70,12 @@
 
         <!-- Declaración de MapActivity -->
         <activity
-            android:name=".view.MapActivity"
+            android:name="radiotaxipavill.radiotaxipavillapp.view.MapActivity"
             android:windowSoftInputMode="stateHidden|adjustResize">
         </activity>
 
         <!--   Splash activity como principal    -->
-        <activity android:name=".view.SplashActivity"
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.SplashActivity"
             android:theme="@style/Theme.Pavill.Splash"
             android:exported="true">
             <intent-filter>
@@ -84,26 +85,26 @@
         </activity>
 
         <!-- MainActivity, pero sin el intent-filter para evitar que sea la primera -->
-        <activity android:name=".view.MainActivity" android:exported="true"/>
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.MainActivity" android:exported="true"/>
         <!-- Declaración de otras actividades -->
-        <activity android:name=".view.LoginActivity" />
-        <activity android:name=".view.HomeActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.LoginActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.HomeActivity" />
 <!--        <activity android:name=".view.MapActivity" />-->
-        <activity android:name=".view.ProfileActivity" />
-        <activity android:name=".view.RegisterActivity" />
-        <activity android:name=".view.HistoryActivity" />
-        <activity android:name=".view.PointsActivity" />
-        <activity android:name=".view.ConfirmActivity" />
-        <activity android:name=".view.ProgressActivity" />
-        <activity android:name=".view.SearchingActivity" />
-        <activity android:name=".view.WaitingActivity" />
-        <activity android:name=".view.BaseActivity" />
-        <activity android:name=".view.RatingActivity" />
-        <activity android:name=".view.VerifyPhoneActivity" />
-        <activity android:name=".view.VerifyCodeActivity" />
-        <activity android:name=".view.RecoverPasswordActivity" />
-        <activity android:name=".view.CancelReasonActivity" />
-        <activity android:name=".view.ChangePasswordActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ProfileActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RegisterActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.HistoryActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.PointsActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ConfirmActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ProgressActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.SearchingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.WaitingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.BaseActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RatingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.VerifyPhoneActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.VerifyCodeActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RecoverPasswordActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.CancelReasonActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ChangePasswordActivity" />
     </application>
 
 </manifest>
