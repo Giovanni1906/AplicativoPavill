@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -363,6 +365,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                             animateMarkerTo(driverMarker, driverLocation);
                         }
 
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
+
                         // Calcular el tiempo estimado de llegada solo la primera vez
                         if (initialEstimatedTime == -1) {
                             initialEstimatedTime = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
@@ -504,25 +508,19 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
      */
     private void animateMarkerTo(final Marker marker, final LatLng toPosition) {
         final LatLng fromPosition = marker.getPosition();
-        final long duration = 2000;
 
-        final Handler handler = new Handler();
-        final long start = System.currentTimeMillis();
+        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+        animator.setDuration(2000); // Duración de la animación
+        animator.setInterpolator(new LinearInterpolator()); // Movimiento uniforme
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = System.currentTimeMillis() - start;
-                float t = Math.min(1, elapsed / (float) duration);
-                double lat = (toPosition.latitude - fromPosition.latitude) * t + fromPosition.latitude;
-                double lng = (toPosition.longitude - fromPosition.longitude) * t + fromPosition.longitude;
-                marker.setPosition(new LatLng(lat, lng));
-
-                if (t < 1) {
-                    handler.postDelayed(this, 16);
-                }
-            }
+        animator.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();
+            double lat = (toPosition.latitude - fromPosition.latitude) * t + fromPosition.latitude;
+            double lng = (toPosition.longitude - fromPosition.longitude) * t + fromPosition.longitude;
+            marker.setPosition(new LatLng(lat, lng));
         });
+
+        animator.start();
     }
 
     /**

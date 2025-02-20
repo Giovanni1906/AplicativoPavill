@@ -1,6 +1,7 @@
 package radiotaxipavill.radiotaxipavillapp.view;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -8,8 +9,11 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +25,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import radiotaxipavill.radiotaxipavillapp.R;
 import radiotaxipavill.radiotaxipavillapp.components.BitmapUtils;
 import radiotaxipavill.radiotaxipavillapp.components.TemporaryData;
+import radiotaxipavill.radiotaxipavillapp.controller.DriverLocationController;
 import radiotaxipavill.radiotaxipavillapp.controller.ProgressController;
 import radiotaxipavill.radiotaxipavillapp.controller.RouteController;
 import radiotaxipavill.radiotaxipavillapp.receiver.PedidoStatusReceiver;
@@ -60,6 +65,11 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     private Polyline routePolyline; // Polyline para la ruta
     private PedidoStatusReceiver pedidoStatusReceiver;
     private TemporaryData temporaryData;
+
+    private Handler locationUpdateHandler = new Handler();
+    private Marker driverMarker;
+    private TextView errorText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +142,11 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         if (pedidoStatusReceiver != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(pedidoStatusReceiver);
         }
+
+        // Detener actualizaciones de ubicación
+        if (locationUpdateHandler != null) {
+            locationUpdateHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     /**
@@ -141,7 +156,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // Inicializar el cliente de ubicación
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
-
+        errorText = findViewById(R.id.errorText);
         if (originCoordinates == null || destinationCoordinates == null) {
             Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData");
         }
@@ -213,7 +228,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         addCustomMarkers();
 
         // Configurar la ubicación dinámica con el ícono personalizado
-        startDynamicLocationUpdates();
+        startFetchingDriverLocation();
     }
 
     /**
@@ -371,39 +386,109 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     /**
      * Ubicación en tiempo real con icono personalizado
      */
-    private void startDynamicLocationUpdates() {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000); // Intervalo de 10 segundos
-        locationRequest.setFastestInterval(5000); // Intervalo rápido de 5 segundos
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//    private void startDynamicLocationUpdates() {
+//        LocationRequest locationRequest = LocationRequest.create();
+//        locationRequest.setInterval(10000); // Intervalo de 10 segundos
+//        locationRequest.setFastestInterval(5000); // Intervalo rápido de 5 segundos
+//        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//
+//        locationCallback = new LocationCallback() {
+//            @Override
+//            public void onLocationResult(@NonNull LocationResult locationResult) {
+//                if (locationResult == null || mMap == null) return;
+//
+//                LatLng currentLatLng = new LatLng(locationResult.getLastLocation().getLatitude(),
+//                        locationResult.getLastLocation().getLongitude());
+//
+//                // Actualizar o crear marcador dinámico para la ubicación actual
+//                if (currentLocationMarker == null) {
+//                    currentLocationMarker = mMap.addMarker(new MarkerOptions()
+//                            .position(currentLatLng)
+//                            .title("Ubicación actual")
+//                            .icon(BitmapUtils.getProportionalBitmap(ProgressActivity.this, R.drawable.ic_car, 32))); // Ícono personalizado
+//                } else {
+//                    currentLocationMarker.setPosition(currentLatLng);
+//                }
+//
+//                // Centrar la cámara en la ubicación actual
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+//            }
+//        };
+//
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+//        } else {
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+//        }
+//    }
 
-        locationCallback = new LocationCallback() {
+    /**
+     * Actualizar ubicación del conductor
+     */
+    private void startFetchingDriverLocation() {
+        locationUpdateHandler.postDelayed(new Runnable() {
             @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
-                if (locationResult == null || mMap == null) return;
+            public void run() {
+                // Llamar al controlador para obtener la ubicación del conductor
+                new DriverLocationController().fetchDriverLocation(ProgressActivity.this, new DriverLocationController.DriverLocationCallback() {
+                    @Override
+                    public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
+                        LatLng driverLocation = new LatLng(lat, lng);
 
-                LatLng currentLatLng = new LatLng(locationResult.getLastLocation().getLatitude(),
-                        locationResult.getLastLocation().getLongitude());
+                        // Actualizar el marcador del conductor
+                        int iconSize = 32; // Tamaño deseado para el ícono
+                        if (driverMarker == null) {
+                            driverMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(driverLocation)
+                                    .icon(BitmapUtils.getProportionalBitmap(ProgressActivity.this, R.drawable.ic_car, iconSize))
+                                    .title("Conductor en camino"));
+                        } else {
+                            animateMarkerTo(driverMarker, driverLocation);
+                        }
 
-                // Actualizar o crear marcador dinámico para la ubicación actual
-                if (currentLocationMarker == null) {
-                    currentLocationMarker = mMap.addMarker(new MarkerOptions()
-                            .position(currentLatLng)
-                            .title("Ubicación actual")
-                            .icon(BitmapUtils.getProportionalBitmap(ProgressActivity.this, R.drawable.ic_car, 32))); // Ícono personalizado
-                } else {
-                    currentLocationMarker.setPosition(currentLatLng);
-                }
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
+                    }
 
-                // Centrar la cámara en la ubicación actual
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                    @Override
+                    public void onError(String errorMessage) {
+                        showError(errorMessage);
+                        // Reprogramar el ciclo incluso en caso de error
+                    }
+                });
+                // Reprogramar el siguiente ciclo
+                locationUpdateHandler.postDelayed(this, 2000);
             }
-        };
+        }, 5000);
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        }
+    /**
+     * Muestra un mensaje de error.
+     * @param errorMessage
+     */
+    private void showError(String errorMessage) {
+        errorText.setText(errorMessage);
+        errorText.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Anima el marcador del conductor para que simule avanzar
+     * @param marker
+     * @param toPosition
+     */
+    private void animateMarkerTo(final Marker marker, final LatLng toPosition) {
+        final LatLng fromPosition = marker.getPosition();
+
+        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+        animator.setDuration(2000); // Duración de la animación
+        animator.setInterpolator(new LinearInterpolator()); // Movimiento uniforme
+
+        animator.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();
+            double lat = (toPosition.latitude - fromPosition.latitude) * t + fromPosition.latitude;
+            double lng = (toPosition.longitude - fromPosition.longitude) * t + fromPosition.longitude;
+            marker.setPosition(new LatLng(lat, lng));
+        });
+
+        animator.start();
     }
 }
