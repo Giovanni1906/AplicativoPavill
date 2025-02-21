@@ -2,8 +2,10 @@ package radiotaxipavill.radiotaxipavillapp.controller;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.util.Log;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
@@ -25,7 +27,8 @@ public class RequestTaxiController {
         void onFailure(String errorMessage);
     }
 
-    private boolean isRequesting = false;
+    private static boolean isRequesting = false;
+    private static final int REQUEST_RESET_DELAY = 8000; // Evita dobles solicitudes en 5s
 
     public void requestTaxi(
             Context context,
@@ -38,12 +41,16 @@ public class RequestTaxiController {
             String reference,
             RequestTaxiCallback callback
     ) {
+        Log.d("RequestTaxiController", "🚀 requestTaxi() ejecutado en: " + System.currentTimeMillis());
+
         if (isRequesting) {
             Log.d("RequestTaxiController", "Ya se está procesando un pedido. Ignorando nueva solicitud.");
             return;
         }
 
         isRequesting = true; // Marcar que estamos enviando una solicitud
+
+        Log.d("RequestTaxiController", "Iniciando solicitud de taxi...");
 
 
         String SERVICE_URL = getServiceUrl(context); // Obtiene la URL del servicio
@@ -63,7 +70,6 @@ public class RequestTaxiController {
         String clienteCelular = sharedPreferences.getString("ClienteCelular", "");
         String clienteEmail = sharedPreferences.getString("ClienteEmail", "");
         String identificador = sharedPreferences.getString("Identificador", "");
-
         String appVersion = context.getString(R.string.app_version_number);
 
         if (clienteId.isEmpty() || identificador.isEmpty()) {
@@ -106,13 +112,15 @@ public class RequestTaxiController {
                                 break;
                         }
                     } catch (Exception e) {
+                        Log.e("RequestTaxiController", " Error al procesar la respuesta del servidor.", e);
                         e.printStackTrace();
                         callback.onFailure("Error al procesar la respuesta del servidor.");
                     }
                 },
                 error -> {
-                    isRequesting = false; // Liberar el flag si hay error
+                    Log.e("RequestTaxiController", " Error de conexión con el servidor.", error);
                     callback.onFailure("Error al conectar con el servidor.");
+                    resetRequestFlag();
                 }) {
             @Override
             protected Map<String, String> getParams() {
@@ -144,7 +152,20 @@ public class RequestTaxiController {
             }
         };
 
+        // Configurar política para evitar reintentos automáticos
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                8000, // Tiempo de espera antes de fallar
+                0, // No reintentar automáticamente
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
         queue.add(request);
+    }
+
+    private void resetRequestFlag() {
+        new Handler().postDelayed(() -> {
+            isRequesting = false;
+            Log.d("RequestTaxiController", "🔄 Flag `isRequesting` liberado.");
+        }, REQUEST_RESET_DELAY);
     }
 
     private String getServiceUrl(Context context) {

@@ -30,8 +30,9 @@ public class ConfirmActivity extends AppCompatActivity {
     private String destinationAddress;
     private LoadingDialog loadingDialog;
     private TextView errorText;
-
+    private Button btnRequestTaxi;
     private TemporaryData temporaryData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +44,8 @@ public class ConfirmActivity extends AppCompatActivity {
 
         loadingDialog = new LoadingDialog(this);
         errorText = findViewById(R.id.errorText);
+        btnRequestTaxi = findViewById(R.id.btnConfirm);
+
 
         // Botón de cancelar
         findViewById(R.id.btnCancel).setOnClickListener(v -> onBackPressed());
@@ -89,9 +92,22 @@ public class ConfirmActivity extends AppCompatActivity {
             finish();
         }
 
-        Button btnRequestTaxi = findViewById(R.id.btnConfirm);
         btnRequestTaxi.setOnClickListener(v -> {
+
             String reference = ((TextView) findViewById(R.id.editReference)).getText().toString().trim();
+            if (reference.isEmpty()) {
+                Toast.makeText(this, "Ingrese su dirección exacta antes de continuar.", Toast.LENGTH_SHORT).show();
+                Log.d("ConfirmActivity", " Error: El campo de referencia está vacío.");
+                return;
+            }
+
+            if (!btnRequestTaxi.isEnabled()) {
+                Log.d("ConfirmActivity", "Botón de solicitud de taxi deshabilitado. Ignorando clic.");
+                return;
+            }
+
+            btnRequestTaxi.setEnabled(false); // Deshabilita el botón inmediatamente para evitar doble clic
+            Log.d("ConfirmActivity", "🟢 Botón de solicitud deshabilitado para evitar dobles clics.");
 
             loadingDialog.show();
 
@@ -133,6 +149,9 @@ public class ConfirmActivity extends AppCompatActivity {
                             } else {
                                 Log.e("ConfirmActivity", "TextView errorText es null");
                             }
+
+                            habilitarBotonConRetraso(); // 🔹 Rehabilita el botón después del error
+
                         }
                     }
             );
@@ -147,6 +166,17 @@ public class ConfirmActivity extends AppCompatActivity {
         // Configurar el botón de favoritos
         setupFavoriteButton(clienteId);
     }
+
+    /**
+     * Método para reactivar el botón después de un tiempo prudente
+     */
+    private void habilitarBotonConRetraso() {
+        new android.os.Handler().postDelayed(() -> {
+            btnRequestTaxi.setEnabled(true);
+            Log.d("ConfirmActivity", "🔄 Botón de solicitud de taxi reactivado.");
+        }, 5000); // Espera 5 segundos antes de reactivar el botón
+    }
+
 
     /**
      * Ingresa la coordenada de destino a favoritos
