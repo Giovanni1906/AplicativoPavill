@@ -12,11 +12,15 @@ import com.google.android.gms.maps.model.LatLng;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,13 +34,43 @@ public class ConfirmActivity extends AppCompatActivity {
     private String destinationAddress;
     private LoadingDialog loadingDialog;
     private TextView errorText;
+    private TextView favText;
     private Button btnRequestTaxi;
     private TemporaryData temporaryData;
+    private boolean saveFavorite = false; // Controla si se debe guardar la dirección
+    private ImageButton heartButton;
 
+    @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
+
+        // dirección traida desde favorito de origen
+        EditText editReference = findViewById(R.id.editReference);
+        LinearLayout layoutFeedback = findViewById(R.id.LayoutFeedback);
+        heartButton = findViewById(R.id.favoriteButton);
+        ImageButton btnDeleteOrigin = findViewById(R.id.btnDeleteOrigin);
+        favText = findViewById(R.id.favText);
+
+        // Recibir la dirección del origen si está disponible
+        if (getIntent().hasExtra("OriginAddress")) {
+            String originAddress = getIntent().getStringExtra("OriginAddress");
+            if (originAddress != null && !originAddress.isEmpty()) {
+                editReference.setText(originAddress);
+                layoutFeedback.setBackgroundResource(R.drawable.favorites_box_background); // Restablece el fondo eliminando el color amarillo
+                heartButton.setVisibility(View.GONE);
+                favText.setVisibility(View.VISIBLE); // Mostrar el texto de favorito (si existe)
+            }
+        }
+
+        // Configurar el botón para borrar la referencia
+        btnDeleteOrigin.setOnClickListener(v -> {
+            editReference.setText(""); // Borra el texto del EditText
+            layoutFeedback.setBackgroundResource(R.drawable.search_box_background); // Restablece el fondo eliminando el color amarillo
+            favText.setVisibility(View.GONE);
+
+        });
 
         // Acceso a SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
@@ -55,7 +89,7 @@ public class ConfirmActivity extends AppCompatActivity {
         temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
 
 
-        if (temporaryData.getOriginCoordinates() != null && temporaryData.getDestinationCoordinates() != null) {
+        if (temporaryData.getOriginCoordinates() != null) {
             originCoordinates = temporaryData.getOriginCoordinates();
             destinationCoordinates = temporaryData.getDestinationCoordinates();
 
@@ -74,19 +108,26 @@ public class ConfirmActivity extends AppCompatActivity {
                 }
             });
 
-            FriendlyAddressHelper.getFriendlyAddress(this, destinationCoordinates.latitude, destinationCoordinates.longitude, new FriendlyAddressHelper.AddressCallback() {
-                @Override
-                public void onAddressRetrieved(String friendlyAddress) {
-                    destinationAddress = friendlyAddress;
-                    updateUI();
-                }
+            if (temporaryData.getDestinationCoordinates() != null){
+                FriendlyAddressHelper.getFriendlyAddress(this, destinationCoordinates.latitude, destinationCoordinates.longitude, new FriendlyAddressHelper.AddressCallback() {
+                    @Override
+                    public void onAddressRetrieved(String friendlyAddress) {
+                        destinationAddress = friendlyAddress;
+                        updateUI();
+                    }
 
-                @Override
-                public void onError(String errorMessage) {
-                    destinationAddress = "Dirección de destino no disponible";
-                    updateUI();
-                }
-            });
+                    @Override
+                    public void onError(String errorMessage) {
+                        destinationAddress = "Dirección de destino no disponible";
+                        updateUI();
+                    }
+                });
+            } else{
+                // Si el destino es null, se asigna directamente
+                destinationAddress = "Destino no marcado en el mapa";
+                updateUI();
+            }
+
         } else {
             Toast.makeText(this, "Error: Coordenadas de origen y destino no disponibles.", Toast.LENGTH_SHORT).show();
             finish();
@@ -111,15 +152,28 @@ public class ConfirmActivity extends AppCompatActivity {
 
             loadingDialog.show();
 
+            double destinationLat;
+            double destinationLng;
+
+            if (destinationCoordinates != null){
+                destinationLat = destinationCoordinates.latitude;
+                destinationLng = destinationCoordinates.longitude;
+            }
+            else{
+                destinationLat = 00.00;
+                destinationLng = 00.00;
+            }
+
             new RequestTaxiController().requestTaxi(
                     this,
                     reference, // el "reference" vendria a ser la dirección exacta
                     destinationAddress,
                     originCoordinates.latitude,
                     originCoordinates.longitude,
-                    destinationCoordinates.latitude,
-                    destinationCoordinates.longitude,
+                    destinationLat,
+                    destinationLng,
                     originAddress, // el "originAddress" se desplazaría a ser la referencia
+                    saveFavorite,
                     new RequestTaxiController.RequestTaxiCallback() {
                         @Override
                         public void onSuccess(String message) {
@@ -182,21 +236,20 @@ public class ConfirmActivity extends AppCompatActivity {
      * Ingresa la coordenada de destino a favoritos
      * @param clienteId
      */
-    private void setupFavoriteButton(String clienteId) {
-        LatLng destinationCoordinates = temporaryData.getDestinationCoordinates();
-        String destinationAddress = this.destinationAddress != null ? this.destinationAddress : "Destino no disponible";
 
-        ImageView heartButton = findViewById(R.id.favoriteButton);
+    private void setupFavoriteButton(String clienteId) {
+        LatLng originCoordinates = temporaryData.getOriginCoordinates();
+
+        heartButton = findViewById(R.id.favoriteButton);
         heartButton.setOnClickListener(v -> {
-            if (destinationCoordinates != null && destinationAddress != null) {
-                new FavoriteController().addFavoriteDestination(
-                        this,
-                        clienteId,
-                        destinationAddress,
-                        destinationCoordinates.latitude,
-                        destinationCoordinates.longitude
-                );
-                Toast.makeText(this, "Espere un momento...", Toast.LENGTH_SHORT).show();
+            if (originCoordinates != null) {
+                // Activar el booleano para indicar que se guardará al finalizar el recorrido
+                saveFavorite = true;
+
+                // Mostrar el mensaje de confirmación
+                Toast.makeText(this, "La dirección se guardará al finalizar el recorrido del taxi", Toast.LENGTH_SHORT).show();
+
+                // Aquí puedes hacer que la lógica de guardado real se ejecute solo al finalizar el recorrido
             } else {
                 Toast.makeText(this, "No se pudo añadir el destino a favoritos", Toast.LENGTH_SHORT).show();
             }
@@ -212,12 +265,15 @@ public class ConfirmActivity extends AppCompatActivity {
         TextView destinationTextView = findViewById(R.id.textDestination);
         TextView estimatedCostTextView = findViewById(R.id.estimatedCost);
         TextView withoutCostTextView = findViewById(R.id.withoutCost);
+        TextView withoutDestTextView = findViewById(R.id.withoutDest);
+
 
         originTextView.setText(originAddress);
         destinationTextView.setText(destinationAddress);
 
         // Mostrar el costo estimado desde TemporaryData
         String estimatedCost = temporaryData.getEstimatedCost();
+        Log.d("ConfirmActivity", "Estimated Cost: " + estimatedCost);
         if (estimatedCost != null && !estimatedCost.isEmpty() && !estimatedCost.equals("N/A")  ) {
             Log.d("ConfirmActivity", "Estimated Cost: " + estimatedCost);
             float estimatedCostFloat = Float.parseFloat(estimatedCost);
@@ -226,14 +282,23 @@ public class ConfirmActivity extends AppCompatActivity {
                 estimatedCostTextView.setText("s/" + estimatedCost);
                 estimatedCostTextView.setVisibility(View.VISIBLE);
                 withoutCostTextView.setVisibility(View.GONE);
+                withoutDestTextView.setVisibility(View.GONE);
             }else {
-                estimatedCostTextView.setVisibility(View.GONE);
-                withoutCostTextView.setVisibility(View.VISIBLE);
+                Log.d("ConfirmActivity", "Destino marcado: " + destinationCoordinates);
+                if(destinationCoordinates != null) {
+                    estimatedCostTextView.setVisibility(View.GONE);
+                    withoutCostTextView.setVisibility(View.VISIBLE);
+                    withoutDestTextView.setVisibility(View.GONE);
+                }else{
+                    estimatedCostTextView.setVisibility(View.GONE);
+                    withoutCostTextView.setVisibility(View.GONE);
+                    withoutDestTextView.setVisibility(View.VISIBLE);
+                }
             }
-
         } else {
             estimatedCostTextView.setVisibility(View.GONE);
-            withoutCostTextView.setVisibility(View.VISIBLE);
+            withoutCostTextView.setVisibility(View.GONE);
+            withoutDestTextView.setVisibility(View.VISIBLE);
         }
     }
 }

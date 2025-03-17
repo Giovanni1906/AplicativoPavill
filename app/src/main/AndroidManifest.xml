@@ -12,6 +12,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -36,7 +37,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pavill"
         android:networkSecurityConfig="@xml/network_security_config"
-        tools:targetApi="31">
+        >
 
         <!-- Clave de API de Google Maps -->
         <meta-data
@@ -94,7 +95,8 @@
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RegisterActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.HistoryActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.PointsActivity" />
-        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ConfirmActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ConfirmActivity"
+            android:windowSoftInputMode="stateHidden"/>
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ProgressActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.SearchingActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.WaitingActivity" />
@@ -105,6 +107,7 @@
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RecoverPasswordActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.CancelReasonActivity" />
         <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ChangePasswordActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.FavoritesActivity" />
     </application>
 
 </manifest>

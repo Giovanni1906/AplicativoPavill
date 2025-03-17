@@ -41,8 +41,9 @@ public class MapController {
                 (!isForOrigin && currentSelection == SelectionState.DESTINATION);
     }
 
-    public void fetchFavoriteDestinations(Context context, String clienteId, FavoriteDestinationsCallback callback) {
+    public void fetchFavoriteDestinations(Context context, String clienteId, boolean useMenuLayout, FavoriteDestinationsCallback callback) {
         String url = context.getString(R.string.url_services_fav);
+        String action = useMenuLayout ? "ObtenerClienteDestinoFavoritosTotales" : "ObtenerClienteDestinoFavoritos";
 
         Log.d(TAG, "Iniciando solicitud para obtener destinos favoritos.");
         Log.d(TAG, "URL: " + url);
@@ -58,26 +59,45 @@ public class MapController {
                         switch (respuesta) {
                             case "D001":
                                 JSONArray datos = jsonResponse.optJSONArray("Datos");
-                                List<FavoriteDestination> favorites = new ArrayList<>();
+                                List<FavoriteDestination> favoriteOrigins = new ArrayList<>();
+                                List<FavoriteDestination> favoriteDestinations = new ArrayList<>();
+
                                 if (datos != null) {
                                     for (int i = 0; i < datos.length(); i++) {
                                         JSONObject obj = datos.getJSONObject(i);
-                                        FavoriteDestination destination = new FavoriteDestination(
-                                                obj.optString("ClienteDestinoFavoritoDireccion"),
-                                                obj.optDouble("ClienteDestinoFavoritoCoordenadaX", 0.0),
-                                                obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0)
-                                        );
-                                        Log.d(TAG, "nombre: " + destination.getAddress() + "ClienteDestinoFavoritoCoordenadaX: " + destination.getLatitude() + "ClienteDestinoFavoritoCoordenadaY: " + destination.getLongitude());
-                                        favorites.add(destination);
+
+                                        String direccionOrigen = obj.optString("ClienteDestinoFavoritoDireccion", "");
+                                        double latOrigen = obj.optDouble("ClienteDestinoFavoritoCoordenadaX", 0.0);
+                                        double lngOrigen = obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0);
+
+                                        int estado = obj.optInt("ClienteDestinoFavoritoEstado", -1); // Estado del favorito
+
+                                        String direccionDestino = obj.optString("ClienteDestinoFavoritoDestino", "");
+                                        double latDestino = obj.optDouble("ClienteDestinoFavoritoDestinoCoordenadaX", 0.0);
+                                        double lngDestino = obj.optDouble("ClienteDestinoFavoritoDestinoCoordenadaY", 0.0);
+
+                                        // Si tiene dirección y coordenadas válidas, se clasifica como ORIGEN
+                                        if (!direccionOrigen.isEmpty() && latOrigen != 0.0 && lngOrigen != 0.0) {
+                                            favoriteOrigins.add(new FavoriteDestination(direccionOrigen, latOrigen, lngOrigen, estado));
+                                        }
+
+                                        // Si tiene dirección y coordenadas válidas, se clasifica como DESTINO
+                                        if (!direccionDestino.isEmpty() && latDestino != 0.0 && lngDestino != 0.0) {
+                                            favoriteDestinations.add(new FavoriteDestination(direccionDestino, latDestino, lngDestino, estado));
+                                        }
                                     }
-                                    Log.d(TAG, "Número de destinos favoritos obtenidos: " + favorites.size());
+
+                                    Log.d(TAG, "Número de favoritos ORIGEN obtenidos: " + favoriteOrigins.size());
+                                    Log.d(TAG, "Número de favoritos DESTINO obtenidos: " + favoriteDestinations.size());
                                 }
-                                callback.onFavoritesReceived(favorites);
+
+                                // Enviar las listas separadas al callback
+                                callback.onFavoritesReceived(favoriteOrigins, favoriteDestinations);
                                 break;
 
                             case "D002":
                                 Log.w(TAG, "No se encontraron destinos favoritos para el cliente.");
-                                callback.onNoFavoritesFound("No se encontraron destinos favoritos.");
+                                callback.onNoFavoritesFound();
                                 break;
 
                             case "D003":
@@ -102,7 +122,7 @@ public class MapController {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("Accion", "ObtenerClienteDestinoFavoritos");
+                params.put("Accion", action);
                 params.put("ClienteId", clienteId);
                 Log.d(TAG, "Parámetros enviados: " + params.toString());
                 return params;
@@ -112,15 +132,18 @@ public class MapController {
         Volley.newRequestQueue(context).add(request);
     }
 
+
     public class FavoriteDestination {
         private final String address;
         private final double latitude;
         private final double longitude;
+        private final int estado;
 
-        public FavoriteDestination(String address, double latitude, double longitude) {
+        public FavoriteDestination(String address, double latitude, double longitude, int estado) {
             this.address = address;
             this.latitude = latitude;
             this.longitude = longitude;
+            this.estado = estado;
         }
 
         public String getAddress() {
@@ -134,13 +157,16 @@ public class MapController {
         public double getLongitude() {
             return longitude;
         }
+
+        public int getEstado() {
+            return estado;
+        }
     }
 
     public interface FavoriteDestinationsCallback {
-        void onFavoritesReceived(List<FavoriteDestination> favorites);
-
-        void onNoFavoritesFound(String message);
-
+        void onFavoritesReceived(List<FavoriteDestination> origins, List<FavoriteDestination> destinations);
+        void onNoFavoritesFound();
         void onError(String errorMessage);
     }
+
 }

@@ -191,5 +191,16 @@ public class RouteController {
                     .geodesic(true));
         }
     }
+
+    /**
+     * Borra la polyline actual del mapa.
+     */
+    public void clearRoute() {
+        if (currentPolyline != null) {
+            currentPolyline.remove();
+            currentPolyline = null;
+            Log.d("RouteController", "Ruta eliminada del mapa.");
+        }
+    }
 }
 

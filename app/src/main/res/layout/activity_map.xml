@@ -1,4 +1,4 @@
-<androidx.drawerlayout.widget.DrawerLayout
+    <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
@@ -90,24 +90,16 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="Hola, Cliente"
-                android:textSize="12sp"
-                android:textColor="@color/textColor" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="¿A dónde deseas ir?"
                 android:textSize="16sp"
-                android:textStyle="bold"
                 android:textColor="@color/textColor"
-                android:layout_marginBottom="16dp" />
-
-
+                android:layout_marginBottom="16dp"
+            />
 
             <!-- Cuadro de búsqueda para el origen -->
             <LinearLayout
                 android:id="@+id/layoutSearchOrigin"
-                style="@style/GeneralLinearLayoutStyle">
+                style="@style/GeneralLinearLayoutStyle"
+                android:visibility="visible">
 
                 <ImageView
                     style="@style/GeneralImageViewStyle"
@@ -117,28 +109,17 @@
                 <EditText
                     android:id="@+id/editTextOrigin"
                     style="@style/GeneralEditTextStyle"
-                    android:hint="Tu ubicación"
+                    android:hint="Ubicación de origen"
                     android:inputType="text" />
 
                 <ImageButton
                     android:id="@+id/btnDeleteOrigin"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:visibility="gone"
                     android:background="@android:color/transparent"
                     android:contentDescription="eliminar dirección"
                     android:padding="8dp"
                     android:src="@drawable/ic_trash" />
-
-                <ImageButton
-                    android:id="@+id/btnActivateOrigin"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Seleccionar ubicación"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_my_location" />
-
             </LinearLayout>
 
             <!-- Botones de origen -->
@@ -148,9 +129,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="0dp"
+                android:layout_marginTop="12dp"
                 android:layout_marginBottom="8dp"
-                android:padding="8dp"
                 android:visibility="visible"
                 android:background="@android:color/transparent">
 
@@ -160,7 +140,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:padding="12dp"
                     android:text="ubicación actual"
                     android:backgroundTint="@color/primaryColor"
                     android:textColor="@android:color/white" />
@@ -171,7 +150,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:padding="12dp"
                     android:text="Usar el mapa"
                     android:backgroundTint="@color/secondaryColor"
                     android:textColor="@android:color/white" />
@@ -182,18 +160,67 @@
                 android:id="@+id/recyclerViewSuggestionsOrigin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:layout_marginBottom="8dp"
                 android:divider="@android:color/darker_gray"
                 android:dividerHeight="1dp" />
+            <!-- favoritos de origen-->
+            <LinearLayout
+                android:id="@+id/layoutOriginFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="8dp"
+                android:layout_marginBottom="12dp"
+                android:background="@android:color/transparent"
+                android:visibility="visible">
 
+                <!-- Contenedor horizontal para "Direcciones favoritas" y el lápiz -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
+                    <TextView
+                        android:id="@+id/textViewOriginFavoritesHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Direcciones favoritas"
+                        android:textSize="16sp"
+                        android:textColor="@color/textColor"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:id="@+id/btnEditFavorites"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_edit"
+                        android:contentDescription="Editar favoritos"
+                        android:padding="4dp"/>
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewOriginFavorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    />
+                <ProgressBar
+                    android:id="@+id/progressBarSuggestionsOrigin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_gravity="center"
+                    style="?android:attr/progressBarStyleSmall"/>
+            </LinearLayout>
 
             <!-- Cuadro de búsqueda para el destino -->
             <LinearLayout
                 android:id="@+id/layoutSearchDestination"
                 style="@style/GeneralLinearLayoutStyle"
-                android:layout_marginTop="8dp"
+                android:visibility="gone"
                 >
                 <ImageView
                     style="@style/GeneralImageViewStyle"
@@ -202,27 +229,18 @@
                 <EditText
                     style="@style/GeneralEditTextStyle"
                     android:id="@+id/editTextDestination"
-                    android:hint="Tu destino"
+                    android:hint="Ubicación de destino"
                     android:inputType="text" />
 
                 <ImageButton
                     android:id="@+id/btnDeleteDestination"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:visibility="gone"
                     android:background="@android:color/transparent"
                     android:contentDescription="eliminar dirección"
                     android:padding="8dp"
                     android:src="@drawable/ic_trash" />
 
-                <ImageButton
-                    android:id="@+id/btnActivateDestination"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:padding="8dp"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/ic_my_location"
-                    android:contentDescription="Seleccionar destino" />
             </LinearLayout>
 
             <!-- Botones de destino -->
@@ -232,8 +250,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="0dp"
-                android:padding="8dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
                 android:visibility="gone"
                 android:background="@android:color/transparent">
 
@@ -243,7 +261,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:padding="12dp"
                     android:text="ubicación actual"
                     android:backgroundTint="@color/primaryColor"
                     android:textColor="@android:color/white" />
@@ -254,7 +271,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:padding="12dp"
                     android:text="Usar el mapa"
                     android:backgroundTint="@color/secondaryColor"
                     android:textColor="@android:color/white" />
@@ -265,24 +281,35 @@
                 android:id="@+id/recyclerViewSuggestionsDestination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="1dp"
+                android:visibility="gone"/>
 
-            <!-- favoritos -->
+            <ProgressBar
+                android:id="@+id/progressBarSuggestionsDestination"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                style="?android:attr/progressBarStyleSmall"/>
+
+            <!-- favoritos destino-->
             <LinearLayout
                 android:id="@+id/layoutFavorites"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:padding="8dp"
-                android:background="@android:color/transparent">
+                android:paddingStart="8dp"
+                android:layout_marginBottom="12dp"
+                android:background="@android:color/transparent"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/textViewFavoritesHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Favoritos"
+                    android:text="Direcciones favoritas destino"
                     android:textSize="16sp"
                     android:textColor="@color/textColor"
                     android:layout_marginBottom="8dp" />
@@ -293,16 +320,37 @@
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false" />
             </LinearLayout>
-
+            <!-- Botón para mostrar opciones de origen -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnGoToOrigin"
+                style="@style/Button.Form"
+                android:layout_width="match_parent"
+                android:layout_height="40sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/button_gradient"
+                android:text="Volver a ubicación de Origen"
+                android:visibility="gone"
+                />
+            <!-- Botón para mostrar opciones de destino -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnGoToDestination"
+                style="@style/Button.Form"
+                android:layout_width="match_parent"
+                android:layout_height="40sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/button_gradient"
+                android:text="Marcar ubicación de Destino"
+                android:visibility="visible"/>
             <!-- Botón para solicitar un taxi -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnRequestTaxi"
                 style="@style/Button.Form"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_height="40sp"
                 android:background="@drawable/button_alternative"
-                android:text="Calcular tarifa" />
+                android:text="Continuar sin destino"/>
 
             <TextView
                 android:id="@+id/numberOfTaxis"
@@ -311,6 +359,7 @@
                 android:text="encontramos 5 unidades cercanas a tu ubicación"
                 android:textColor="@android:color/darker_gray"
                 android:layout_marginTop="16dp"
+                android:visibility="gone"
                 android:gravity="center"/>
 
         </LinearLayout>

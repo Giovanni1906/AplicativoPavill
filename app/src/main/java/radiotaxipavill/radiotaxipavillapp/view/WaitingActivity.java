@@ -265,27 +265,34 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         applyMapStyle();
 
-
-        if (originCoordinates != null && destinationCoordinates != null) {
-            // Agregar marcadores
+        if (originCoordinates != null) {
+            // Agregar marcador de origen
             mMap.addMarker(new MarkerOptions()
                     .position(originCoordinates)
                     .title("Ubicación de origen")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+            Log.d("WaitingActivity", "destino: " + destinationCoordinates);
+            if (destinationCoordinates.latitude != 0.0 && destinationCoordinates.longitude != 0.0) {
+                // Agregar marcador de destino
+                mMap.addMarker(new MarkerOptions()
+                        .position(destinationCoordinates)
+                        .title("Ubicación de Destino")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
 
-            mMap.addMarker(new MarkerOptions()
-                    .position(destinationCoordinates)
-                    .title("Ubicación de Destino")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                // Ajustar cámara para que ambos puntos sean visibles
+                LatLngBounds bounds = new LatLngBounds.Builder()
+                        .include(originCoordinates)
+                        .include(destinationCoordinates)
+                        .build();
 
-            // Ajustar cámara para que ambos puntos sean visibles
-            LatLngBounds bounds = new LatLngBounds.Builder()
-                    .include(originCoordinates)
-                    .include(destinationCoordinates)
-                    .build();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
-            drawRoute(originCoordinates, destinationCoordinates);
+                // Dibujar ruta solo si el destino está definido
+                drawRoute(originCoordinates, destinationCoordinates);
+            } else {
+                // Si no hay destino, solo centrar en el origen con un nivel de zoom adecuado
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(originCoordinates, 15f));
+            }
         }
     }
 
@@ -300,10 +307,10 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             try {
                 boolean success = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_dark));
                 if (!success) {
-                    Log.e("MapActivity", "Error aplicando estilo oscuro.");
+                    Log.e("WaitingActivity", "Error aplicando estilo oscuro.");
                 }
             } catch (Resources.NotFoundException e) {
-                Log.e("MapActivity", "Archivo de estilo oscuro no encontrado.", e);
+                Log.e("WaitingActivity", "Archivo de estilo oscuro no encontrado.", e);
             }
         } else {
             // Modo normal: no aplicar estilo (usar predeterminado)
@@ -451,7 +458,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
             public void run() {
                 if (remainingTime > 0) {
                     // Actualiza el texto con el tiempo restante
-                    // Actualiza el texto con el tiempo restante
                     estimatedTimeView.setText("Tiempo estimado: " + remainingTime + " minutos");
                     Log.d("Tiempo estimado:", "Tiempo restante: " + remainingTime + " minutos");
                     remainingTime--;
@@ -461,7 +467,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                 } else {
                     // Cuando el tiempo llega a 0
                     estimatedTimeView.setTextColor(ContextCompat.getColor(WaitingActivity.this, R.color.alertColor));
-
+                    estimatedTimeView.setText("Tiempo estimado: " + remainingTime + " minutos");
                     // Marcar como tardanza
                     tardanzaFlag = 1;
                     Log.d("TardanzaFlag", "Marcado como tardanza (1).");

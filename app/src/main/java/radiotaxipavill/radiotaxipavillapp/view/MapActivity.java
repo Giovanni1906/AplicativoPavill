@@ -45,6 +45,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,7 +94,6 @@ import java.util.Locale;
 public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     private EditText editTextOrigin, editTextDestination;
-    private ImageButton btnActivateOrigin, btnActivateDestination;
     private LinearLayout layoutSearchOrigin, layoutSearchDestination;
     private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
     private SuggestionsAdapter suggestionsAdapterOrigin, suggestionsAdapterDestination;
@@ -108,12 +108,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private ClusterManager<MyClusterItem> clusterManager;
 
-    private boolean isOriginActive = true; // Por defecto, el origen está activo
-    private boolean isDestinationActive = false; // Por defecto, el origen está activo
-
-    private int originTouchCount = 0;
-    private int destinationTouchCount = 0;
-
     private String originAddress, destinationAddress;
     private String originPlaceId, destinationPlaceId;
     private LatLng originLatLng, destinationLatLng;
@@ -121,19 +115,35 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private Marker originMarker; // Para almacenar el marcador del origen
     private Marker destinationMarker; // Para almacenar el marcador del destino
     private RouteController routeController;
-    private RecyclerView recyclerViewFavorites;
-    private FavoritesAdapter favoritesAdapter;
+    private RecyclerView recyclerViewFavorites, recyclerViewOriginFavorites;
+    private FavoritesAdapter favoritesAdapterOrigin;
+    private FavoritesAdapter favoritesAdapterDestination;
 
     private Marker locationMarker; // Guardar el marcador para actualizarlo
 
     private boolean firstTimeLoading = true;
 
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
+    private boolean isFromFavorite = false; // si el origen está desde una dirección favorita
     private double defaultCost = 0.0; // costo por defecto
 
     private TemporaryData temporaryData;
 
     private LoadingDialog loadingDialog;
+
+    private Button btnGoToDestination;
+    private Button btnGoToOrigin;
+    private Button btnRequestTaxi;
+
+    private LinearLayout layout_buttons_origin;
+    private LinearLayout layoutOriginFavorites;
+    private LinearLayout layout_buttons_destination;
+    private LinearLayout layoutFavorites;
+
+    private ProgressBar progressBarSuggestionsOrigin;
+    private ProgressBar progressBarSuggestionsDestination;
+
+    private ImageView btnEditFavorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,17 +152,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         loadingDialog = new LoadingDialog(this);
 
-        // Inicializar el cliente de ubicación ANTES de cualquier uso
+        // Inicializar la ubicación de cliente ANTES de cualquier uso
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        preloadPlacesAPI(); // Pre-carga la API para evitar demoras al inicio
 
         temporaryData = TemporaryData.getInstance();
-        temporaryData.loadFromPreferences(this);  // 🔹 Restaurar datos guardados
+        temporaryData.loadFromPreferences(this);  // Restaurar datos guardados
 
         checkBatteryOptimization();
         checkIfLocationIsEnabled();
 
         // Inicializa la sección de favoritos antes de cualquier uso
         initializeFavoritesSection();
+        fetchAndDisplayFavorites(); // Llamamos la función para cargar favoritos
 
         routeController = new RouteController(this);
 
@@ -171,8 +183,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Inicializar UI
         initializeUI();
-        setupLocationButtons();
-
         setupLocationButtons(); // Configura los botones de origen y destino
         setupMapUseButtons(); // Configura los botones para usar el mapa como origen/destino
 
@@ -386,27 +396,34 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String clienteId = sharedPreferences.getString("ClienteId", "");
 
-        new MapController().fetchFavoriteDestinations(this, clienteId, new MapController.FavoriteDestinationsCallback() {
+        new MapController().fetchFavoriteDestinations(this, clienteId, false, new MapController.FavoriteDestinationsCallback() {
             @Override
-            public void onFavoritesReceived(List<MapController.FavoriteDestination> favorites) {
+            public void onFavoritesReceived(List<MapController.FavoriteDestination> origins, List<MapController.FavoriteDestination> destinations) {
                 runOnUiThread(() -> {
-                    if (favorites != null && !favorites.isEmpty()) {
-                        // Limitar la lista a los primeros 2 favoritos
-                        List<MapController.FavoriteDestination> limitedFavorites = favorites.size() > 2
-                                ? favorites.subList(0, 2)
-                                : favorites;
+                    // Mostrar favoritos de origen
+                    if (origins != null && !origins.isEmpty()) {
+                        List<MapController.FavoriteDestination> limitedOrigins = origins.size() > 2
+                                ? origins.subList(0, 2)  // Limitar a 2 favoritos de origen
+                                : origins;
+                        favoritesAdapterOrigin.updateFavorites(limitedOrigins);
+                    }
 
-                        findViewById(R.id.layoutFavorites).setVisibility(View.VISIBLE); // Mostrar sección
-                        favoritesAdapter.updateFavorites(limitedFavorites);
-                    } else {
-                        findViewById(R.id.layoutFavorites).setVisibility(View.GONE); // Ocultar sección
+                    // Mostrar favoritos de destino
+                    if (destinations != null && !destinations.isEmpty()) {
+                        List<MapController.FavoriteDestination> limitedDestinations = destinations.size() > 2
+                                ? destinations.subList(0, 2)  // Limitar a 2 favoritos de origen
+                                : destinations;
+                        favoritesAdapterDestination.updateFavorites(limitedDestinations);
                     }
                 });
             }
 
             @Override
-            public void onNoFavoritesFound(String message) {
-                runOnUiThread(() -> findViewById(R.id.layoutFavorites).setVisibility(View.GONE));
+            public void onNoFavoritesFound() {
+                runOnUiThread(() -> {
+                    findViewById(R.id.layoutOriginFavorites).setVisibility(View.GONE);
+                    findViewById(R.id.layoutFavorites).setVisibility(View.GONE);
+                });
             }
 
             @Override
@@ -418,24 +435,49 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
 
 
+
     /**
      * Inicializa la sección de favoritos
      */
     private void initializeFavoritesSection() {
+        recyclerViewOriginFavorites = findViewById(R.id.recyclerViewOriginFavorites);
         recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
 
-        // Configurar el adaptador
-        favoritesAdapter = new FavoritesAdapter(new ArrayList<>(), favorite -> {
-            LatLng favoriteLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
-            destinationLatLng = favoriteLatLng; // Asignar como destino
-            addMarkerToMap(favoriteLatLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+        // Adaptador para ORIGEN
+        favoritesAdapterOrigin = new FavoritesAdapter(
+                new ArrayList<>(),
+                new ArrayList<>(), // Asegúrate de pasar la lista de seleccionados si es necesaria
+                favorite -> {
+                    LatLng favoriteLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
+                    originLatLng = favoriteLatLng;
+                    addMarkerToMap(favoriteLatLng, "Origen", getResources().getColor(R.color.primaryColor), true);
+                    editTextOrigin.setText(favorite.getAddress());
 
-            editTextDestination.setText(favorite.getAddress()); // Actualizar el input
-        });
+                    // Guardar que el origen proviene de un favorito
+                    isFromFavorite = true;
+                },
+                null, // No se necesita deleteListener aquí
+                false
+        );
+
+        // Adaptador para DESTINO
+        favoritesAdapterDestination = new FavoritesAdapter(new ArrayList<>(), new ArrayList<>(),  favorite -> {
+            LatLng favoriteLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
+            destinationLatLng = favoriteLatLng;
+            addMarkerToMap(favoriteLatLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+            editTextDestination.setText(favorite.getAddress());
+        },
+        null, // No se necesita deleteListener aquí
+        false
+        );
+
+        recyclerViewOriginFavorites.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewOriginFavorites.setAdapter(favoritesAdapterOrigin);
 
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewFavorites.setAdapter(favoritesAdapter);
+        recyclerViewFavorites.setAdapter(favoritesAdapterDestination);
     }
+
 
     /**
      * Actualiza la ruta en el mapa
@@ -460,6 +502,15 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             });
         } else {
             Log.d("updateRoute", "Origen o destino no definidos. No se puede trazar la ruta.");
+        }
+    }
+
+    /**
+     * Borra la ruta del mapa si existe.
+     */
+    private void clearRoute() {
+        if (routeController != null) {
+            routeController.clearRoute();
         }
     }
 
@@ -722,7 +773,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             return;
         }
 
-        // 1️⃣ Obtener ubicación rápida (para mostrar algo inmediato)
+        // Obtener ubicación rápida (para mostrar algo inmediato)
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
@@ -734,48 +785,13 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     requestFastLocationUpdate(); // Forzar actualización si hay un error
                 });
 
-        // 2️⃣ Luego, forzar una actualización precisa en segundo plano
+        // forzar una actualización precisa en segundo plano
         requestFastLocationUpdate();
-        // 2️⃣ Asegurar que el círculo azul aparece inmediatamente
+        // Asegurar que el círculo azul aparece inmediatamente
         if (mMap != null) {
             mMap.setMyLocationEnabled(true);
         }
     }
-
-    /**
-     * Solicita actualizaciones constantes de ubicación para mantener sincronizado el círculo azul con `ic_here`.
-     */
-    @SuppressLint("MissingPermission")
-    private void requestContinuousLocationUpdates() {
-        LocationRequest locationRequest;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Para Android 12+ (API 31+)
-            locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000)
-                    .setMinUpdateIntervalMillis(1000)
-                    .setWaitForAccurateLocation(false) // No esperar precisión absoluta para evitar retrasos
-                    .build();
-        } else {
-            // Para versiones anteriores
-            locationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    .setInterval(2000) // Ubicación actualizada cada 2 segundos
-                    .setFastestInterval(1000);
-        }
-
-        LocationCallback locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) return;
-                for (Location loc : locationResult.getLocations()) {
-                    updateMapWithLocation(loc);
-                }
-            }
-        };
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-    }
-
 
     /**
      * Método para actualizar la ubicación en el mapa y centrar la cámara en la ubicación actual.
@@ -879,21 +895,33 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         editTextOrigin = findViewById(R.id.editTextOrigin);
         editTextDestination = findViewById(R.id.editTextDestination);
 
+        progressBarSuggestionsOrigin = findViewById(R.id.progressBarSuggestionsOrigin);
+        progressBarSuggestionsDestination = findViewById(R.id.progressBarSuggestionsDestination);
+
         CardView btnMyLocation = findViewById(R.id.btn_my_location);
 
         ImageButton btnDeleteOrigin = findViewById(R.id.btnDeleteOrigin);
         ImageButton btnDeleteDestination = findViewById(R.id.btnDeleteDestination);
 
-        btnActivateOrigin = findViewById(R.id.btnActivateOrigin);
-        btnActivateDestination = findViewById(R.id.btnActivateDestination);
+        btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
+        btnGoToDestination = findViewById(R.id.btnGoToDestination);
+        btnGoToOrigin = findViewById(R.id.btnGoToOrigin);
 
         layoutSearchOrigin = findViewById(R.id.layoutSearchOrigin);
-        layoutSearchDestination = findViewById(R.id.layoutSearchDestination);
-
+        layout_buttons_origin = findViewById(R.id.layout_buttons_origin);
         recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
-        recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
+        layoutOriginFavorites = findViewById(R.id.layoutOriginFavorites);
 
-        Button btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
+        layoutSearchDestination = findViewById(R.id.layoutSearchDestination);
+        layout_buttons_destination = findViewById(R.id.layout_buttons_destination);
+        recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
+        layoutFavorites = findViewById(R.id.layoutFavorites);
+
+        ImageView btnEditFavorites = findViewById(R.id.btnEditFavorites);
+        btnEditFavorites.setOnClickListener(v -> {
+            Intent intent = new Intent(MapActivity.this, FavoritesActivity.class);
+            startActivity(intent);
+        });
 
         // Obtener el TextView
         TextView textViewName = findViewById(R.id.textViewName);
@@ -912,12 +940,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Configurar listeners para los inputs
         setupTextWatchers();
 
-        // Configurar listeners para los inputs y botones
-        setupInputListeners();
-
-        // Establecer el estado inicial
-        activateInput(editTextOrigin, btnActivateOrigin, btnActivateDestination, layoutSearchOrigin, layoutSearchDestination, true); // Por defecto, el origen está activado
-
         // botones para eliminar inputs de origen y destino
         DeleteInputsText(btnDeleteOrigin, btnDeleteDestination);
 
@@ -926,7 +948,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         //guardar datos en Temporary Data y pasar al Confirn Activity
         RequestTaxi(btnRequestTaxi);
+        // cambiar de origen a destino
+        ChangeOptions();
     }
+
+    /**
+     * Cambiar de origen a destino
+     * @params btnGoToOrigin, btnGoToDestination
+     */
+    private void ChangeOptions() {
+        btnGoToOrigin.setOnClickListener(v -> toggleSearchVisibility(true));
+        btnGoToDestination.setOnClickListener(v -> toggleSearchVisibility(false));
+    }
+
 
     /**
      * Conectar el botón para solicitar un taxi
@@ -934,32 +968,42 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     private void RequestTaxi(Button btnRequestTaxi) {
         btnRequestTaxi.setOnClickListener(v -> {
-            if (originLatLng != null && destinationLatLng != null) {
+            if (originLatLng != null) { // validación para origen
+            //if (originLatLng != null && destinationLatLng != null) { // validación para origen y destino
                 // Guardar las coordenadas en TemporaryData
                 temporaryData.setOriginCoordinates(originLatLng, MapActivity.this);
-                temporaryData.setDestinationCoordinates(destinationLatLng, MapActivity.this);
+                if (destinationLatLng != null) {
+                    temporaryData.setDestinationCoordinates(destinationLatLng, MapActivity.this);
+                } else {
+                    temporaryData.setDestinationCoordinates(null, MapActivity.this);
+                }
                 CalculateAproximatedCost(originLatLng, destinationLatLng);
 
             } else {
-                Toast.makeText(this, "Por favor selecciona tanto el origen como el destino.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Por favor selecciona la ubicación de origen", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void CalculateAproximatedCost(LatLng origin, LatLng destination) {
-        loadingDialog.show();
+
         // Validar coordenadas no nulas
-        if (origin == null || destination == null) {
-            Log.e("CalculateAproximatedCost", "Coordenadas de origen o destino no válidas.");
+        if (destination == null) {
+            Log.e("CalculateAproximatedCost", "Coordenadas de destino no válidas.");
+            Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+            // Solo pasar la dirección si proviene de un favorito
+            if (isFromFavorite) {
+                intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
+            }
+            startActivity(intent);
             return;
         }
+        loadingDialog.show();
 
         double originLat = origin.latitude;
         double originLng = origin.longitude;
         double destLat = destination.latitude;
         double destLng = destination.longitude;
-
-
 
         // Llamar al controlador
         new CalcularTarifaController().calcularTarifa(this, originLat, originLng, destLat, destLng, new CalcularTarifaController.CalcularTarifaCallback() {
@@ -973,6 +1017,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 temporaryData.setEstimatedCost(tarifario, MapActivity.this);
 
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+                // Solo pasar la dirección si proviene de un favorito
+                if (isFromFavorite) {
+                    intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
+                }
                 startActivity(intent);
             }
 
@@ -984,6 +1032,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.e("CalculateAproximatedCost", "Error: " + errorMessage + "monto: " + defaultCost);
                 // Navegar a ConfirmActivity
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
+                // Solo pasar la dirección si proviene de un favorito
+                if (isFromFavorite) {
+                    intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
+                }
                 startActivity(intent);
             }
         });
@@ -1028,7 +1080,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             });
 
             editTextOrigin.setText(originAddress);
-            recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
 
             Log.d("OriginSelection", "Dirección de origen seleccionada: " + originAddress);
         });
@@ -1064,8 +1115,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             });
 
             editTextDestination.setText(destinationAddress);
-            recyclerViewSuggestionsDestination.setVisibility(View.GONE);
-
             Log.d("DestinationSelection", "Dirección de destino seleccionada: " + destinationAddress);
         });
 
@@ -1105,6 +1154,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     .title(title)
                     .icon(BitmapDescriptorFactory.defaultMarker(hsv[0])));
             originLatLng = latLng; // Actualizar coordenadas de origen
+
+            if (locationMarker != null) {
+                locationMarker.setAlpha(0.3f); // Reducir opacidad del ic_here al 30%
+            }
+
         } else {
             if (destinationMarker != null) {
                 destinationMarker.remove();
@@ -1118,6 +1172,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Enfocar el mapa en el marcador con animación
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
+        isFromFavorite = false;
 
         // Intentar actualizar la ruta
         updateRoute();
@@ -1133,151 +1189,28 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Configurar listeners para los botones de eliminar
         btnDeleteOrigin.setOnClickListener(v -> {
             editTextOrigin.setText(""); // Limpia el texto del origen
+            if (originMarker != null) {
+                originMarker.remove();
+            }
+            originLatLng = null;
+            if (locationMarker != null) {
+                locationMarker.setAlpha(1.0f); // volver opacidad de ic_here al 100%
+            }
+            clearRoute(); // Borra la ruta
+            isFromFavorite = false; //resetea el origen de favorito
             Log.d("DeleteInput", "Texto de origen eliminado");
         });
 
         btnDeleteDestination.setOnClickListener(v -> {
             editTextDestination.setText(""); // Limpia el texto del destino
+            if (destinationMarker != null) {
+                destinationMarker.remove();
+            }
+            destinationLatLng = null;
+            clearRoute(); // Borra la ruta
             Log.d("DeleteInput", "Texto de destino eliminado");
         });
-    }
 
-    /**
-     * Configura los listeners para los inputs y botones
-     */
-    private void setupInputListeners() {
-        // Configurar el layout y el input de origen
-        layoutSearchOrigin.setOnClickListener(v -> handleActivation(editTextOrigin, btnActivateOrigin, btnActivateDestination, layoutSearchOrigin, layoutSearchDestination, true));
-        btnActivateOrigin.setOnClickListener(v -> handleActivation(editTextOrigin, btnActivateOrigin, btnActivateDestination, layoutSearchOrigin, layoutSearchDestination, true));
-        editTextOrigin.setOnTouchListener((v, event) -> {
-            return handleEditTextTouch(event, editTextOrigin, btnActivateOrigin, btnActivateDestination, layoutSearchOrigin, layoutSearchDestination, true, originTouchCount++);
-        });
-
-        // Configurar acción del teclado para "Siguiente" en el origen
-        editTextOrigin.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                handleActivation(editTextDestination, btnActivateDestination, btnActivateOrigin, layoutSearchDestination, layoutSearchOrigin, false);
-                return true; // Consumir la acción
-            }
-            return false;
-        });
-
-        // Configurar el layout y el input de destino
-        layoutSearchDestination.setOnClickListener(v -> handleActivation(editTextDestination, btnActivateDestination, btnActivateOrigin, layoutSearchDestination, layoutSearchOrigin, false));
-        btnActivateDestination.setOnClickListener(v -> handleActivation(editTextDestination, btnActivateDestination, btnActivateOrigin, layoutSearchDestination, layoutSearchOrigin, false));
-        editTextDestination.setOnTouchListener((v, event) -> {
-            return handleEditTextTouch(event, editTextDestination, btnActivateDestination, btnActivateOrigin, layoutSearchDestination, layoutSearchOrigin, false, destinationTouchCount++);
-        });
-
-        // Configurar acción del teclado para "Done" o finalizar en el destino
-        editTextDestination.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                // Si necesario, agregar lógica adicional para "finalizar"
-                closeKeyboard();
-                return true; // Consumir la acción
-            }
-            return false;
-        });
-    }
-
-    /**
-     * Maneja el toque en el input
-     * @param event
-     * @param editTextToActivate
-     * @param buttonToActivate
-     * @param buttonToDeactivate
-     * @param layoutToActivate
-     * @param layoutToDeactivate
-     * @param isActivatingOrigin
-     * @param touchCount
-     * @return
-     */
-    private boolean handleEditTextTouch(MotionEvent event, EditText editTextToActivate, ImageButton buttonToActivate, ImageButton buttonToDeactivate,
-                                        LinearLayout layoutToActivate, LinearLayout layoutToDeactivate, boolean isActivatingOrigin, int touchCount) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (touchCount == 0) {
-                // Primera vez que se toca el input: Activar pero no abrir el teclado
-                handleActivation(editTextToActivate, buttonToActivate, buttonToDeactivate, layoutToActivate, layoutToDeactivate, isActivatingOrigin);
-                closeKeyboard();
-                return true; // Prevenir que el teclado se abra
-            } else {
-                // A partir del segundo toque, dejar que el teclado se abra normalmente
-                handleActivation(editTextToActivate, buttonToActivate, buttonToDeactivate, layoutToActivate, layoutToDeactivate, isActivatingOrigin);
-                return false; // Permitir el comportamiento normal (teclado)
-            }
-        }
-        return false;
-    }
-
-    /**
-     * maneja las sugerencias
-     * @param targetEditText
-     * @param targetImageButton
-     * @param otherImageButton
-     * @param targetLayout
-     * @param otherLayout
-     * @param isOrigin
-     */
-    private void handleActivation(
-            EditText targetEditText,
-            ImageButton targetImageButton,
-            ImageButton otherImageButton,
-            LinearLayout targetLayout,
-            LinearLayout otherLayout,
-            boolean isOrigin
-    ) {
-        if (isOrigin) {
-            isOriginActive = true;
-            isDestinationActive = false;
-            updateUIForActiveInput();
-            recyclerViewSuggestionsDestination.setVisibility(View.GONE); // Ocultar sugerencias de destino
-            // Ocultar favoritos si origen está activado
-            findViewById(R.id.layoutFavorites).setVisibility(View.GONE);
-        } else {
-            isDestinationActive = true;
-            isOriginActive = false;
-            updateUIForActiveInput();
-            fetchAndDisplayFavorites(); // Cargar y mostrar favoritos
-
-            recyclerViewSuggestionsOrigin.setVisibility(View.GONE); // Ocultar sugerencias de origen
-            // Mostrar favoritos si destino está activado
-            if (favoritesAdapter.getItemCount() > 0) {
-                findViewById(R.id.layoutFavorites).setVisibility(View.VISIBLE);
-            }
-        }
-
-        // Cambiar los drawables para los botones
-        targetImageButton.setImageResource(R.drawable.ic_my_location_active);
-        otherImageButton.setImageResource(R.drawable.ic_my_location);
-
-        // Registrar cambios de estado en el log
-        Log.d("Activation", isOrigin ? "Origen activado" : "Destino activado");
-
-        // Cerrar el teclado al cambiar activación
-        closeKeyboard();
-    }
-
-    /**
-     * Activa o desactiva el input
-     */
-    private void activateInput(EditText editTextToActivate, ImageButton buttonToActivate, ImageButton buttonToDeactivate,
-                               LinearLayout layoutToActivate, LinearLayout layoutToDeactivate, boolean isActivatingOrigin) {
-        // Cambiar el estado de activación
-        isOriginActive = isActivatingOrigin;
-        isDestinationActive = !isActivatingOrigin;
-
-        // Cambiar el estado visual de los botones
-        buttonToActivate.setImageResource(R.drawable.ic_my_location_active);
-        buttonToDeactivate.setImageResource(R.drawable.ic_my_location);
-
-        // Registrar logs
-        if (isActivatingOrigin) {
-            Log.d("InputActivation", "Input de origen activado.");
-            Log.d("InputActivation", "Input de destino desactivado.");
-        } else {
-            Log.d("InputActivation", "Input de destino activado.");
-            Log.d("InputActivation", "Input de origen desactivado.");
-        }
     }
 
     /**
@@ -1305,14 +1238,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (isOriginActive && s.length() >= 3) {
+                if (s.length() >= 3) {
+                    progressBarSuggestionsOrigin.setVisibility(View.VISIBLE); // Muestra el indicador de carga
+
                     placesController.getPredictions(s.toString(), predictions -> {
                         suggestionsAdapterOrigin.updateSuggestions(predictions);
                         recyclerViewSuggestionsOrigin.setVisibility(View.VISIBLE);
-                        recyclerViewSuggestionsDestination.setVisibility(View.GONE); // Ocultar sugerencias de destino
+                        progressBarSuggestionsOrigin.setVisibility(View.GONE); // Oculta el indicador al recibir datos
                     });
                 } else {
+                    //Si el texto es menor a 3 caracteres, ocultar todo
+                    progressBarSuggestionsOrigin.setVisibility(View.GONE);
                     recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
+                    suggestionsAdapterOrigin.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
                 }
             }
 
@@ -1327,14 +1265,20 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (isDestinationActive && s.length() >= 3) {
+                if (s.length() >= 3) {
+                    progressBarSuggestionsDestination.setVisibility(View.VISIBLE); // Muestra el indicador de carga
+
                     placesController.getPredictions(s.toString(), predictions -> {
                         suggestionsAdapterDestination.updateSuggestions(predictions);
                         recyclerViewSuggestionsDestination.setVisibility(View.VISIBLE);
-                        recyclerViewSuggestionsOrigin.setVisibility(View.GONE); // Ocultar sugerencias de origen
+                        progressBarSuggestionsDestination.setVisibility(View.GONE); // Oculta el indicador al recibir datos
+
                     });
-                } else {
+                }else {
+                    // Si el texto es menor a 3 caracteres, ocultar todo
+                    progressBarSuggestionsDestination.setVisibility(View.GONE);
                     recyclerViewSuggestionsDestination.setVisibility(View.GONE);
+                    suggestionsAdapterDestination.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
                 }
             }
 
@@ -1406,30 +1350,44 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     /**
-     * Actualiza la interfaz de usuario según el estado de entrada
+     * Alterna la visibilidad de los botones e inputs de origen y destino.
+     * @param isOriginActive true si se activa origen, false si se activa destino.
      */
-    private void updateUIForActiveInput() {
-        // Mostrar/ocultar layout_buttons_origin y layout_buttons_destination
-        LinearLayout layoutButtonsOrigin = findViewById(R.id.layout_buttons_origin);
-        LinearLayout layoutButtonsDestination = findViewById(R.id.layout_buttons_destination);
-
-        // Mostrar/ocultar btnDeleteOrigin y btnDeleteDestination
-        ImageButton btnDeleteOrigin = findViewById(R.id.btnDeleteOrigin);
-        ImageButton btnDeleteDestination = findViewById(R.id.btnDeleteDestination);
-
+    private void toggleSearchVisibility(boolean isOriginActive) {
+        // Mostrar elementos de origen y ocultar destino si isOriginActive es true
+        int originVisibility = isOriginActive ? View.VISIBLE : View.GONE;
+        int destinationVisibility = isOriginActive ? View.GONE : View.VISIBLE;
         if (isOriginActive) {
-            layoutButtonsOrigin.setVisibility(View.VISIBLE);
-            layoutButtonsDestination.setVisibility(View.GONE);
-
-            btnDeleteOrigin.setVisibility(View.VISIBLE);
-            btnDeleteDestination.setVisibility(View.GONE);
-        } else if (isDestinationActive) {
-            layoutButtonsOrigin.setVisibility(View.GONE);
-            layoutButtonsDestination.setVisibility(View.VISIBLE);
-
-            btnDeleteOrigin.setVisibility(View.GONE);
-            btnDeleteDestination.setVisibility(View.VISIBLE);
+            btnRequestTaxi.setText("Continuar sin destino");
+        } else {
+            btnRequestTaxi.setText("Continuar");
         }
+
+        // Mostrar/Ocultar botones de origen y destino
+        btnGoToOrigin.setVisibility(destinationVisibility);
+        btnGoToDestination.setVisibility(originVisibility);
+
+        // Mostrar/Ocultar secciones de búsqueda
+        layoutSearchOrigin.setVisibility(originVisibility);
+        layout_buttons_origin.setVisibility(originVisibility);
+        recyclerViewSuggestionsOrigin.setVisibility(originVisibility);
+        layoutOriginFavorites.setVisibility(originVisibility);
+
+        layoutSearchDestination.setVisibility(destinationVisibility);
+        layout_buttons_destination.setVisibility(destinationVisibility);
+        recyclerViewSuggestionsDestination.setVisibility(destinationVisibility);
+        layoutFavorites.setVisibility(destinationVisibility);
+    }
+
+    /**
+     * Precarga Google Places
+     */
+    private void preloadPlacesAPI() {
+        new Handler().postDelayed(() -> {
+            placesController.getPredictions("test", predictions -> {
+                Log.d("Preload", "Pre-carga de Google Places completada");
+            });
+        }, 1000); // Espera 1 segundo después de abrir la actividad
     }
 
 }

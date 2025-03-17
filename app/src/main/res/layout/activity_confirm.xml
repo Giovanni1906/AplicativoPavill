@@ -59,7 +59,20 @@
             android:layout_marginBottom="40dp"
             android:fontFamily="@font/dmsans_bold"
             android:gravity="center"
-            android:text="Tarifa no encontrada, contáctenos para poder añadir esta nueva ruta."
+            android:text="Aún no hemos establecido una tarifa para esta zona, consulte el precio con el conductor"
+            android:textColor="@color/textColor"
+            android:textSize="16sp"
+            android:visibility="gone"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/withoutDest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="40dp"
+            android:fontFamily="@font/dmsans_bold"
+            android:gravity="center"
+            android:text="Sin cálculo de tarifa"
             android:textColor="@color/textColor"
             android:textSize="16sp"
             android:visibility="gone"
@@ -147,24 +160,23 @@
                         android:textColor="@color/textColor" />
                 </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/favoriteButton"
-                    style="@style/GeneralImageViewStyle"
-                    android:contentDescription="Corazón"
-                    android:src="@drawable/ic_favorite"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginEnd="8dp" />
-
             </LinearLayout>
+
+        <TextView
+            android:id="@+id/favText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/iconColor"
+            android:visibility="gone"
+            android:text="Dirección generada desde favoritos"
+            android:textSize="14sp" />
 
         <!-- Campo de referencia usando TextInputLayout -->
         <LinearLayout
             android:id="@+id/LayoutFeedback"
             style="@style/GeneralLinearLayoutStyle"
             android:layout_height="76dp"
+
             android:layout_marginBottom="40dp">
 
             <ImageView
@@ -175,8 +187,28 @@
             <EditText
                 android:id="@+id/editReference"
                 style="@style/GeneralMultiEditTextStyle"
-                android:hint="Ingresar dirección exacta y una referencia*"
+                android:hint="Escribir dirección exacta*"
                 android:inputType="text" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteOrigin"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="eliminar dirección"
+                android:padding="8dp"
+                android:src="@drawable/ic_trash" />
+
+            <ImageButton
+                android:id="@+id/favoriteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="eliminar dirección"
+                android:padding="8dp"
+                app:tint="@color/iconColor"
+                android:src="@drawable/ic_favorite" />
+
         </LinearLayout>
 
 <!--        <LinearLayout-->

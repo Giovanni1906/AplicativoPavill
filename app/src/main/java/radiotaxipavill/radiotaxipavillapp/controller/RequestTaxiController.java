@@ -39,6 +39,7 @@ public class RequestTaxiController {
             double destinationLat,
             double destinationLng,
             String reference,
+            Boolean saveFavorites,
             RequestTaxiCallback callback
     ) {
         Log.d("RequestTaxiController", "🚀 requestTaxi() ejecutado en: " + System.currentTimeMillis());
@@ -129,16 +130,25 @@ public class RequestTaxiController {
                 params.put("ClienteId", clienteId);
                 params.put("PedidoDireccion", originAddress);
                 params.put("PedidoReferencia", reference);
-                params.put("PedidoDestino", destinationAddress);
-                params.put("PedidoDestinoCoordenadaX", String.valueOf(destinationLat));
-                params.put("PedidoDestinoCoordenadaY", String.valueOf(destinationLng));
+                // 🚀 Solo enviar destino si no es null
+                if (destinationLat != 00.00 || destinationLng != 00.00) {
+                    params.put("PedidoDestino", destinationAddress);
+                    params.put("PedidoDestinoCoordenadaX", String.valueOf(destinationLat));
+                    params.put("PedidoDestinoCoordenadaY", String.valueOf(destinationLng));
+                }
                 params.put("PedidoCoordenadaX", String.valueOf(originLat));
                 params.put("PedidoCoordenadaY", String.valueOf(originLng));
                 params.put("ClienteNumeroDocumento", clienteNumeroDocumento);
                 params.put("ClienteNombre", clienteNombre);
                 params.put("ClienteCelular", clienteCelular);
                 params.put("ClienteEmail", clienteEmail);
-                params.put("Favorito", "2");
+                if (saveFavorites) {
+                    params.put("Favorito", "1");
+                    Log.d("RequestTaxiController", "Se guardará en favoritos");
+                } else {
+                    params.put("Favorito", "2");
+                    Log.d("RequestTaxiController", "no se guardará en favoritos");
+                }
                 params.put("Identificador", identificador);
                 params.put("ClienteAppVersion", appVersion);
                 if (tarifa != null && !tarifa.isEmpty() && !tarifa.equals("N/A")  ) {

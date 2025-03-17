@@ -158,7 +158,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         destinationCoordinates = temporaryData.getDestinationCoordinates();
         errorText = findViewById(R.id.errorText);
         if (originCoordinates == null || destinationCoordinates == null) {
-            Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData");
+            Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData" + originCoordinates + " " + destinationCoordinates);
         }
     }
 
@@ -209,23 +209,22 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-
         applyMapStyle();
-
-
         if (checkPermission()) {
             mMap.setMyLocationEnabled(false); // Deshabilitamos la ubicación predeterminada de Google
         } else {
             requestLocationPermission();
         }
-
-
-
-        // Dibujar la ruta estática
-        drawStaticRoute();
-
         // Agregar marcadores personalizados para origen y destino
         addCustomMarkers();
+
+        if (destinationCoordinates.latitude != 0.0 && destinationCoordinates.longitude != 0.0) {
+            // Dibujar la ruta estática
+            drawStaticRoute();
+        }else {
+            // Si no hay destino, solo centrar en el origen con un nivel de zoom adecuado
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(originCoordinates, 15f));
+        }
 
         // Configurar la ubicación dinámica con el ícono personalizado
         startFetchingDriverLocation();
@@ -306,7 +305,7 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))); // Color para el origen
         }
 
-        if (destinationCoordinates != null) {
+        if (destinationCoordinates.latitude != 0.0 && destinationCoordinates.longitude != 0.0) {
             mMap.addMarker(new MarkerOptions()
                     .position(destinationCoordinates)
                     .title("Destino")

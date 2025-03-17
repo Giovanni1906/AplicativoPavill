@@ -44,11 +44,11 @@ public class FriendlyAddressHelper {
                 String friendlyAddress;
 
                 if (street != null && neighborhood != null) {
-                    friendlyAddress = "Cerca a: " + street + ", " + neighborhood;
+                    friendlyAddress = "Referencia: " + street + ", " + neighborhood;
                 } else if (street != null) {
-                    friendlyAddress = "Cerca a calle: " + street;
+                    friendlyAddress = "Referencia: calle: " + street;
                 } else if (neighborhood != null) {
-                    friendlyAddress = "Cerca al vecindario: " + neighborhood;
+                    friendlyAddress = "Referencia: vecindario: " + neighborhood;
                 } else if (city != null) {
                     friendlyAddress = "Marcado en mapa, sin referencia cercana";
                     // Agregar subdivisiones si están disponibles

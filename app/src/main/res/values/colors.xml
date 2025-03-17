@@ -14,6 +14,7 @@
     <color name="backgroundColor">#F2F2F2</color> <!-- Blanco para modo claro -->
     <color name="ArrivalBackgroundColor">#FFFFFF</color> <!-- Blanco para modo claro -->
     <color name="boxBackgroundColor">#E0E0E0</color> <!-- Color del fondo del TextInput -->
+    <color name="favboxBackgroundColor">#FBBA00</color>
     <color name="glowBackgroundColor" > #40410099 </color>
     <color name="viewColor">#CCCCCC</color>
 

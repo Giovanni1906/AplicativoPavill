@@ -12,6 +12,7 @@
     <color name="backgroundColor">#2C2F33</color> <!-- Blanco para modo claro -->
     <color name="ArrivalBackgroundColor">#2C2F33</color> <!-- Blanco para modo claro -->
     <color name="boxBackgroundColor">#424242</color> <!-- Color del fondo del TextInput -->
+    <color name="favboxBackgroundColor">#624A01</color>
     <color name="glowBackgroundColor" > #50E0E0E0 </color>
     <!-- values/colors.xml -->
 </resources>

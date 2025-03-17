@@ -56,7 +56,7 @@ public class PlacesController {
                 .setQuery(query)
                 .setSessionToken(sessionToken)
                 .setCountries("PE") // Limitar a Perú
-                .setLocationBias(boundsTacna) // Limitar a los límites de Tacna
+                .setLocationRestriction(boundsTacna) // Limitar a los límites de Tacna
                 .build();
 
         placesClient.findAutocompletePredictions(request)
