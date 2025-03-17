@@ -23,6 +23,11 @@
         app:iconTint="?attr/colorOnSurface"
         app:titleTextColor="?attr/colorOnSurface"/>
     <item
+        android:id="@+id/nav_favorites"
+        android:title="Inicio"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"/>
+    <item
         android:id="@+id/nav_logout"
         android:title="Cerrar sesión"
         app:iconTint="?attr/colorOnSurface"

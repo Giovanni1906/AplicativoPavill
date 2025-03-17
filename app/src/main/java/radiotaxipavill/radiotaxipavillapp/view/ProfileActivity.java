@@ -453,6 +453,10 @@ public class ProfileActivity extends AppCompatActivity {
                     // Lógica para navegar a points
                     Intent historyIntent = new Intent(ProfileActivity.this, PointsActivity.class);
                     startActivity(historyIntent);
+                } else if (id == R.id.nav_favorites) {
+                    // Lógica para navegar a points
+                    Intent historyIntent = new Intent(ProfileActivity.this, FavoritesActivity.class);
+                    startActivity(historyIntent);
                 } else if (id == R.id.nav_logout) {
                     // Lógica para cerrar sesión
                     SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);

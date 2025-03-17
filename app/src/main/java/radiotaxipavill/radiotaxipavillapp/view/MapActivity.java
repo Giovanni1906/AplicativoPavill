@@ -1332,6 +1332,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                     startActivity(new Intent(MapActivity.this, HistoryActivity.class));
                 } else if (id == R.id.nav_points) {
                     startActivity(new Intent(MapActivity.this, PointsActivity.class));
+                } else if (id == R.id.nav_favorites) {
+                    startActivity(new Intent(MapActivity.this, FavoritesActivity.class));
                 } else if (id == R.id.nav_logout) {
                     SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
