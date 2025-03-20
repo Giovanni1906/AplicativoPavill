@@ -67,7 +67,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 int count = 0;
                 for (MapController.FavoriteDestination fav : favorites) {
                     if (fav.getEstado() == 3) {
-                        selectedFavorites.add(fav.getAddress());
+                        selectedFavorites.add(fav.getId());
                         count++;
                         if (count == 2) break;
                     }
@@ -99,7 +99,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         MapController.FavoriteDestination favorite = favorites.get(position);
         if (holder instanceof FavoriteMenuViewHolder) {
-            ((FavoriteMenuViewHolder) holder).bind(favorite, clickListener, deleteListener, selectedFavorites.contains(favorite.getAddress()));
+            ((FavoriteMenuViewHolder) holder).bind(favorite, clickListener, deleteListener, selectedFavorites.contains(favorite.getId()));
         } else if (holder instanceof FavoriteViewHolder) {
             ((FavoriteViewHolder) holder).bind(favorite, clickListener);
         }
@@ -144,11 +144,11 @@ public class FavoritesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             favoriteRadioButton.setChecked(isSelected);
 
             favoriteRadioButton.setOnClickListener(v -> {
-                if (selectedFavorites.contains(favorite.getAddress())) {
-                    selectedFavorites.remove(favorite.getAddress()); // Deseleccionar
+                if (selectedFavorites.contains(favorite.getId())) {
+                    selectedFavorites.remove(favorite.getId()); // Deseleccionar
                 } else {
                     if (selectedFavorites.size() < 2) {
-                        selectedFavorites.add(favorite.getAddress()); // Seleccionar
+                        selectedFavorites.add(favorite.getId()); // Seleccionar
                     }
                 }
                 notifyDataSetChanged(); // Refrescar UI

@@ -1,6 +1,7 @@
 package radiotaxipavill.radiotaxipavillapp.controller;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -41,6 +42,22 @@ public class MapController {
                 (!isForOrigin && currentSelection == SelectionState.DESTINATION);
     }
 
+    public interface FavoriteDestinationsCallback {
+        void onFavoritesReceived(List<FavoriteDestination> origins, List<FavoriteDestination> destinations);
+        void onNoFavoritesFound();
+        void onError(String errorMessage);
+    }
+
+    public interface FavoriteDeleteCallback {
+        void onSuccess(String message);
+        void onFailure(String errorMessage);
+    }
+
+    public interface UpdateFavoritesCallback {
+        void onSuccess(String message);
+        void onFailure(String errorMessage);
+    }
+
     public void fetchFavoriteDestinations(Context context, String clienteId, boolean useMenuLayout, FavoriteDestinationsCallback callback) {
         String url = context.getString(R.string.url_services_fav);
         String action = useMenuLayout ? "ObtenerClienteDestinoFavoritosTotales" : "ObtenerClienteDestinoFavoritos";
@@ -71,6 +88,7 @@ public class MapController {
                                         double lngOrigen = obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0);
 
                                         int estado = obj.optInt("ClienteDestinoFavoritoEstado", -1); // Estado del favorito
+                                        String id = obj.optString("ClienteDestinoFavoritoId", "");
 
                                         String direccionDestino = obj.optString("ClienteDestinoFavoritoDestino", "");
                                         double latDestino = obj.optDouble("ClienteDestinoFavoritoDestinoCoordenadaX", 0.0);
@@ -78,12 +96,12 @@ public class MapController {
 
                                         // Si tiene dirección y coordenadas válidas, se clasifica como ORIGEN
                                         if (!direccionOrigen.isEmpty() && latOrigen != 0.0 && lngOrigen != 0.0) {
-                                            favoriteOrigins.add(new FavoriteDestination(direccionOrigen, latOrigen, lngOrigen, estado));
+                                            favoriteOrigins.add(new FavoriteDestination(id, direccionOrigen, latOrigen, lngOrigen, estado));
                                         }
 
                                         // Si tiene dirección y coordenadas válidas, se clasifica como DESTINO
                                         if (!direccionDestino.isEmpty() && latDestino != 0.0 && lngDestino != 0.0) {
-                                            favoriteDestinations.add(new FavoriteDestination(direccionDestino, latDestino, lngDestino, estado));
+                                            favoriteDestinations.add(new FavoriteDestination(id, direccionDestino, latDestino, lngDestino, estado));
                                         }
                                     }
 
@@ -134,12 +152,14 @@ public class MapController {
 
 
     public class FavoriteDestination {
+        private final String id; // Agregar este campo para almacenar el ID
         private final String address;
         private final double latitude;
         private final double longitude;
         private final int estado;
 
-        public FavoriteDestination(String address, double latitude, double longitude, int estado) {
+        public FavoriteDestination(String id, String address, double latitude, double longitude, int estado) {
+            this.id = id;
             this.address = address;
             this.latitude = latitude;
             this.longitude = longitude;
@@ -161,12 +181,109 @@ public class MapController {
         public int getEstado() {
             return estado;
         }
+
+        public String getId() {
+            return id;
+        }
     }
 
-    public interface FavoriteDestinationsCallback {
-        void onFavoritesReceived(List<FavoriteDestination> origins, List<FavoriteDestination> destinations);
-        void onNoFavoritesFound();
-        void onError(String errorMessage);
+    public void deleteFavorite(Context context, String favoriteIds, FavoriteDeleteCallback callback) {
+        String url = context.getString(R.string.url_services_fav);
+
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    Log.d(TAG, "Respuesta recibida: " + response);
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        String respuesta = jsonResponse.optString("Respuesta");
+
+                        switch (respuesta) {
+                            case "D004":
+                                callback.onSuccess("Favorito eliminado exitosamente.");
+                                break;
+
+                            case "D005":
+                                callback.onFailure("No se pudo eliminar el favorito.");
+                                break;
+
+                            case "D006":
+                                callback.onFailure("No se proporcionó un ID de favorito válido.");
+                                break;
+
+                            default:
+                                callback.onFailure("Respuesta desconocida del servidor.");
+                                break;
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error procesando la respuesta del servidor.", e);
+                        callback.onFailure("Error procesando la respuesta del servidor.");
+                    }
+                },
+                error -> {
+                    Log.e(TAG, "Error de conexión con el servidor.", error);
+                    callback.onFailure("Error de conexión con el servidor.");
+                }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("Accion", "EliminarClienteDestinoFavorito");
+                params.put("ClienteDestinoFavoritoId", favoriteIds);  // ID del favorito(s)
+                params.put("Identificador", "XYZ"); // Si se requiere identificador
+                Log.d(TAG, "Parámetros enviados: " + params.toString());
+                return params;
+            }
+        };
+
+        Volley.newRequestQueue(context).add(request);
+    }
+
+    /**
+     * Envía los favoritos seleccionados (estado 3) y no seleccionados (estado 4) al servidor
+     */
+    public void updateFavoriteStates(Context context, List<String> selectedIds, List<String> unselectedIds, UpdateFavoritesCallback callback) {
+        String url = context.getString(R.string.url_services_fav);
+
+        // Convertir listas en cadenas separadas por comas
+        String selectedIdsString = TextUtils.join(",", selectedIds);
+        String unselectedIdsString = TextUtils.join(",", unselectedIds);
+
+        Log.d(TAG, "Enviando seleccionados (Estado 3): " + selectedIdsString);
+        Log.d(TAG, "Enviando no seleccionados (Estado 4): " + unselectedIdsString);
+
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    Log.d(TAG, "Respuesta: " + response);
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        String respuesta = jsonResponse.optString("Respuesta");
+
+                        if ("E001".equals(respuesta)) {
+                            callback.onSuccess("Actualización exitosa.");
+                        } else {
+                            callback.onFailure("Error en la actualización.");
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error procesando la respuesta del servidor.", e);
+                        callback.onFailure("Error en el procesamiento de la respuesta.");
+                    }
+                },
+                error -> {
+                    Log.e(TAG, "Error de conexión con el servidor.", error);
+                    callback.onFailure("Error de conexión con el servidor.");
+                }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("Accion", "ActualizarEstadosMultiplesFavoritos");
+                params.put("ClienteDestinoFavoritoIdsEstado3", selectedIdsString);
+                params.put("ClienteDestinoFavoritoIdsEstado4", unselectedIdsString);
+
+                Log.d(TAG, "Parámetros enviados: " + params.toString());
+                return params;
+            }
+        };
+
+        Volley.newRequestQueue(context).add(request);
     }
 
 }

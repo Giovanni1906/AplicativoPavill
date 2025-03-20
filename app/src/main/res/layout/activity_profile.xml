@@ -52,16 +52,16 @@
 
             <ImageButton
                 android:id="@+id/edit_image_button"
-                android:layout_width="53dp"
-                android:layout_height="52dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_alignTop="@id/profile_image"
                 android:layout_alignEnd="@id/profile_image"
-                android:layout_marginTop="-8dp"
-                android:layout_marginEnd="-8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Editar imagen de perfil"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="-0dp"
+                android:background="@drawable/glow_background"
                 android:src="@drawable/ic_edit"
-                app:tint="@android:color/darker_gray" />
+                android:contentDescription="Editar imagen de perfil"
+                app:tint="@color/primaryColor" />
         </RelativeLayout>
 
         <!-- Layout para contener los campos del formulario -->

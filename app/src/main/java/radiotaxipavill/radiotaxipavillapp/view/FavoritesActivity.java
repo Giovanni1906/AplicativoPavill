@@ -3,12 +3,16 @@ package radiotaxipavill.radiotaxipavillapp.view;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +25,7 @@ import java.util.List;
 
 import radiotaxipavill.radiotaxipavillapp.R;
 import radiotaxipavill.radiotaxipavillapp.components.FavoritesAdapter;
+import radiotaxipavill.radiotaxipavillapp.components.LoadingDialog;
 import radiotaxipavill.radiotaxipavillapp.components.NavigationHeaderInfo;
 import radiotaxipavill.radiotaxipavillapp.controller.MapController;
 
@@ -31,15 +36,23 @@ public class FavoritesActivity extends AppCompatActivity {
     private FavoritesAdapter favoritesAdapter;
     private List<MapController.FavoriteDestination> favoriteList = new ArrayList<>();
     private final List<String> selectedFavorites = new ArrayList<>();
+    private List<String> unselectedFavorites = new ArrayList<>();
+    private AppCompatButton saveButton;
 
+
+    private LoadingDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
+        // Inicializar LoadingDialog
+        loadingDialog = new LoadingDialog(this);
+
         recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(this));
+        saveButton = findViewById(R.id.save_button);
 
         fetchAllFavorites();
 
@@ -63,7 +76,53 @@ public class FavoritesActivity extends AppCompatActivity {
                 }
             });
         }
+
+        saveButton.setOnClickListener(v -> {
+            loadingDialog.show();
+            List<String> selectedFavoritesIds  = new ArrayList<>(selectedFavorites);
+            List<String> unselectedFavoritesIds = new ArrayList<>();
+
+            for (MapController.FavoriteDestination fav : favoriteList) {
+                if (!selectedFavoritesIds.contains(fav.getId())) {
+                    unselectedFavoritesIds.add(fav.getId());
+                }
+            }
+
+            // Log para depuración: Ver qué se está enviando realmente
+            Log.d("FavoritesActivity", "Seleccionados (Estado 3): " + selectedFavoritesIds );
+            Log.d("FavoritesActivity", "No seleccionados (Estado 4): " + unselectedFavoritesIds);
+
+            // Enviar al servidor
+            updateFavoritesState(selectedFavoritesIds, unselectedFavoritesIds);
+        });
     }
+
+    private void updateFavoritesState(List<String> selectedIds, List<String> unselectedIds) {
+        if (selectedIds.isEmpty() && unselectedIds.isEmpty()) {
+            loadingDialog.dismiss();
+            Toast.makeText(this, "No hay cambios para guardar.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Mostrar un diálogo de carga mientras se procesa
+        loadingDialog.show();
+
+        new MapController().updateFavoriteStates(this, selectedIds, unselectedIds, new MapController.UpdateFavoritesCallback() {
+            @Override
+            public void onSuccess(String message) {
+                loadingDialog.dismiss();
+                Toast.makeText(FavoritesActivity.this, "Cambios guardados correctamente.", Toast.LENGTH_SHORT).show();
+                fetchAllFavorites(); // 🔄 Recargar lista después de actualizar
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                loadingDialog.dismiss();
+                Toast.makeText(FavoritesActivity.this, "Error al actualizar: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 
     /**
      * Obtiene todos los favoritos del usuario desde el servidor.
@@ -72,10 +131,16 @@ public class FavoritesActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String clienteId = sharedPreferences.getString("ClienteId", "");
 
+        // Mostrar el ProgressBar antes de hacer la solicitud
+        ProgressBar progressBar = findViewById(R.id.progressBarFavorites);
+        progressBar.setVisibility(View.VISIBLE);
+
         new MapController().fetchFavoriteDestinations(this, clienteId, true, new MapController.FavoriteDestinationsCallback() {
+
             @Override
             public void onFavoritesReceived(List<MapController.FavoriteDestination> origins, List<MapController.FavoriteDestination> destinations) {
                 runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
                     favoriteList.clear();
                     favoriteList.addAll(origins);
                     favoriteList.addAll(destinations);
@@ -85,17 +150,34 @@ public class FavoritesActivity extends AppCompatActivity {
                             selectedFavorites, // ← Agregar esta lista
                             favorite -> {
                                 // Alternar selección/deselección
-                                if (selectedFavorites.contains(favorite.getAddress())) {
-                                    selectedFavorites.remove(favorite.getAddress());
+                                if (selectedFavorites.contains(favorite.getId())) {
+                                    selectedFavorites.remove(favorite.getId());
                                 } else {
                                     if (selectedFavorites.size() < 2) {
-                                        selectedFavorites.add(favorite.getAddress());
+                                        selectedFavorites.add(favorite.getId());
+                                    } else {
+                                        Toast.makeText(FavoritesActivity.this, "Máximo dos direcciones favoritas", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                                 favoritesAdapter.notifyDataSetChanged();
                             },
                             favorite -> {
-                                // Acción para eliminar favorito
+                                loadingDialog.show();
+                                // ⚡ Llamar al método de eliminación
+                                new MapController().deleteFavorite(FavoritesActivity.this, favorite.getId(), new MapController.FavoriteDeleteCallback() {
+                                    @Override
+                                    public void onSuccess(String message) {
+                                        Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_SHORT).show();
+                                        fetchAllFavorites(); // 🔄 Recargar lista después de eliminar
+                                        loadingDialog.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onFailure(String errorMessage) {
+                                        loadingDialog.dismiss();
+                                        Toast.makeText(FavoritesActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             },
                             true // Usa item_favorite_menu.xml
                     );
@@ -109,11 +191,13 @@ public class FavoritesActivity extends AppCompatActivity {
 
             @Override
             public void onNoFavoritesFound() {
+                progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
                 runOnUiThread(() -> Toast.makeText(FavoritesActivity.this, "No hay favoritos guardados.", Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onError(String errorMessage) {
+                progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
                 runOnUiThread(() -> Toast.makeText(FavoritesActivity.this, "Error al obtener favoritos.", Toast.LENGTH_SHORT).show());
             }
         });
@@ -142,7 +226,7 @@ public class FavoritesActivity extends AppCompatActivity {
                     Intent historyIntent = new Intent(FavoritesActivity.this, PointsActivity.class);
                     startActivity(historyIntent);
                 } else if (id == R.id.nav_profile) {
-                    // Lógica para navegar a favoritos
+                    // Lógica para navegar a perfil
                     Intent historyIntent = new Intent(FavoritesActivity.this, ProfileActivity.class);
                     startActivity(historyIntent);
                 } else if (id == R.id.nav_logout) {

@@ -146,49 +146,103 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private ImageView btnEditFavorites;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_map);
 
-        loadingDialog = new LoadingDialog(this);
+            loadingDialog = new LoadingDialog(this);
 
-        // Inicializar la ubicación de cliente ANTES de cualquier uso
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        preloadPlacesAPI(); // Pre-carga la API para evitar demoras al inicio
+            // Inicializar la ubicación antes de cualquier otro proceso
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        temporaryData = TemporaryData.getInstance();
-        temporaryData.loadFromPreferences(this);  // Restaurar datos guardados
+            // Inicializar datos y configuración antes de la UI
+            preloadPlacesAPI(); // Pre-cargar Google Places para evitar demoras
+            checkBatteryOptimization(); // Verificar optimización de batería
+            temporaryData = TemporaryData.getInstance();
+            temporaryData.loadFromPreferences(this); // Restaurar datos previos
+            routeController = new RouteController(this);
 
-        checkBatteryOptimization();
-        checkIfLocationIsEnabled();
+            // Verificar permisos de ubicación ANTES de cargar el mapa
+            checkLocationPermission();
 
-        // Inicializa la sección de favoritos antes de cualquier uso
-        initializeFavoritesSection();
-        fetchAndDisplayFavorites(); // Llamamos la función para cargar favoritos
+            // Inicializar UI y favoritos ANTES del mapa
+            initializeUI();
+            initializeFavoritesSection();
+            fetchAndDisplayFavorites();
+            initializeBottomSheetAndDrawer();
 
-        routeController = new RouteController(this);
+            // Inicializar Places API (asegurarse que esté listo)
+            if (!Places.isInitialized()) {
+                Places.initialize(getApplicationContext(), getString(R.string.map_api_key));
+            }
+            placesController = new PlacesController(this);
 
-        // Verificar permisos de ubicación
-        checkLocationPermission();
+            // Verificar si la ubicación está activada ANTES de cargar el mapa
+            checkIfLocationIsEnabled();
 
-        // Inicializar el mapa
-        initializeMap();
+            // Cargar ubicación y luego inicializar el mapa
+            getCurrentLocationAndLoadMap();
 
-        // Inicializar Places API
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), getString(R.string.map_api_key));
+            // Configurar botones después de todo
+            setupLocationButtons();
+            setupMapUseButtons();
+
         }
 
-        placesController = new PlacesController(this);
-
-        // Inicializar UI
-        initializeUI();
-        setupLocationButtons(); // Configura los botones de origen y destino
-        setupMapUseButtons(); // Configura los botones para usar el mapa como origen/destino
-
-        // Inicializar BottomSheet y DrawerLayout
-        initializeBottomSheetAndDrawer();
+    private void getCurrentLocationAndLoadMap() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                originLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                initializeMap(); // ✅ Solo inicializar el mapa cuando la ubicación está lista
+            } else {
+                Log.w("MapActivity", "Ubicación no disponible, reintentando...");
+                retryFetchingLocation(3); // 🔄 Reintentar 3 veces
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("MapActivity", "Error obteniendo ubicación: " + e.getMessage());
+            retryFetchingLocation(3);
+        });
     }
+    private void retryFetchingLocation(int retries) {
+        if (retries == 0) {
+            Log.e("MapActivity", "No se pudo obtener la ubicación después de varios intentos.");
+            originLatLng = new LatLng(-18.0066, -70.2467); // Usar Tacna si falla
+            initializeMap();
+            return;
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                originLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                initializeMap();
+            } else {
+                Log.w("MapActivity", "Intento fallido, reintentando...");
+                new Handler().postDelayed(() -> retryFetchingLocation(retries - 1), 2000);
+            }
+        });
+    }
+
+
 
     private void checkBatteryOptimization() {
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);

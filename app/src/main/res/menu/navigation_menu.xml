@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/nav_profile"
-        android:title="Perfil"
-        app:iconTint="?attr/colorOnSurface"
-        app:titleTextColor="?attr/colorOnSurface"
-        />
+
 <!--    <item-->
 <!--        android:id="@+id/nav_history"-->
 <!--        android:title="Historial"-->
@@ -23,8 +18,14 @@
         app:iconTint="?attr/colorOnSurface"
         app:titleTextColor="?attr/colorOnSurface"/>
     <item
+        android:id="@+id/nav_profile"
+        android:title="Editar Perfil"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"
+        />
+    <item
         android:id="@+id/nav_favorites"
-        android:title="Inicio"
+        android:title="Direcciones favoritas"
         app:iconTint="?attr/colorOnSurface"
         app:titleTextColor="?attr/colorOnSurface"/>
     <item

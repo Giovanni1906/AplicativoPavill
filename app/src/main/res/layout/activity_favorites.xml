@@ -52,7 +52,15 @@
                 android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp"/>
 
-    <androidx.recyclerview.widget.RecyclerView
+            <ProgressBar
+                android:id="@+id/progressBarFavorites"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                style="?android:attr/progressBarStyle"/>
+
+            <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewFavorites"
         android:layout_width="match_parent"
         android:layout_height="300sp"
@@ -78,7 +86,7 @@
                 android:text="Guardar cambios" />
 
 
-            <!-- Botón para "Eliminar perfil" -->
+            <!-- Botón para vovler al map activity -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/rest_button"
                 style="@style/Button.Form"
@@ -86,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_alternative"
-                android:text="Restablecer" />
+                android:text="Cancelar" />
         </LinearLayout>
 </LinearLayout>
 

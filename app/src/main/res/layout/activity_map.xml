@@ -194,11 +194,9 @@
 
                     <ImageView
                         android:id="@+id/btnEditFavorites"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        style="@style/GeneralImageViewStyle"
                         android:src="@drawable/ic_edit"
-                        android:contentDescription="Editar favoritos"
-                        android:padding="4dp"/>
+                        android:contentDescription="Editar direcciones favoritas"/>
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
