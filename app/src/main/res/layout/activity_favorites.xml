@@ -50,7 +50,7 @@
                 android:textStyle="bold"
                 android:gravity="center"
                 android:textColor="@color/textColor"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="32dp"/>
 
             <ProgressBar
                 android:id="@+id/progressBarFavorites"
@@ -63,39 +63,10 @@
             <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewFavorites"
         android:layout_width="match_parent"
-        android:layout_height="300sp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:layout_marginBottom="16dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="bottom"
-            android:paddingTop="16dp">
-
-            <!-- Botón para "Guardar cambios" -->
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/save_button"
-                style="@style/Button.Form"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/button_gradient"
-                android:text="Guardar cambios" />
-
-
-            <!-- Botón para vovler al map activity -->
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/rest_button"
-                style="@style/Button.Form"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/button_alternative"
-                android:text="Cancelar" />
-        </LinearLayout>
 </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

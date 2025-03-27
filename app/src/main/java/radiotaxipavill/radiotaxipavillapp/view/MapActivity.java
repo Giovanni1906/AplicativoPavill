@@ -52,7 +52,6 @@ import android.widget.Toast;
 import radiotaxipavill.radiotaxipavillapp.R;
 import radiotaxipavill.radiotaxipavillapp.components.BitmapUtils;
 import radiotaxipavill.radiotaxipavillapp.components.CustomInfoWindowAdapter;
-import radiotaxipavill.radiotaxipavillapp.components.FavoritesAdapter;
 import radiotaxipavill.radiotaxipavillapp.components.FriendlyAddressHelper;
 import radiotaxipavill.radiotaxipavillapp.components.LoadingDialog;
 import radiotaxipavill.radiotaxipavillapp.components.MyClusterItem;
@@ -115,16 +114,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private Marker originMarker; // Para almacenar el marcador del origen
     private Marker destinationMarker; // Para almacenar el marcador del destino
     private RouteController routeController;
-    private RecyclerView recyclerViewFavorites, recyclerViewOriginFavorites;
-    private FavoritesAdapter favoritesAdapterOrigin;
-    private FavoritesAdapter favoritesAdapterDestination;
 
     private Marker locationMarker; // Guardar el marcador para actualizarlo
 
     private boolean firstTimeLoading = true;
 
     private boolean isUseMapForOrigin = false; // Variable para determinar si es origen o destino
-    private boolean isFromFavorite = false; // si el origen está desde una dirección favorita
     private double defaultCost = 0.0; // costo por defecto
 
     private TemporaryData temporaryData;
@@ -136,14 +131,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private Button btnRequestTaxi;
 
     private LinearLayout layout_buttons_origin;
-    private LinearLayout layoutOriginFavorites;
     private LinearLayout layout_buttons_destination;
-    private LinearLayout layoutFavorites;
+
 
     private ProgressBar progressBarSuggestionsOrigin;
     private ProgressBar progressBarSuggestionsDestination;
 
-    private ImageView btnEditFavorites;
 
     @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -167,8 +160,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             // Inicializar UI y favoritos ANTES del mapa
             initializeUI();
-            initializeFavoritesSection();
-            fetchAndDisplayFavorites();
             initializeBottomSheetAndDrawer();
 
             // Inicializar Places API (asegurarse que esté listo)
@@ -442,97 +433,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
         return "Sin dirección disponible";
     }
-
-    /**
-     * Obtiene las direcciones favoritas del cliente
-     */
-    private void fetchAndDisplayFavorites() {
-        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String clienteId = sharedPreferences.getString("ClienteId", "");
-
-        new MapController().fetchFavoriteDestinations(this, clienteId, false, new MapController.FavoriteDestinationsCallback() {
-            @Override
-            public void onFavoritesReceived(List<MapController.FavoriteDestination> origins, List<MapController.FavoriteDestination> destinations) {
-                runOnUiThread(() -> {
-                    // Mostrar favoritos de origen
-                    if (origins != null && !origins.isEmpty()) {
-                        List<MapController.FavoriteDestination> limitedOrigins = origins.size() > 2
-                                ? origins.subList(0, 2)  // Limitar a 2 favoritos de origen
-                                : origins;
-                        favoritesAdapterOrigin.updateFavorites(limitedOrigins);
-                    }
-
-                    // Mostrar favoritos de destino
-                    if (destinations != null && !destinations.isEmpty()) {
-                        List<MapController.FavoriteDestination> limitedDestinations = destinations.size() > 2
-                                ? destinations.subList(0, 2)  // Limitar a 2 favoritos de origen
-                                : destinations;
-                        favoritesAdapterDestination.updateFavorites(limitedDestinations);
-                    }
-                });
-            }
-
-            @Override
-            public void onNoFavoritesFound() {
-                runOnUiThread(() -> {
-                    findViewById(R.id.layoutOriginFavorites).setVisibility(View.GONE);
-                    findViewById(R.id.layoutFavorites).setVisibility(View.GONE);
-                });
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                runOnUiThread(() -> Toast.makeText(MapActivity.this, "Error al obtener favoritos: " + errorMessage, Toast.LENGTH_SHORT).show());
-            }
-        });
-    }
-
-
-
-
-    /**
-     * Inicializa la sección de favoritos
-     */
-    private void initializeFavoritesSection() {
-        recyclerViewOriginFavorites = findViewById(R.id.recyclerViewOriginFavorites);
-        recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
-
-        // Adaptador para ORIGEN
-        favoritesAdapterOrigin = new FavoritesAdapter(
-                new ArrayList<>(),
-                new ArrayList<>(), // Asegúrate de pasar la lista de seleccionados si es necesaria
-                favorite -> {
-                    LatLng favoriteLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
-                    originLatLng = favoriteLatLng;
-                    addMarkerToMap(favoriteLatLng, "Origen", getResources().getColor(R.color.primaryColor), true);
-                    editTextOrigin.setText(favorite.getAddress());
-
-                    // Guardar que el origen proviene de un favorito
-                    isFromFavorite = true;
-                },
-                null, // No se necesita deleteListener aquí
-                false
-        );
-
-        // Adaptador para DESTINO
-        favoritesAdapterDestination = new FavoritesAdapter(new ArrayList<>(), new ArrayList<>(),  favorite -> {
-            LatLng favoriteLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
-            destinationLatLng = favoriteLatLng;
-            addMarkerToMap(favoriteLatLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
-            editTextDestination.setText(favorite.getAddress());
-        },
-        null, // No se necesita deleteListener aquí
-        false
-        );
-
-        recyclerViewOriginFavorites.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewOriginFavorites.setAdapter(favoritesAdapterOrigin);
-
-        recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewFavorites.setAdapter(favoritesAdapterDestination);
-    }
-
-
     /**
      * Actualiza la ruta en el mapa
      */
@@ -964,18 +864,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         layoutSearchOrigin = findViewById(R.id.layoutSearchOrigin);
         layout_buttons_origin = findViewById(R.id.layout_buttons_origin);
         recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
-        layoutOriginFavorites = findViewById(R.id.layoutOriginFavorites);
 
         layoutSearchDestination = findViewById(R.id.layoutSearchDestination);
         layout_buttons_destination = findViewById(R.id.layout_buttons_destination);
         recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
-        layoutFavorites = findViewById(R.id.layoutFavorites);
-
-        ImageView btnEditFavorites = findViewById(R.id.btnEditFavorites);
-        btnEditFavorites.setOnClickListener(v -> {
-            Intent intent = new Intent(MapActivity.this, FavoritesActivity.class);
-            startActivity(intent);
-        });
 
         // Obtener el TextView
         TextView textViewName = findViewById(R.id.textViewName);
@@ -1046,9 +938,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             Log.e("CalculateAproximatedCost", "Coordenadas de destino no válidas.");
             Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
             // Solo pasar la dirección si proviene de un favorito
-            if (isFromFavorite) {
-                intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
-            }
             startActivity(intent);
             return;
         }
@@ -1072,9 +961,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 // Solo pasar la dirección si proviene de un favorito
-                if (isFromFavorite) {
-                    intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
-                }
                 startActivity(intent);
             }
 
@@ -1087,9 +973,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 // Navegar a ConfirmActivity
                 Intent intent = new Intent(MapActivity.this, ConfirmActivity.class);
                 // Solo pasar la dirección si proviene de un favorito
-                if (isFromFavorite) {
-                    intent.putExtra("OriginAddress", editTextOrigin.getText().toString());
-                }
                 startActivity(intent);
             }
         });
@@ -1227,8 +1110,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Enfocar el mapa en el marcador con animación
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
 
-        isFromFavorite = false;
-
         // Intentar actualizar la ruta
         updateRoute();
     }
@@ -1251,7 +1132,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 locationMarker.setAlpha(1.0f); // volver opacidad de ic_here al 100%
             }
             clearRoute(); // Borra la ruta
-            isFromFavorite = false; //resetea el origen de favorito
             Log.d("DeleteInput", "Texto de origen eliminado");
         });
 
@@ -1427,12 +1307,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         layoutSearchOrigin.setVisibility(originVisibility);
         layout_buttons_origin.setVisibility(originVisibility);
         recyclerViewSuggestionsOrigin.setVisibility(originVisibility);
-        layoutOriginFavorites.setVisibility(originVisibility);
 
         layoutSearchDestination.setVisibility(destinationVisibility);
         layout_buttons_destination.setVisibility(destinationVisibility);
         recyclerViewSuggestionsDestination.setVisibility(destinationVisibility);
-        layoutFavorites.setVisibility(destinationVisibility);
     }
 
     /**

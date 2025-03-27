@@ -84,6 +84,7 @@ public class MapController {
                                         JSONObject obj = datos.getJSONObject(i);
 
                                         String direccionOrigen = obj.optString("ClienteDestinoFavoritoDireccion", "");
+                                        String reference = obj.optString("ClienteDestinoFavoritoReferencia", "");
                                         double latOrigen = obj.optDouble("ClienteDestinoFavoritoCoordenadaX", 0.0);
                                         double lngOrigen = obj.optDouble("ClienteDestinoFavoritoCoordenadaY", 0.0);
 
@@ -96,12 +97,12 @@ public class MapController {
 
                                         // Si tiene dirección y coordenadas válidas, se clasifica como ORIGEN
                                         if (!direccionOrigen.isEmpty() && latOrigen != 0.0 && lngOrigen != 0.0) {
-                                            favoriteOrigins.add(new FavoriteDestination(id, direccionOrigen, latOrigen, lngOrigen, estado));
+                                            favoriteOrigins.add(new FavoriteDestination(id, direccionOrigen, latOrigen, lngOrigen, estado, reference));
                                         }
 
                                         // Si tiene dirección y coordenadas válidas, se clasifica como DESTINO
                                         if (!direccionDestino.isEmpty() && latDestino != 0.0 && lngDestino != 0.0) {
-                                            favoriteDestinations.add(new FavoriteDestination(id, direccionDestino, latDestino, lngDestino, estado));
+                                            favoriteDestinations.add(new FavoriteDestination(id, direccionDestino, latDestino, lngDestino, estado, reference));
                                         }
                                     }
 
@@ -157,13 +158,15 @@ public class MapController {
         private final double latitude;
         private final double longitude;
         private final int estado;
+        private final String reference;
 
-        public FavoriteDestination(String id, String address, double latitude, double longitude, int estado) {
+        public FavoriteDestination(String id, String address, double latitude, double longitude, int estado, String reference) {
             this.id = id;
             this.address = address;
             this.latitude = latitude;
             this.longitude = longitude;
             this.estado = estado;
+            this.reference = reference;
         }
 
         public String getAddress() {
@@ -184,6 +187,10 @@ public class MapController {
 
         public String getId() {
             return id;
+        }
+
+        public String getReference() {
+            return reference;
         }
     }
 

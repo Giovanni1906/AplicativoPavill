@@ -18,6 +18,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -27,33 +28,33 @@ import radiotaxipavill.radiotaxipavillapp.R;
 import radiotaxipavill.radiotaxipavillapp.components.FavoritesAdapter;
 import radiotaxipavill.radiotaxipavillapp.components.LoadingDialog;
 import radiotaxipavill.radiotaxipavillapp.components.NavigationHeaderInfo;
+import radiotaxipavill.radiotaxipavillapp.components.TemporaryData;
+import radiotaxipavill.radiotaxipavillapp.controller.CalcularTarifaController;
 import radiotaxipavill.radiotaxipavillapp.controller.MapController;
+import radiotaxipavill.radiotaxipavillapp.controller.RequestTaxiController;
 
 public class FavoritesActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private RecyclerView recyclerViewFavorites;
     private FavoritesAdapter favoritesAdapter;
-    private List<MapController.FavoriteDestination> favoriteList = new ArrayList<>();
-    private final List<String> selectedFavorites = new ArrayList<>();
-    private List<String> unselectedFavorites = new ArrayList<>();
-    private AppCompatButton saveButton;
-
-
     private LoadingDialog loadingDialog;
+
+    TemporaryData temporaryData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
+        temporaryData = TemporaryData.getInstance();
+        temporaryData.loadFromPreferences(this);
+
         // Inicializar LoadingDialog
         loadingDialog = new LoadingDialog(this);
 
         recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(this));
-        saveButton = findViewById(R.id.save_button);
-
         fetchAllFavorites();
 
         // Obtener referencia del DrawerLayout
@@ -76,25 +77,6 @@ public class FavoritesActivity extends AppCompatActivity {
                 }
             });
         }
-
-        saveButton.setOnClickListener(v -> {
-            loadingDialog.show();
-            List<String> selectedFavoritesIds  = new ArrayList<>(selectedFavorites);
-            List<String> unselectedFavoritesIds = new ArrayList<>();
-
-            for (MapController.FavoriteDestination fav : favoriteList) {
-                if (!selectedFavoritesIds.contains(fav.getId())) {
-                    unselectedFavoritesIds.add(fav.getId());
-                }
-            }
-
-            // Log para depuración: Ver qué se está enviando realmente
-            Log.d("FavoritesActivity", "Seleccionados (Estado 3): " + selectedFavoritesIds );
-            Log.d("FavoritesActivity", "No seleccionados (Estado 4): " + unselectedFavoritesIds);
-
-            // Enviar al servidor
-            updateFavoritesState(selectedFavoritesIds, unselectedFavoritesIds);
-        });
     }
 
     private void updateFavoritesState(List<String> selectedIds, List<String> unselectedIds) {
@@ -131,45 +113,33 @@ public class FavoritesActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String clienteId = sharedPreferences.getString("ClienteId", "");
 
-        // Mostrar el ProgressBar antes de hacer la solicitud
         ProgressBar progressBar = findViewById(R.id.progressBarFavorites);
         progressBar.setVisibility(View.VISIBLE);
 
-        new MapController().fetchFavoriteDestinations(this, clienteId, true, new MapController.FavoriteDestinationsCallback() {
-
+        new MapController().fetchFavoriteDestinations(this, clienteId, false, new MapController.FavoriteDestinationsCallback() {
             @Override
             public void onFavoritesReceived(List<MapController.FavoriteDestination> origins, List<MapController.FavoriteDestination> destinations) {
                 runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
-                    favoriteList.clear();
-                    favoriteList.addAll(origins);
-                    favoriteList.addAll(destinations);
+                    progressBar.setVisibility(View.GONE);
+                    List<MapController.FavoriteDestination> allFavorites = new ArrayList<>();
+                    allFavorites.addAll(origins);
+                    allFavorites.addAll(destinations);
+
+                    // Limitar a los primeros 5 favoritos si hay más
+                    if (allFavorites.size() > 5) {
+                        allFavorites = allFavorites.subList(0, 5);
+                    }
 
                     favoritesAdapter = new FavoritesAdapter(
-                            favoriteList,
-                            selectedFavorites, // ← Agregar esta lista
-                            favorite -> {
-                                // Alternar selección/deselección
-                                if (selectedFavorites.contains(favorite.getId())) {
-                                    selectedFavorites.remove(favorite.getId());
-                                } else {
-                                    if (selectedFavorites.size() < 2) {
-                                        selectedFavorites.add(favorite.getId());
-                                    } else {
-                                        Toast.makeText(FavoritesActivity.this, "Máximo dos direcciones favoritas", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                                favoritesAdapter.notifyDataSetChanged();
-                            },
+                            allFavorites,
                             favorite -> {
                                 loadingDialog.show();
-                                // ⚡ Llamar al método de eliminación
                                 new MapController().deleteFavorite(FavoritesActivity.this, favorite.getId(), new MapController.FavoriteDeleteCallback() {
                                     @Override
                                     public void onSuccess(String message) {
-                                        Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_SHORT).show();
-                                        fetchAllFavorites(); // 🔄 Recargar lista después de eliminar
                                         loadingDialog.dismiss();
+                                        Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_SHORT).show();
+                                        fetchAllFavorites(); // Recargar
                                     }
 
                                     @Override
@@ -179,26 +149,98 @@ public class FavoritesActivity extends AppCompatActivity {
                                     }
                                 });
                             },
-                            true // Usa item_favorite_menu.xml
-                    );
+                            favorite -> {
+                                // 👉 Lógica al presionar el botón de taxi
+                                LatLng originLatLng = new LatLng(favorite.getLatitude(), favorite.getLongitude());
 
+                                // Validación: si no hay destino, no hacer nada
+                                if (favorite.getLatitude() == 0 || favorite.getLongitude() == 0) {
+                                    Toast.makeText(FavoritesActivity.this, "Favorito sin ubicación válida.", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
 
+                                temporaryData.setOriginCoordinates(originLatLng, FavoritesActivity.this);
+                                temporaryData.setDestinationCoordinates(null, FavoritesActivity.this); // Por ahora null, puedes modificar si el favorito incluye destino
 
-                    recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(FavoritesActivity.this));
+                                String originAddress = favorite.getAddress();
+                                String destinationAddress = ""; // Modifica si tienes destino
+
+                                double originLat = favorite.getLatitude();
+                                double originLng = favorite.getLongitude();
+
+                                // Mostrar loading
+                                loadingDialog.show();
+
+                                // ⚡ Calcular tarifa
+                                new CalcularTarifaController().calcularTarifa(FavoritesActivity.this, originLat, originLng, 0.0, 0.0, new CalcularTarifaController.CalcularTarifaCallback() {
+                                    @Override
+                                    public void onSuccess(String tarifario, String respuesta) {
+                                        temporaryData.setEstimatedCost(tarifario, FavoritesActivity.this);
+                                        solicitarTaxi();
+                                    }
+
+                                    @Override
+                                    public void onFailure(String errorMessage) {
+                                        temporaryData.setEstimatedCost("N/A", FavoritesActivity.this);
+                                        solicitarTaxi(); // Igual se hace el request
+                                    }
+
+                                    private void solicitarTaxi() {
+                                        String reference = favorite.getReference() != null ? favorite.getReference() : "Referencia desconocida";
+
+                                        new RequestTaxiController().requestTaxi(
+                                                FavoritesActivity.this,
+                                                originAddress,
+                                                destinationAddress,
+                                                originLat,
+                                                originLng,
+                                                0.0,
+                                                0.0,
+                                                reference,
+                                                false,
+                                                new RequestTaxiController.RequestTaxiCallback() {
+                                                    @Override
+                                                    public void onSuccess(String message) {
+                                                        long requestTime = System.currentTimeMillis();
+                                                        temporaryData.setRequestTime(requestTime, FavoritesActivity.this);
+                                                        loadingDialog.dismiss();
+
+                                                        Intent intent = new Intent(FavoritesActivity.this, SearchingActivity.class);
+                                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                        startActivity(intent);
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(String errorMessage) {
+                                                        loadingDialog.dismiss();
+                                                        Toast.makeText(FavoritesActivity.this, "Error al solicitar taxi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                        );
+                                    }
+                                });
+                            }
+
+                            );
+
                     recyclerViewFavorites.setAdapter(favoritesAdapter);
                 });
             }
 
             @Override
             public void onNoFavoritesFound() {
-                progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
-                runOnUiThread(() -> Toast.makeText(FavoritesActivity.this, "No hay favoritos guardados.", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(FavoritesActivity.this, "No hay favoritos guardados.", Toast.LENGTH_SHORT).show();
+                });
             }
 
             @Override
             public void onError(String errorMessage) {
-                progressBar.setVisibility(View.GONE); // Ocultar ProgressBar
-                runOnUiThread(() -> Toast.makeText(FavoritesActivity.this, "Error al obtener favoritos.", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(FavoritesActivity.this, "Error al obtener favoritos.", Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
@@ -249,4 +291,3 @@ public class FavoritesActivity extends AppCompatActivity {
         });
     }
 }
-
