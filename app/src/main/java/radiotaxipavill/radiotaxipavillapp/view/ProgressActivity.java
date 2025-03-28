@@ -68,8 +68,6 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
 
     private Handler locationUpdateHandler = new Handler();
     private Marker driverMarker;
-    private TextView errorText;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,7 +154,6 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // Inicializar el cliente de ubicación
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
-        errorText = findViewById(R.id.errorText);
         if (originCoordinates == null || destinationCoordinates == null) {
             Log.e("ProgressActivity", "Coordenadas de origen o destino no disponibles en TemporaryData" + originCoordinates + " " + destinationCoordinates);
         }
@@ -465,8 +462,8 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
      * @param errorMessage
      */
     private void showError(String errorMessage) {
-        errorText.setText(errorMessage);
-        errorText.setVisibility(View.VISIBLE);
+        Toast.makeText(ProgressActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+
     }
 
     /**

@@ -55,12 +55,12 @@ public class CancelRequestController {
                     } catch (Exception e) {
                         e.printStackTrace();
                         Log.e("CancelRequestController", "Cancelación de pedido: Error al procesar la respuesta del servidor.: ", e);
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo");
                     }
                 },
                 error -> {
                     error.printStackTrace();
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo");
                 }) {
             @Override
             protected Map<String, String> getParams() {

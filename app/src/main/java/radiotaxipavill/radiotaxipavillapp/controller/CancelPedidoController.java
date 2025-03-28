@@ -48,24 +48,24 @@ public class CancelPedidoController {
                                 Log.d("CancelPedidoController", "error interno L023: " + jsonResponse );
                                 break;
                             case "L024": // PedidoId no válido
-                                callback.onFailure("Error: PedidoId no válido.");
+                                callback.onFailure("Error de conexión con el pedido");
                                 Log.d("CancelPedidoController", "error interno L024: " + jsonResponse );
 
                                 break;
                             default:
                                 callback.onFailure("Error desconocido: " + respuesta);
-                                Log.d("CancelPedidoController", "error interno ded conexión: " + jsonResponse );
+                                Log.d("CancelPedidoController", "error interno de conexión: " + jsonResponse );
 
                                 break;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente nuevamente.");
                         Log.e("CancelPedidoController", "error de conexion: ", e );
 
                     }
                 },
-                error -> callback.onFailure("Error al conectar con el servidor.")
+                error -> callback.onFailure("Problemas de conexión, intente nuevamente.")
         );
 
         queue.add(request);

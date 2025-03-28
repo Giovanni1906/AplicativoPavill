@@ -126,17 +126,17 @@ public class MapController {
 
                             default:
                                 Log.e(TAG, "Respuesta desconocida del servidor: " + respuesta);
-                                callback.onError("Respuesta desconocida del servidor.");
+                                callback.onError("Problemas de conexión, intente de nuevo.");
                                 break;
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error procesando la respuesta del servidor.", e);
-                        callback.onError("Error procesando la respuesta del servidor.");
+                        callback.onError("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión con el servidor.", error);
-                    callback.onError("Error de conexión con el servidor.");
+                    callback.onError("Problemas de conexión, intente de nuevo.");
                 }) {
             @Override
             protected Map<String, String> getParams() {
@@ -218,17 +218,17 @@ public class MapController {
                                 break;
 
                             default:
-                                callback.onFailure("Respuesta desconocida del servidor.");
+                                callback.onFailure("Problemas de conexión, intente de nuevo.");
                                 break;
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error procesando la respuesta del servidor.", e);
-                        callback.onFailure("Error procesando la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión con el servidor.", error);
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo.");
                 }) {
             @Override
             protected Map<String, String> getParams() {
@@ -276,7 +276,7 @@ public class MapController {
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión con el servidor.", error);
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo.");
                 }) {
             @Override
             protected Map<String, String> getParams() {

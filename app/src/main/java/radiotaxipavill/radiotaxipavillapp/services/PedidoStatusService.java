@@ -215,18 +215,19 @@ public class PedidoStatusService extends Service {
 
                     @Override
                     public void onError(String errorMessage) {
-                        if (isServiceStopped) return; // No procesar errores si el servicio está detenido
+                        if (isServiceStopped) return;
 
-                        Log.e(TAG, "Error crítico al verificar el estado del pedido: " + errorMessage);
-                        sendBroadcastAndStop("ERROR");
-//                        // 🔴 Guardar en SharedPreferences que hubo un error y detener el servicio
-//                        SharedPreferences prefs = getSharedPreferences("PedidoPrefs", MODE_PRIVATE);
-//                        prefs.edit()
-//                                .putBoolean("error_pedido", true)
-//                                .apply();
-//
-//                        // 🔴 Detener el servicio completamente
-//                        stopServiceAndBroadcast();
+                        Log.e(TAG, "Error al verificar el estado del pedido: " + errorMessage);
+
+                        // Verifica si el error parece una pérdida de red (esto puede variar según tu implementación del controlador)
+                        if (errorMessage.contains("Unable to resolve host") || errorMessage.contains("timeout") || errorMessage.contains("failed to connect")) {
+                            // Reintentar más tarde sin detener el servicio
+                            Log.w(TAG, "Problemas de conección. Reintentando en 5 segundos...");
+                            handler.postDelayed(statusChecker, 5000); // Reintenta en 5 segundos
+                        } else {
+                            // Si es un error real no relacionado a red, entonces sí detenemos
+                            sendBroadcastAndStop("ERROR");
+                        }
                     }
 
                 });

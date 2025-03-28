@@ -15,7 +15,6 @@ import radiotaxipavill.radiotaxipavillapp.controller.ChangePasswordController;
 public class ChangePasswordActivity extends AppCompatActivity {
 
     private EditText editPassword, verifyPassword;
-    private TextView errorText;
     private AppCompatButton btnCambiarContrasenia, btnVolverInicio;
     LoadingDialog loadingDialog;
 
@@ -29,7 +28,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
         // Referencias a los inputs y botones
         editPassword = findViewById(R.id.edit_password);
         verifyPassword = findViewById(R.id.verify_password);
-        errorText = findViewById(R.id.errorText);
         btnCambiarContrasenia = findViewById(R.id.CambiarContrasenia);
         btnVolverInicio = findViewById(R.id.VolverInicio);
 
@@ -85,7 +83,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
      * Muestra un mensaje de error en el TextView de error.
      */
     private void mostrarError(String mensaje) {
-        errorText.setText(mensaje);
-        errorText.setVisibility(View.VISIBLE);
+        Toast.makeText(ChangePasswordActivity.this, "Error: " + mensaje, Toast.LENGTH_SHORT).show();
     }
 }

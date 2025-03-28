@@ -81,12 +81,12 @@ public class PedidoStatusController {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        callback.onError("Error al procesar la respuesta del servidor.");
+                        callback.onError("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     error.printStackTrace();
-                    callback.onError("Error de conexión con el servidor.");
+                    callback.onError("Problemas de conexión, intente de nuevo.");
                 }) {
             @Override
             protected Map<String, String> getParams() {

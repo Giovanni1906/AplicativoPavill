@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -81,8 +82,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                                 loadingDialog.dismiss(); // Ocultar el indicador de carga
 
                                 // Muestra el error debajo del botón en el TextView correspondiente
-                                errorText.setText(errorMessage);
-                                errorText.setVisibility(View.VISIBLE);
+                                Toast.makeText(VerifyPhoneActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
                             }
                         }
                 );

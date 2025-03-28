@@ -63,7 +63,7 @@ public class AuthController {
                             }
                         } catch (JSONException e) {
                             Log.e("AuthController", "Error al procesar la respuesta del servidor "+ response +": ", e);
-                            callback.onFailure("Error al procesar la respuesta del servidor.");
+                            callback.onFailure("Problemas de conexión, intente nuevamente");
 
                         }
                     }
@@ -71,8 +71,8 @@ public class AuthController {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e("AuthController", "No se pudo conectar al servidor. Verifica tu conexión." + error.getMessage());
-                        callback.onFailure("No se pudo conectar al servidor. Verifica tu conexión.");
+                        Log.e("AuthController", "Verifica tu conexión e intenta nuevamente." + error.getMessage());
+                        callback.onFailure("Verifica tu conexión e intenta nuevamente.");
                     }
                 }
         );

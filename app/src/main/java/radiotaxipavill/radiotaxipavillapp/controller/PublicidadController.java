@@ -49,12 +49,12 @@ public class PublicidadController {
                         }
                     } catch (Exception e) {
                         Log.e("PublicidadController", "Error procesando la respuesta: ", e);
-                        callback.onError("Error al procesar la respuesta del servidor.");
+                        callback.onError("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e("PublicidadController", "Error de conexión: ", error);
-                    callback.onError("Error de conexión con el servidor.");
+                    callback.onError("Problemas de conexión, intente de nuevo.");
                 });
 
         Volley.newRequestQueue(context).add(request);

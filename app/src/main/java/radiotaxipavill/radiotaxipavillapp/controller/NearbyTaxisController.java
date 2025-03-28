@@ -89,12 +89,12 @@ public class NearbyTaxisController {
                         }
                     } catch (Exception e) {
                         Log.e("NearbyTaxisController", "Error al procesar la respuesta del servidor: ", e);
-                        callback.onError("Error al procesar la respuesta del servidor.");
+                        callback.onError("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e("NearbyTaxisController", "Error de conexión con el servidor: ", error);
-                    callback.onError("Error de conexión con el servidor.");
+                    callback.onError("Problemas de conexión, intente de nuevo.");
                 }) {
             @Override
             protected Map<String, String> getParams() {

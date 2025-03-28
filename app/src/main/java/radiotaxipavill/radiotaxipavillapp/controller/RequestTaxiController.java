@@ -115,12 +115,12 @@ public class RequestTaxiController {
                     } catch (Exception e) {
                         Log.e("RequestTaxiController", " Error al procesar la respuesta del servidor.", e);
                         e.printStackTrace();
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e("RequestTaxiController", " Error de conexión con el servidor.", error);
-                    callback.onFailure("Error al conectar con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo.");
                     resetRequestFlag();
                 }) {
             @Override

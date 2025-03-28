@@ -55,16 +55,16 @@ public class CalcularTarifaController {
                             Log.d(TAG, "Respuesta: " + jsonResponse);
                             callback.onSuccess(tarifarioMonto, respuesta);
                         } else {
-                            callback.onFailure("Respuesta desconocida del servidor.");
+                            callback.onFailure("Problemas de conexión, intente nuevamente");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error procesando la respuesta: ", e);
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente nuevamente.");
                     }
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión: ", error);
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente nuevamente.");
                 });
 
         // Agregar la solicitud a la cola de Volley

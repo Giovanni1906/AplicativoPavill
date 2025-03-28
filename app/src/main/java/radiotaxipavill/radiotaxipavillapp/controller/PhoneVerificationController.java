@@ -50,7 +50,7 @@ public class PhoneVerificationController {
                                 callback.onFailure(mensaje);
                             }
                         } catch (Exception e) {
-                            callback.onFailure("Error al procesar la respuesta del servidor.");
+                            callback.onFailure("Problemas de conexión, intente nuevamente.");
                         }
                     }
                 },

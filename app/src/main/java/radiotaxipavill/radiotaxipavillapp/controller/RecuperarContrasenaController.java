@@ -55,7 +55,7 @@ public class RecuperarContrasenaController {
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión: ", error);
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo.");
                 }
         );
 

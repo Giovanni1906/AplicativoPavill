@@ -48,10 +48,10 @@ public class RecibirMensajeController {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                     }
                 },
-                error -> callback.onFailure("Error al conectar con el servidor.")
+                error -> callback.onFailure("Problemas de conexión, intente de nuevo.")
         ) {
             @Override
             protected Map<String, String> getParams() {

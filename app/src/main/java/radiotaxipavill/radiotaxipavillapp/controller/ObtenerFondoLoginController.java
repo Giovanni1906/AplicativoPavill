@@ -38,12 +38,12 @@ public class ObtenerFondoLoginController {
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error al procesar la respuesta: ", e);
-                        callback.onFailure("Error al procesar la respuesta del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                     }
                 },
                 error -> {
                     Log.e(TAG, "Error de conexión: ", error);
-                    callback.onFailure("Error de conexión con el servidor.");
+                    callback.onFailure("Problemas de conexión, intente de nuevo.");
                 });
 
         Volley.newRequestQueue(context).add(request);

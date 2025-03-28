@@ -51,11 +51,11 @@ public class PedidoController {
                         callback.onFailure("El pedido no está en un estado válido para la acción.");
                         break;
                     default:
-                        callback.onFailure("Respuesta desconocida del servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                         break;
                 }
             } catch (JSONException e) {
-                callback.onFailure("Error al procesar la respuesta del servidor.");
+                callback.onFailure("Problemas de conexión, intente de nuevo.");
             }
         }, error -> callback.onFailure("Error en la solicitud: " + error.getMessage())) {
             @Override

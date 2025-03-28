@@ -65,7 +65,7 @@ public class FavoriteController {
 
                 // Validar si la respuesta está vacía
                 if (response.isEmpty()) {
-                    showToast(context, "Respuesta vacía del servidor.");
+                    showToast(context, "Problemas de conexión, intente de nuevo");
                     Log.e(TAG, "Respuesta del servidor vacía.");
                     return;
                 }
@@ -75,7 +75,7 @@ public class FavoriteController {
                     JSONObject jsonResponse = new JSONObject(response);
                     handleResponse(context, jsonResponse);
                 } catch (JSONException e) {
-                    showToast(context, "Error al procesar la respuesta del servidor.");
+                    showToast(context, "Problemas de conexión, intente de nuevo.");
                     Log.e(TAG, "Error al procesar la respuesta JSON: " + e.getMessage(), e);
                 }
 
@@ -114,13 +114,13 @@ public class FavoriteController {
                     break;
 
                 default: // Respuesta desconocida
-                    showToast(context, "Respuesta desconocida del servidor.");
+                    showToast(context, "Problemas de conexión, intente de nuevo.");
                     Log.w(TAG, "Respuesta desconocida: " + respuesta);
                     break;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            showToast(context, "Error al procesar respuesta del servidor.");
+            showToast(context, "EProblemas de conexión, intente de nuevo.");
             Log.e(TAG, "Error al manejar la respuesta", e);
         }
     }

@@ -62,7 +62,7 @@ public class RegisterController {
                             callback.onError(getErrorMessage(respuesta));
                         }
                     } catch (JSONException e) {
-                        callback.onError("Error al procesar la respuesta del servidor.");
+                        callback.onError("Problemas de conexión, intente nuevamente.");
                     }
                 },
                 error -> {

@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -61,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                 String deviceId =  DeviceIdentifier.getUniqueIdentifier(this);
                 login(email, password, deviceId);
             } else {
-                errorText.setText("Por favor ingresa un correo y contraseña válidos.");
+                errorText.setText("Por favor ingresa un correo y/o contraseña válidos.");
                 errorText.setVisibility(View.VISIBLE);
             }
         });
@@ -118,9 +119,8 @@ public class LoginActivity extends AppCompatActivity {
                 // Ocultar indicador de carga
                 loadingDialog.dismiss();
 
-                // Mostrar mensaje de error
-                errorText.setText(errorMessage);
-                errorText.setVisibility(View.VISIBLE);
+                Toast.makeText(LoginActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+
             }
         });
     }

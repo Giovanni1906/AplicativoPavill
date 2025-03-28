@@ -89,7 +89,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng originCoordinates;
     private LatLng destinationCoordinates;
     private BottomSheetBehavior<View> bottomSheetBehavior;
-    private TextView errorText;
     private TemporaryData temporaryData;
 
     @Override
@@ -167,7 +166,6 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         TextView textViewDriverName = findViewById(R.id.textViewDriverName);
         TextView textViewDriverCode = findViewById(R.id.textViewDriverCode);
         TextView textViewCarDetails = findViewById(R.id.textViewCarDetails);
-        errorText = findViewById(R.id.errorText);
 
         textViewDriverName.setText(toCapitalLetter(conductorNombre));
         textViewDriverCode.setText(vehiculoUnidad);
@@ -503,8 +501,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
      * @param errorMessage
      */
     private void showError(String errorMessage) {
-        errorText.setText(errorMessage);
-        errorText.setVisibility(View.VISIBLE);
+        Toast.makeText(WaitingActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+
     }
 
     /**

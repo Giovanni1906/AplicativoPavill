@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -189,9 +190,8 @@ public class VerifyCodeActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(String errorMessage) {
-                TextView tvErrorMessage = findViewById(R.id.errorText);
-                tvErrorMessage.setText("Error al reenviar el código: " + errorMessage);
-                tvErrorMessage.setVisibility(View.VISIBLE);
+                Toast.makeText(VerifyCodeActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+
             }
         });
     }

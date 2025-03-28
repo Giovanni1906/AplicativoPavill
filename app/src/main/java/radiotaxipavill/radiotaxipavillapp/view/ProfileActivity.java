@@ -72,7 +72,6 @@ public class ProfileActivity extends AppCompatActivity {
         EditText editName = findViewById(R.id.edit_name);
         EditText editEmail = findViewById(R.id.edit_email);
         EditText editPhone = findViewById(R.id.edit_phone);
-        TextView errorText = findViewById(R.id.errorText);
 
         // Cargar datos iniciales desde SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
@@ -127,8 +126,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             // Validar que el ClienteId no sea nulo
             if (clienteId == null) {
-                errorText.setText("No se puede realizar la operación. ClienteId no válido.");
-                errorText.setVisibility(View.VISIBLE);
+                Toast.makeText(ProfileActivity.this, "Error interno, vuelva a iniciar sesión", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -170,9 +168,8 @@ public class ProfileActivity extends AppCompatActivity {
 
                             loadingDialog.dismiss();
 
-                            // Mostrar mensaje de error
-                            errorText.setText(errorMessage);
-                            errorText.setVisibility(View.VISIBLE);
+                            Toast.makeText(ProfileActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+
                         }
                     }
             );

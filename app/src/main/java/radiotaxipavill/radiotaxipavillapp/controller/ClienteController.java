@@ -58,7 +58,7 @@ public class ClienteController {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e("ClienteController", "Error: " + error.getMessage());
-                        callback.onFailure("Error de conexión al servidor.");
+                        callback.onFailure("Problemas de conexión, intente de nuevo.");
                     }
                 }
         );

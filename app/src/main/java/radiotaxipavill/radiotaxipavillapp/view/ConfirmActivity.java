@@ -197,14 +197,9 @@ public class ConfirmActivity extends AppCompatActivity {
                                 return;
                             }
 
-                            if (errorText != null) {
-                                errorText.setVisibility(View.VISIBLE);
-                                errorText.setText(errorMessage);
-                            } else {
-                                Log.e("ConfirmActivity", "TextView errorText es null");
-                            }
+                            Toast.makeText(ConfirmActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
 
-                            habilitarBotonConRetraso(); // 🔹 Rehabilita el botón después del error
+                            habilitarBotonConRetraso(); // Rehabilita el botón después del error
 
                         }
                     }
