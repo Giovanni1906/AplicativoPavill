@@ -9,7 +9,7 @@
     <string name="map_api_key">AIzaSyCPU_P1X90dr5d5jTQKUuFT_yA9mwsuIDA</string>
 
     <string name="url_services">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnCliente.php</string>
-    <string name="url_services_conductor">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnConductor.php</string>
+    <string name="url_services_conductor">http://rtpavillv2.ddns.net:8014/apptaxipavillv4/webservice/JnConductor.php</string>
     <string name="url_services_pedido">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnPedido.php</string>
     <string name="url_services_ubicacion">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservicem/JnConductorUbicacion.php</string>
     <string name="url_services_mapa">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnMapa.php</string>

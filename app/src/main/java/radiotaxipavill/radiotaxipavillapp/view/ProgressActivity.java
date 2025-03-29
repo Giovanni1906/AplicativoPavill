@@ -7,12 +7,14 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,6 +70,13 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
 
     private Handler locationUpdateHandler = new Handler();
     private Marker driverMarker;
+
+    private static final float MIN_DISTANCE_THRESHOLD_METERS = 5f;
+    private final long DRIVER_UPDATE_INTERVAL = 3000; // cada 3 segundos
+    private Runnable driverLocationRunnable;
+
+    private ProgressBar loadingDriverProgress;
+    private boolean firstLocationLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +160,9 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
      * Inicializa los datos necesarios para la actividad.
      */
     private void initializeData() {
+        loadingDriverProgress = findViewById(R.id.loadingDriverProgress); // Asumiendo que lo tienes en el layout
+        loadingDriverProgress.setVisibility(View.VISIBLE); // Mostrar al iniciar
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // Inicializar el cliente de ubicación
         originCoordinates = temporaryData.getOriginCoordinates();
         destinationCoordinates = temporaryData.getDestinationCoordinates();
@@ -422,17 +434,21 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
      * Actualizar ubicación del conductor
      */
     private void startFetchingDriverLocation() {
-        locationUpdateHandler.postDelayed(new Runnable() {
+        driverLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                // Llamar al controlador para obtener la ubicación del conductor
                 new DriverLocationController().fetchDriverLocation(ProgressActivity.this, new DriverLocationController.DriverLocationCallback() {
                     @Override
                     public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
                         LatLng driverLocation = new LatLng(lat, lng);
 
-                        // Actualizar el marcador del conductor
-                        int iconSize = 32; // Tamaño deseado para el ícono
+                        // Ocultar el ProgressBar al recibir la ubicación válida
+                        if (!firstLocationLoaded) {
+                            firstLocationLoaded = true;
+                            loadingDriverProgress.setVisibility(View.GONE);
+                        }
+
+                        int iconSize = 32;
                         if (driverMarker == null) {
                             driverMarker = mMap.addMarker(new MarkerOptions()
                                     .position(driverLocation)
@@ -443,19 +459,27 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
                         }
 
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
+
+                        locationUpdateHandler.postDelayed(driverLocationRunnable, DRIVER_UPDATE_INTERVAL);
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        showError(errorMessage);
-                        // Reprogramar el ciclo incluso en caso de error
+                        Log.e("ProgressActivity", "Error al obtener ubicación del conductor: " + errorMessage);
+
+                        // Mostrar el ProgressBar si se pierde conexión o no se recibe ubicación
+                        loadingDriverProgress.setVisibility(View.VISIBLE);
+                        firstLocationLoaded = false;
+
+                        locationUpdateHandler.postDelayed(driverLocationRunnable, DRIVER_UPDATE_INTERVAL);
                     }
                 });
-                // Reprogramar el siguiente ciclo
-                locationUpdateHandler.postDelayed(this, 2000);
             }
-        }, 5000);
+        };
+
+        locationUpdateHandler.post(driverLocationRunnable);
     }
+
 
     /**
      * Muestra un mensaje de error.
@@ -474,9 +498,22 @@ public class ProgressActivity extends AppCompatActivity implements OnMapReadyCal
     private void animateMarkerTo(final Marker marker, final LatLng toPosition) {
         final LatLng fromPosition = marker.getPosition();
 
+        float[] results = new float[1];
+        Location.distanceBetween(
+                fromPosition.latitude, fromPosition.longitude,
+                toPosition.latitude, toPosition.longitude,
+                results
+        );
+        float distance = results[0];
+
+        if (distance < MIN_DISTANCE_THRESHOLD_METERS) {
+            Log.d("animateMarkerTo", "🚫 Movimiento menor a " + MIN_DISTANCE_THRESHOLD_METERS + "m, se omite animación.");
+            return;
+        }
+
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
-        animator.setDuration(2000); // Duración de la animación
-        animator.setInterpolator(new LinearInterpolator()); // Movimiento uniforme
+        animator.setDuration(1500);
+        animator.setInterpolator(new LinearInterpolator());
 
         animator.addUpdateListener(animation -> {
             float t = (float) animation.getAnimatedValue();

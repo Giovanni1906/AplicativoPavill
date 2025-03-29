@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,6 +92,15 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private TemporaryData temporaryData;
 
+    private static final float MIN_DISTANCE_THRESHOLD_METERS = 5f;
+    private static final long DRIVER_UPDATE_INTERVAL = 3000; // cada 3 segundos
+    private Runnable driverLocationRunnable;
+
+    private ProgressBar loadingDriverLocation;
+    private boolean isFirstLocationReceived = false;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,6 +154,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
         unidadColor = temporaryData.getUnidadColor();
         unidadCalificacion = temporaryData.getUnidadCalificacion();
         conductorFoto = temporaryData.getConductorFoto();
+        loadingDriverLocation = findViewById(R.id.loadingDriverLocation);
         Log.d("Conductor foto:", "initializeUI: " + conductorFoto);
 
         // Verificar que unidadCalificacion sea un número válido
@@ -350,59 +361,69 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
      * Actualizar ubicación del conductor
      */
     private void startFetchingDriverLocation() {
-        locationUpdateHandler.postDelayed(new Runnable() {
+        driverLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                // Llamar al controlador para obtener la ubicación del conductor
-                new DriverLocationController().fetchDriverLocation(WaitingActivity.this, new DriverLocationController.DriverLocationCallback() {
-                    @Override
-                    public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
-                        LatLng driverLocation = new LatLng(lat, lng);
+                new DriverLocationController().fetchDriverLocation(
+                        WaitingActivity.this,
+                        new DriverLocationController.DriverLocationCallback() {
+                            @Override
+                            public void onLocationReceived(double lat, double lng, String orientation, int estimatedTimeMinutes) {
+                                LatLng driverLocation = new LatLng(lat, lng);
 
-                        // Actualizar el marcador del conductor
-                        int iconSize = 32; // Tamaño deseado para el ícono
-                        if (driverMarker == null) {
-                            driverMarker = mMap.addMarker(new MarkerOptions()
-                                    .position(driverLocation)
-                                    .icon(BitmapUtils.getProportionalBitmap(WaitingActivity.this, R.drawable.ic_car, iconSize))
-                                    .title("Conductor en camino"));
-                        } else {
-                            animateMarkerTo(driverMarker, driverLocation);
-                        }
+                                // Ocultar loader después de la primera ubicación válida
+                                if (!isFirstLocationReceived) {
+                                    loadingDriverLocation.setVisibility(View.GONE);
+                                    isFirstLocationReceived = true;
+                                }
 
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
+                                int iconSize = 32;
+                                if (driverMarker == null) {
+                                    driverMarker = mMap.addMarker(new MarkerOptions()
+                                            .position(driverLocation)
+                                            .icon(BitmapUtils.getProportionalBitmap(WaitingActivity.this, R.drawable.ic_car, iconSize))
+                                            .title("Conductor en camino"));
+                                } else {
+                                    animateMarkerTo(driverMarker, driverLocation);
+                                }
 
-                        // Calcular el tiempo estimado de llegada solo la primera vez
-                        if (initialEstimatedTime == -1) {
-                            initialEstimatedTime = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
-                            Log.d("Tiempo inicial:", "Tiempo estimado inicial: " + initialEstimatedTime + " minutos");
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
 
-                            // Mostrar el tiempo inicial
-                            TextView estimatedTimeView = findViewById(R.id.textViewETA);
-                            estimatedTimeView.setText("Tiempo estimado: " + initialEstimatedTime + " minutos");
+                                if (initialEstimatedTime == -1) {
+                                    initialEstimatedTime = calculateEstimatedTimeToOrigin(driverLocation, originCoordinates);
+                                    ((TextView) findViewById(R.id.textViewETA)).setText("Tiempo estimado: " + initialEstimatedTime + " minutos");
 
-                            // Iniciar el contador solo una vez
-                            if (!isCountdownStarted) {
-                                isCountdownStarted = true;
-                                startEstimatedTimeCountdown(initialEstimatedTime);
+                                    if (!isCountdownStarted) {
+                                        isCountdownStarted = true;
+                                        startEstimatedTimeCountdown(initialEstimatedTime);
+                                    }
+                                }
+
+                                checkProximityToOrigin(driverLocation);
+
+                                locationUpdateHandler.postDelayed(driverLocationRunnable, DRIVER_UPDATE_INTERVAL);
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                Log.e("DriverLocation", "Error al obtener ubicación: " + errorMessage);
+
+                                // Muestra el loader nuevamente si no hay datos
+                                if (!isFirstLocationReceived) {
+                                    loadingDriverLocation.setVisibility(View.VISIBLE);
+                                }
+
+                                locationUpdateHandler.postDelayed(driverLocationRunnable, DRIVER_UPDATE_INTERVAL);
                             }
                         }
-                        // Verificar si el conductor está cerca del origen
-                        checkProximityToOrigin(driverLocation);
-
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        showError(errorMessage);
-                        // Reprogramar el ciclo incluso en caso de error
-                    }
-                });
-                // Reprogramar el siguiente ciclo
-                locationUpdateHandler.postDelayed(this, 2000);
+                );
             }
-        }, 5000);
+        };
+
+        locationUpdateHandler.post(driverLocationRunnable); // Iniciar por primera vez
     }
+
+
 
     /**
      * Calcula el tiempo estimado de llegada al origen.
@@ -513,9 +534,22 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
     private void animateMarkerTo(final Marker marker, final LatLng toPosition) {
         final LatLng fromPosition = marker.getPosition();
 
+        float[] results = new float[1];
+        Location.distanceBetween(
+                fromPosition.latitude, fromPosition.longitude,
+                toPosition.latitude, toPosition.longitude,
+                results
+        );
+        float distance = results[0];
+
+        if (distance < MIN_DISTANCE_THRESHOLD_METERS) {
+            Log.d("animateMarkerTo", "🚫 Movimiento menor a " + MIN_DISTANCE_THRESHOLD_METERS + "m, se omite animación.");
+            return;
+        }
+
         ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
-        animator.setDuration(2000); // Duración de la animación
-        animator.setInterpolator(new LinearInterpolator()); // Movimiento uniforme
+        animator.setDuration(1500);
+        animator.setInterpolator(new LinearInterpolator());
 
         animator.addUpdateListener(animation -> {
             float t = (float) animation.getAnimatedValue();
@@ -526,6 +560,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         animator.start();
     }
+
 
     /**
      * Actualiza las estrellas del conductor según la calificación

@@ -17,6 +17,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ProgressBar
+                android:id="@+id/loadingDriverLocation"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_centerInParent="true"
+                android:visibility="visible"
+                android:layout_gravity="center"
+                android:indeterminate="true"/>
+
+
             <!-- Fragmento para el mapa -->
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/map"
@@ -73,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="12dp"
-                android:text="aproximadamente dentro de..."
+                android:text="Buscando ubicación de conductor..."
                 android:textColor="@color/textColor"
                 android:textStyle="bold"
                 android:textSize="14dp" />
