@@ -177,6 +177,8 @@ public class PedidoStatusController {
         temporaryData.setUnidadColor(jsonResponse.optString("VehiculoColor", "N/A"), context);
         temporaryData.setUnidadCalificacion(jsonResponse.optString("ConductorCalificacion", "N/A"), context);
         temporaryData.setVehiculoUnidad(jsonResponse.optString("VehiculoUnidad", "N/A"), context);
+        temporaryData.setOriginName(jsonResponse.optString("PedidoDireccion", "N/A"), context);
+        temporaryData.setOriginReference(jsonResponse.optString("PedidoReferencia", "N/A"), context);
         Log.d("PedidoStatusController", "Datos conductor" + jsonResponse);
         Log.d("PedidoStatusController", "Foto de conductor inic" + jsonResponse.optString("ConductorFoto", ""));
 

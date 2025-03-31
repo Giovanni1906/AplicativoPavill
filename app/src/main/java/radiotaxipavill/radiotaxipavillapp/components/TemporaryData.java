@@ -25,6 +25,9 @@ public class TemporaryData {
     private String duration;
     private String estimatedCost;
     private String vehiculoUnidad;
+    private String originName;
+    private String destinationName;
+    private String originReference;
 
     private long requestTime;
 
@@ -55,6 +58,9 @@ public class TemporaryData {
         editor.putString("duration", duration);
         editor.putString("estimatedCost", estimatedCost);
         editor.putString("vehiculoUnidad", vehiculoUnidad);
+        editor.putString("originName", originName);
+        editor.putString("destinationName", destinationName);
+        editor.putString("originReference", originReference);
         editor.putLong("requestTime", requestTime);
 
 
@@ -91,6 +97,9 @@ public class TemporaryData {
         duration = prefs.getString("duration", null);
         estimatedCost = prefs.getString("estimatedCost", null);
         vehiculoUnidad = prefs.getString("vehiculoUnidad", null);
+        originName = prefs.getString("originName", null);
+        destinationName = prefs.getString("destinationName", null);
+        originReference = prefs.getString("originReference", null);
         requestTime = prefs.getLong("requestTime", 0);
 
         // Recuperar LatLng desde String "lat,lng"
@@ -166,18 +175,30 @@ public class TemporaryData {
         this.vehiculoUnidad = vehiculoUnidad;
         saveToPreferences(context);
     }
+    public void setOriginName(String originName, Context context) {
+        this.originName = originName;
+        saveToPreferences(context);
+    }
+    public void setDestinationName(String destinationName, Context context) {
+        this.destinationName = destinationName;
+        saveToPreferences(context);
+    }
+    public void setOriginReference(String originReference, Context context) {
+        this.originReference = originReference;
+        saveToPreferences(context);
+    }
     public void setRequestTime(Long requestTime, Context context) {
         this.requestTime = requestTime;
         saveToPreferences(context);
     }
     public void setOriginCoordinates(LatLng originCoordinates, Context context) {
         this.originCoordinates = originCoordinates;
-        saveToPreferences(context);  // 🔹 Guardar automáticamente
+        saveToPreferences(context);
     }
 
     public void setDestinationCoordinates(LatLng destinationCoordinates, Context context) {
         this.destinationCoordinates = destinationCoordinates;
-        saveToPreferences(context);  // 🔹 Guardar automáticamente
+        saveToPreferences(context);
     }
 
     // Getters para obtener los datos
@@ -194,6 +215,9 @@ public class TemporaryData {
     public String getDuration() { return duration; }
     public String getEstimatedCost() { return estimatedCost; }
     public String getVehiculoUnidad() { return vehiculoUnidad; }
+    public String getOriginName() { return originName; }
+    public String getDestinationName() { return destinationName; }
+    public String getOriginReference() { return originReference; }
     public long getRequestTime() { return requestTime; }
 
     // 🔹 Para obtener LatLng
@@ -218,6 +242,10 @@ public class TemporaryData {
         duration = null;
         estimatedCost = null;
         vehiculoUnidad = null;
+        originName = null;
+        destinationName = null;
+        originReference = null;
+
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().clear().apply();

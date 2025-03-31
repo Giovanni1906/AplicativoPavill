@@ -95,6 +95,8 @@ public class RequestTaxiController {
                                 temporaryData.setPedidoId(jsonResponse.optString("PedidoId"), context);
                                 temporaryData.setOriginCoordinates(new LatLng(originLat, originLng), context);
                                 temporaryData.setDestinationCoordinates(new LatLng(destinationLat, destinationLng), context);
+                                temporaryData.setDestinationName(jsonResponse.optString("POST_PedidoDestino"), context);
+
 
                                 callback.onSuccess("Pedido registrado con éxito.");
                                 Log.d("RequestTaxiController", "Pedido registrado con éxito: " + jsonResponse);

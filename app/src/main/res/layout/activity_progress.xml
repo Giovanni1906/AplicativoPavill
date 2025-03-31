@@ -42,7 +42,6 @@
                 android:layout_centerInParent="true"
                 android:visibility="gone" />
 
-            <include layout="@layout/menu_button_layout" />
 
         </RelativeLayout>
 
@@ -107,6 +106,21 @@
                 android:text="Compartir ubicación" />
 
         </LinearLayout>
+
+        <!--Detalles del pedido-->
+        <Button
+            android:id="@+id/btn_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detalles"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:visibility="visible"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+
+            android:backgroundTint="@color/iconColor"
+            android:textColor="@android:color/white" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

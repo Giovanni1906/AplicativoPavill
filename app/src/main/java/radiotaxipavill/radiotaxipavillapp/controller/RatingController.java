@@ -30,6 +30,7 @@ public class RatingController {
 
         String url = SERVICE_URL + "?Accion=CalificarFinalizarPedido&PedidoId=" + pedidoId +
                 "&PedidoCalificacion=" + calificacion + "&PedidoComentario=" + comentario;
+        Log.d("RatingController", "enviado: " + url);
 
         RequestQueue queue = Volley.newRequestQueue(context);
 

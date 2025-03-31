@@ -266,6 +266,46 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         //Botón de continuar
         findViewById(R.id.btnOnBoard).setOnClickListener(v -> checkAndProceedToProgress());
+        findViewById(R.id.btn_details).setOnClickListener(v -> showPedidoDetailsDialog());
+
+    }
+
+    private void showPedidoDetailsDialog() {
+        TemporaryData data = TemporaryData.getInstance();
+        data.loadFromPreferences(this); // Asegura que los datos estén actualizados
+
+        StringBuilder message = new StringBuilder();
+
+        // 👉 Sección 1: Detalles del conductor
+        message.append("🚖 Detalles del conductor\n\n");
+
+        if (data.getConductorNombre() != null) message.append("• Nombre: ").append(data.getConductorNombre()).append("\n");
+        if (data.getConductorTelefono() != null) message.append("• Teléfono: ").append(data.getConductorTelefono()).append("\n");
+        if (data.getVehiculoUnidad() != null) message.append("• Unidad: ").append(data.getVehiculoUnidad()).append("\n");
+        if (data.getUnidadModelo() != null) message.append("• Modelo: ").append(data.getUnidadModelo()).append("\n");
+        if (data.getUnidadPlaca() != null) message.append("• Placa: ").append(data.getUnidadPlaca()).append("\n");
+        if (data.getUnidadColor() != null) message.append("• Color: ").append(data.getUnidadColor()).append("\n");
+
+        message.append("\n"); // Espacio entre secciones
+
+        // 👉 Sección 2: Detalles del pedido
+        message.append("🚖 Detalles de la carrera\n\n");
+
+        if (data.getOriginName() != null) message.append("• Lugar de origen: ").append(data.getOriginName()).append("\n");
+        if (data.getOriginReference() != null) message.append("• Referencia: ").append(data.getOriginReference()).append("\n");
+        if (data.getDestinationName() != null) message.append("• Lugar de destino: ").append(data.getDestinationName()).append("\n");
+        if (data.getEstimatedCost() != null) message.append("• Costo estimado: S/").append(data.getEstimatedCost()).append("\n");
+
+        // Si está vacío, mostrar mensaje
+        if (message.toString().trim().isEmpty()) {
+            message.append("No hay detalles disponibles del pedido.");
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("📋 Información del Pedido")
+                .setMessage(message.toString())
+                .setPositiveButton("Cerrar", null)
+                .show();
     }
 
     @Override

@@ -37,20 +37,29 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mis Favoritos"
+        android:text="Direcciones Favoritas"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:textColor="@color/textColor"/>
+        android:textColor="@color/textColor"
+        android:layout_marginBottom="8dp"/>
+
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Máximo dos direcciones favoritas"
+                android:text="Seleccione un icono de taxi para"
+                android:textSize="16sp"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@color/textColor" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="buscar un conductor de pavill"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:gravity="center"
-                android:textColor="@color/textColor"
-                android:layout_marginBottom="32dp"/>
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/textColor" />
 
             <ProgressBar
                 android:id="@+id/progressBarFavorites"

@@ -35,7 +35,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <include layout="@layout/menu_button_layout" />
 
         </RelativeLayout>
 
@@ -242,22 +241,23 @@
                 android:background="@drawable/button_gradient"
                 android:text="A bordo" />
 
-            <!-- tEXTO DE ERROR -->
-            <TextView
-                android:id="@+id/errorText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:textColor="@color/alertColor"
-                android:visibility="gone"
-                android:textSize="14sp"
-                android:layout_gravity="center"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnCode" />
         </LinearLayout>
         </LinearLayout>
+
+        <!--Detalles del pedido-->
+        <Button
+            android:id="@+id/btn_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detalles"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:visibility="visible"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+
+            android:backgroundTint="@color/iconColor"
+            android:textColor="@android:color/white" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
