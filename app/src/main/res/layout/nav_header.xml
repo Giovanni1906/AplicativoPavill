@@ -39,5 +39,14 @@
         android:layout_height="wrap_content"
         android:text="Correo del usuario"
         android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/user_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Correo del usuario"
+        android:textColor="@android:color/darker_gray"
         android:layout_gravity="center_horizontal" />
 </LinearLayout>
