@@ -266,6 +266,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         //Botón de continuar
         findViewById(R.id.btnOnBoard).setOnClickListener(v -> checkAndProceedToProgress());
+        //Botón de detalles
         findViewById(R.id.btn_details).setOnClickListener(v -> showPedidoDetailsDialog());
 
     }
@@ -276,7 +277,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         StringBuilder message = new StringBuilder();
 
-        // 👉 Sección 1: Detalles del conductor
+        // Sección 1: Detalles del conductor
         message.append("🚖 Detalles del conductor\n\n");
 
         if (data.getConductorNombre() != null) message.append("• Nombre: ").append(data.getConductorNombre()).append("\n");
@@ -288,7 +289,7 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
 
         message.append("\n"); // Espacio entre secciones
 
-        // 👉 Sección 2: Detalles del pedido
+        // Sección 2: Detalles del pedido
         message.append("🚖 Detalles de la carrera\n\n");
 
         if (data.getOriginName() != null) message.append("• Lugar de origen: ").append(data.getOriginName()).append("\n");
