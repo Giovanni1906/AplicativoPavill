@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#410099</color>
+    <color name="textColor">#410099</color>
+    <color name="iconColor">#410099</color>
+    <color name="inactiveIconColor">#AAAAAA</color>
+    <color name="secondaryColor">#FF6B00</color>
+    <color name="alertColor">#FF0040</color>
+    <color name="shadowColor">#33000000</color>
+    <color name="highlightColor">#FBBA00</color>
+    <color name="graycolor">#E6E6E6</color>
+    <color name="greencolor">#4CAF50</color>
+<!--    <color name="ObjectBackgroudColor">#34673AB7</color>-->
+    <color name="backgroundColor">#F2F2F2</color> <!-- Blanco para modo claro -->
+    <color name="ArrivalBackgroundColor">#FFFFFF</color> <!-- Blanco para modo claro -->
+    <color name="boxBackgroundColor">#E0E0E0</color> <!-- Color del fondo del TextInput -->
+    <color name="favboxBackgroundColor">#FBBA00</color>
+    <color name="glowBackgroundColor" > #40410099 </color>
+    <color name="viewColor">#CCCCCC</color>
+
+    <!-- values/colors.xml -->
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="@drawable/ic_map_pin">
+            <solid android:color="#00FF0000" /> <!-- Color del fondo -->
+            <corners android:radius="20dp" /> <!-- Radio del borde -->
+        </shape>
+    </item>
+    <item android:top="5dp" android:left="20dp"> <!-- Desplazamiento para la sombra -->
+        <shape android:shape="@drawable/ic_map_pin">
+            <solid android:color="#84000000" /> <!-- Color de la sombra -->
+            />
+        </shape>
+    </item>
+</layer-list>

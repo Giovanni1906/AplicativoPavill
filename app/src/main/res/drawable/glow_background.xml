@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Primer layer: Resplandor -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/glowBackgroundColor" /> <!-- Fondo blanco con opacidad -->
+            <size
+                android:width="40dp"
+                android:height="40dp" /> <!-- Tamaño total del resplandor -->
+        </shape>
+    </item>
+
+</layer-list>

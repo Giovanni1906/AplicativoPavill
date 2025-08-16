@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="30dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    android:background="@drawable/rounded_corner">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione una opcion para "
+        android:textSize="16sp"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/textColor" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="enviar un mensaje al conductor"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/textColor" />
+
+<!--    viñetas-->
+    <LinearLayout
+        android:id="@+id/optionSaldreAhora"
+        style="@style/CustomRadioOptionLayout"
+        android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
+
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionSaldreAhora"
+            style="@style/CustomRadioButtonStyle"
+            app:buttonCompat="@null"
+            android:text="Saldré ahora"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/optionEstoyAfuera"
+        style="@style/CustomRadioOptionLayout"
+        android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
+
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionEstoyAfuera"
+            style="@style/CustomRadioButtonStyle"
+            app:buttonCompat="@null"
+            android:text="Estoy Afuera"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/optionEspereme"
+        style="@style/CustomRadioOptionLayout"
+        android:onClick="onRadioOptionClicked"> <!-- Maneja selección manualmente -->
+
+        <androidx.appcompat.widget.AppCompatRadioButton
+            android:id="@+id/OptionEspereme"
+            style="@style/CustomRadioButtonStyle"
+            app:buttonCompat="@null"
+            android:text="Espereme 1 min"/>
+    </LinearLayout>
+
+
+<!--    android:id="@+id/OptionEspereme"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    app:buttonCompat="@null"-->
+<!--    android:button="@drawable/custom_radio_button"-->
+<!--    android:theme="@style/CustomRadioButtonTheme"-->
+<!--    android:text="Espereme 1 min"-->
+<!--    android:textColor="@color/textColor"-->
+<!--    android:textSize="16sp"-->
+<!--    android:paddingStart="16dp"-->
+<!--    android:background="@android:color/transparent"-->
+<!--    android:focusable="false"/>-->
+<!--    -->
+
+    <!-- Botones -->
+    <!-- Botón "OK" para confirmar -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnEnviar"
+        style="@style/Button.Form"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_alternative"
+        android:text="Enviar" />
+
+    <!-- Botón "OK" para confirmar -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCancelar"
+        style="@style/Button.Form"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_gradient"
+        android:text="Cancelar" />
+</LinearLayout>

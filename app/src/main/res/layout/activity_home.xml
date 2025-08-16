@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Layout para contener el contenido centrado -->
+    <LinearLayout
+        android:id="@+id/centralLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Imagen de bienvenida -->
+        <ImageView
+            android:id="@+id/imageWelcome"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:src="@drawable/img_ubication"
+            android:contentDescription="Imagen de bienvenida"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Texto de configuración de ubicación -->
+        <TextView
+            android:id="@+id/textWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Configura tu ubicación"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/textColor"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Subtexto informativo -->
+        <TextView
+            android:id="@+id/textSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="40dp"
+            android:text="Habilita tu ubicación para compartirlo y puedas ver los taxis disponibles"
+            android:textSize="16sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Botón para solicitar un taxi -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnActivateUbication"
+            style="@style/Button.Form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_gradient"
+            android:text="Activar ubicación" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

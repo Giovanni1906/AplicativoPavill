@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/rounded_corner"
+    android:gravity="center"
+    android:layout_gravity="center_horizontal"
+    android:layout_margin="16dp">
+
+    <!-- Imagen del ícono del taxi -->
+    <ImageView
+        android:id="@+id/imgTaxiIcon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_taxi_2"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Texto con el nombre del conductor -->
+    <TextView
+        android:id="@+id/tvArrivalMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="mensaje desconocido"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/textColor"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Botón "OK" para confirmar -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnOk"
+        style="@style/Button.Form"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_alternative"
+        android:text="OK" />
+
+</LinearLayout>

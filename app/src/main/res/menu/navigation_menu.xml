@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <item-->
+<!--        android:id="@+id/nav_history"-->
+<!--        android:title="Historial"-->
+<!--        app:iconTint="?attr/colorOnSurface"-->
+<!--        app:titleTextColor="?attr/colorOnSurface"/>-->
+<!--    <item-->
+<!--        android:id="@+id/nav_points"-->
+<!--        android:title="Puntos Pavill"-->
+<!--        app:iconTint="?attr/colorOnSurface"-->
+<!--        app:titleTextColor="?attr/colorOnSurface"/>-->
+    <item
+        android:id="@+id/nav_maps"
+        android:title="Inicio"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"/>
+    <item
+        android:id="@+id/nav_profile"
+        android:title="Editar Perfil"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"
+        />
+    <item
+        android:id="@+id/nav_favorites"
+        android:title="Direcciones favoritas"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"/>
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Cerrar sesión"
+        app:iconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"/>
+</menu>

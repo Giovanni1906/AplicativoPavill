@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Estilo para el LinearLayout que actúa como opción seleccionable -->
+    <style name="CustomRadioOptionLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/custom_radio_background</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
+    <!-- Estilo para el RadioButton personalizado -->
+    <style name="CustomRadioButtonStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:button">@drawable/custom_radio_button</item>
+        <item name="android:theme">@style/CustomRadioButtonTheme</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:focusable">false</item>
+        <item name="android:focusableInTouchMode">false</item>
+        <item name="android:background">@null</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <!--  Estilo para el splash de carga del inicio  -->
+    <style name="Theme.Pavill.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Estilo para el botón de formulario -->
+    <style name="Button.Form" parent="android:Widget.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
+<!--cuadro del input-->
+    <style name="GeneralLinearLayoutStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/search_box_background</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+
+<!--    hint del input-->
+    <style name="GeneralEditTextStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColorHint">@color/textColor</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">16dp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:inputType">textEmailAddress</item>
+    </style>
+
+    <!-- Hint del input modificado para ser multilinea -->
+    <style name="GeneralMultiEditTextStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColorHint">@color/textColor</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:inputType">textMultiLine</item>
+        <item name="android:minLines">4</item>
+        <item name="android:gravity">top</item>
+        <item name="android:scrollbars">vertical</item>
+    </style>
+
+
+    <!--    icono del input-->
+    <style name="GeneralImageViewStyle">
+        <item name="android:layout_width">16dp</item> <!-- Tamaño del ImageView para resaltar el fondo -->
+        <item name="android:layout_height">16dp</item> <!-- Aumenté el tamaño del ImageView -->
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/glow_background</item> <!-- Fondo con circular -->
+        <item name="android:tint">@color/primaryColor</item>
+        <item name="android:scaleType">centerInside</item> <!-- Escala el ícono para mantenerlo dentro del ImageView -->
+        <item name="android:padding">2dp</item> <!-- Padding para hacer el ícono más pequeño dentro del fondo -->
+        <item name="android:elevation">4dp</item> <!-- Efecto de elevación para que el icono se vea con una sombra -->
+    </style>
+
+
+<!--    para el select-->
+    <style name="Base.SpinnerStyle" parent="Widget.AppCompat.Spinner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/search_box_background</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/textColor</item> <!-- Aquí agregamos el color del texto -->
+        <item name="android:textSize">12dp</item>
+        <item name="android:drawablePadding">8dp</item> <!-- Espacio entre la flecha y el texto -->
+
+    </style>
+
+    <!-- Estilo del icono -->
+    <style name="IconButtonStyle">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item> <!-- Fondo clicable -->
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <!-- Estilo para CardView del botón flotante -->
+    <style name="FloatingActionCardStyle">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginBottom">24dp</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">8dp</item>
+    </style>
+
+
+    <!-- Estilo para ImageView del ícono dentro del CardView -->
+    <style name="FloatingImageViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <!-- Estilo para CardView alineado horizontalmente en el navbar linearLayout -->
+    <style name="AlignedFloatingCardViewStyle">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_gravity">center_vertical</item> <!-- Asegura que esté alineado verticalmente dentro del LinearLayout -->
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">8dp</item>
+    </style>
+
+    <!-- Estilo para el navbar LinearLayout -->
+    <style name="AlignedLinearLayoutStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@color/primaryColor</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <!-- Estilo para TextView del navbar -->
+    <style name="BackToMainTextStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/quantum_white_100</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>
+

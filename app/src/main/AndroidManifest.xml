@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <permission android:name="radiotaxipavill.radiotaxipavillapp.PERMISSION_PEDIDO_STATUS_UPDATE"
+        android:protectionLevel="normal" />
+
+    <!-- Permisos necesarios para el acceso a la ubicación -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Pavill"
+        android:networkSecurityConfig="@xml/network_security_config"
+        >
+
+        <!-- Clave de API de Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCiO3MUfI0sejMPz0v0IowvKmnc3706iJs"/>
+
+        <!-- Declaración del PedidoStatusService -->
+        <service
+            android:name="radiotaxipavill.radiotaxipavillapp.services.PedidoStatusService"
+            android:enabled="true"
+            android:foregroundServiceType="location"
+            android:exported="false"
+            />
+
+        <receiver
+            android:name="radiotaxipavill.radiotaxipavillapp.receiver.PedidoStatusReceiver"
+            android:enabled="true"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+        <!-- Agregar BootCompletedReceiver -->
+        <receiver
+            android:name="radiotaxipavill.radiotaxipavillapp.receiver.BootCompletedReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+
+
+        <!-- Declaración de MapActivity -->
+        <activity
+            android:name="radiotaxipavill.radiotaxipavillapp.view.MapActivity"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+        </activity>
+
+        <!--   Splash activity como principal    -->
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.SplashActivity"
+            android:theme="@style/Theme.Pavill.Splash"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- MainActivity, pero sin el intent-filter para evitar que sea la primera -->
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.MainActivity" android:exported="true"/>
+        <!-- Declaración de otras actividades -->
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.LoginActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.HomeActivity" />
+<!--        <activity android:name=".view.MapActivity" />-->
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ProfileActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RegisterActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.HistoryActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.PointsActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ConfirmActivity"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ProgressActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.SearchingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.WaitingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.BaseActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RatingActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.VerifyPhoneActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.VerifyCodeActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.RecoverPasswordActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.CancelReasonActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.ChangePasswordActivity" />
+        <activity android:name="radiotaxipavill.radiotaxipavillapp.view.FavoritesActivity" />
+    </application>
+
+</manifest>

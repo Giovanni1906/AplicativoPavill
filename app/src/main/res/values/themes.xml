@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Pavill" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:fontFamily">@font/dmsans_regular</item>
+        <item name="colorControlNormal">@color/primaryColor</item>
+    </style>
+
+    <!--  Para los checks  -->
+    <style name="CustomRadioButtonTheme" parent="Theme.MaterialComponents.Light">
+        <item name="colorControlActivated">@null</item>
+        <item name="colorControlHighlight">@null</item>
+        <item name="colorAccent">@null</item>
+    </style>
+</resources>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <!-- Imagen de fondo -->
+    <ImageView
+        android:id="@+id/backgroundPavill"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@color/cardview_dark_background"
+        android:scaleType="centerCrop"
+        android:contentDescription="Imagen de fondo" />
+
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="bottom"
+    android:orientation="vertical"
+    android:layout_marginBottom="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="40sp">
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pide seguridad,"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="32sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/textViewPavill"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pide un Pavill."
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:textSize="32sp" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/BtnMainCrearCuenta"
+        style="@style/Button.Primary"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/button_gradient"
+        android:text="Crear cuenta" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/BtnMainIniciarSesion"
+        style="@style/Button.Primary"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/button_transparent_border"
+        android:text="Iniciar sesión" />
+
+    <TextView
+        android:id="@+id/textViewCopyright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="© Pavill 2024"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:paddingBottom="8dp"
+        android:layout_marginBottom="16dp"/>
+</LinearLayout>
+</FrameLayout>
