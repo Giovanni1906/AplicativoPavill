@@ -97,8 +97,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     private EditText editTextOrigin, editTextDestination;
     private LinearLayout layoutSearchOrigin, layoutSearchDestination;
-    private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
-    private SuggestionsAdapter suggestionsAdapterOrigin, suggestionsAdapterDestination;
+   // private RecyclerView recyclerViewSuggestionsOrigin, recyclerViewSuggestionsDestination;
+    //private SuggestionsAdapter suggestionsAdapterOrigin, suggestionsAdapterDestination;
     private PlacesController placesController;
 
     // Variables del mapa y navegación
@@ -137,8 +137,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private LinearLayout layout_buttons_destination;
 
 
-    private ProgressBar progressBarSuggestionsOrigin;
-    private ProgressBar progressBarSuggestionsDestination;
+   // private ProgressBar progressBarSuggestionsOrigin;
+   // private ProgressBar progressBarSuggestionsDestination;
 
     private AlertDialog currentDialog;
 
@@ -860,8 +860,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         editTextOrigin = findViewById(R.id.editTextOrigin);
         editTextDestination = findViewById(R.id.editTextDestination);
 
-        progressBarSuggestionsOrigin = findViewById(R.id.progressBarSuggestionsOrigin);
-        progressBarSuggestionsDestination = findViewById(R.id.progressBarSuggestionsDestination);
+        //progressBarSuggestionsOrigin = findViewById(R.id.progressBarSuggestionsOrigin);
+        //progressBarSuggestionsDestination = findViewById(R.id.progressBarSuggestionsDestination);
 
         CardView btnMyLocation = findViewById(R.id.btn_my_location);
 
@@ -874,11 +874,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         layoutSearchOrigin = findViewById(R.id.layoutSearchOrigin);
         layout_buttons_origin = findViewById(R.id.layout_buttons_origin);
-        recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
+        //recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
 
         layoutSearchDestination = findViewById(R.id.layoutSearchDestination);
         layout_buttons_destination = findViewById(R.id.layout_buttons_destination);
-        recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
+       // recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
 
         // Obtener el TextView
         TextView textViewName = findViewById(R.id.textViewName);
@@ -891,8 +891,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         textViewName.setText("Hola, " + clienteNombre);
 
         // Inicializar adaptadores de sugerencias
-        initializeSuggestionsAdapterOrigin();
-        initializeSuggestionsAdapterDestination();
+        //initializeSuggestionsAdapterOrigin();
+       // initializeSuggestionsAdapterDestination();
 
         // Configurar listeners para los inputs
         setupTextWatchers();
@@ -1018,7 +1018,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     /**
      * Inicializa el adaptador y RecyclerView para las sugerencias de origen.
      */
-    private void initializeSuggestionsAdapterOrigin() {
+   /* private void initializeSuggestionsAdapterOrigin() {
 
         Log.d("MapActivity", "initializeSuggestionsAdapterOrigin");
 
@@ -1058,12 +1058,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Agregar divisor al RecyclerView
         recyclerViewSuggestionsOrigin.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-    }
+    }*/
 
     /**
      * Inicializa el adaptador y RecyclerView para las sugerencias de destino.
      */
-    private void initializeSuggestionsAdapterDestination() {
+   /* private void initializeSuggestionsAdapterDestination() {
 
         suggestionsAdapterDestination = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
             destinationAddress = suggestion.getFullText(null).toString();
@@ -1097,7 +1097,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Agregar divisor al RecyclerView
         recyclerViewSuggestionsDestination.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-    }
+    }*/
 
 
     /**
@@ -1213,18 +1213,18 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 if (s.length() >= 3) {
                     Log.e("setupTextWatchers", "length>3");
 
-                    progressBarSuggestionsOrigin.setVisibility(View.VISIBLE); // Muestra el indicador de carga
+                   // progressBarSuggestionsOrigin.setVisibility(View.VISIBLE); // Muestra el indicador de carga
 
                     placesController.getPredictions(s.toString(), predictions -> {
-                        suggestionsAdapterOrigin.updateSuggestions(predictions);
-                        recyclerViewSuggestionsOrigin.setVisibility(View.VISIBLE);
-                        progressBarSuggestionsOrigin.setVisibility(View.GONE); // Oculta el indicador al recibir datos
+                       // suggestionsAdapterOrigin.updateSuggestions(predictions);
+                       // recyclerViewSuggestionsOrigin.setVisibility(View.VISIBLE);
+                       // progressBarSuggestionsOrigin.setVisibility(View.GONE); // Oculta el indicador al recibir datos
                     });
                 } else {
                     //Si el texto es menor a 3 caracteres, ocultar todo
-                    progressBarSuggestionsOrigin.setVisibility(View.GONE);
-                    recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
-                    suggestionsAdapterOrigin.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
+                   // progressBarSuggestionsOrigin.setVisibility(View.GONE);
+                   // recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
+                   // suggestionsAdapterOrigin.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
                 }
             }
 
@@ -1249,19 +1249,19 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() >= 3) {
-                    progressBarSuggestionsDestination.setVisibility(View.VISIBLE); // Muestra el indicador de carga
+                   // progressBarSuggestionsDestination.setVisibility(View.VISIBLE); // Muestra el indicador de carga
 
                     placesController.getPredictions(s.toString(), predictions -> {
-                        suggestionsAdapterDestination.updateSuggestions(predictions);
-                        recyclerViewSuggestionsDestination.setVisibility(View.VISIBLE);
-                        progressBarSuggestionsDestination.setVisibility(View.GONE); // Oculta el indicador al recibir datos
+                       // suggestionsAdapterDestination.updateSuggestions(predictions);
+                       // recyclerViewSuggestionsDestination.setVisibility(View.VISIBLE);
+                       // progressBarSuggestionsDestination.setVisibility(View.GONE); // Oculta el indicador al recibir datos
 
                     });
                 }else {
                     // Si el texto es menor a 3 caracteres, ocultar todo
-                    progressBarSuggestionsDestination.setVisibility(View.GONE);
-                    recyclerViewSuggestionsDestination.setVisibility(View.GONE);
-                    suggestionsAdapterDestination.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
+                   // progressBarSuggestionsDestination.setVisibility(View.GONE);
+                   // recyclerViewSuggestionsDestination.setVisibility(View.GONE);
+                  //  suggestionsAdapterDestination.updateSuggestions(new ArrayList<>()); // Limpiar sugerencias
                 }
             }
 
@@ -1293,7 +1293,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         EditText searchEditText = dialogView.findViewById(R.id.searchEditText);
         RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
-        
+
         // Configurar el RecyclerView
         SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
             // Manejar la selección de la sugerencia

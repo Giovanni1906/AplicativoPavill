@@ -186,22 +186,6 @@
             </LinearLayout>
 
             <!-- Sugerencias de origen -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewSuggestionsOrigin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:divider="@android:color/darker_gray"
-                android:dividerHeight="1dp"
-                android:visibility="visible" />
-
-            <ProgressBar
-                android:id="@+id/progressBarSuggestionsOrigin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_gravity="center"
-                style="?android:attr/progressBarStyleSmall"/>
 
             <!-- Cuadro de búsqueda para el destino -->
 
@@ -239,22 +223,6 @@
             </LinearLayout>
 
             <!-- Sugerencias de destino -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewSuggestionsDestination"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:divider="@android:color/darker_gray"
-                android:dividerHeight="1dp"
-                android:visibility="gone"/>
-
-            <ProgressBar
-                android:id="@+id/progressBarSuggestionsDestination"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_gravity="center"
-                style="?android:attr/progressBarStyleSmall"/>
 
             <!-- Botón para mostrar opciones de origen -->
             <androidx.appcompat.widget.AppCompatButton
