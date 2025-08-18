@@ -17,6 +17,6 @@
     <string name="url_services_publicidad">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnPublicidad.php</string>
     <string name="url_delete_acount">https://pavill-dev.github.io/pavill-delete-account/</string>
 <!--    versión de la aplicación-->
-    <string name="app_version_number">v.2.05.0</string>
+    <string name="app_version_number">v.3.01.0</string>
 
 </resources>

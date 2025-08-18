@@ -1397,7 +1397,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         });
         
         builder.setView(dialogView);
-        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
         
         // Mostrar el diálogo
         currentDialog = builder.create();

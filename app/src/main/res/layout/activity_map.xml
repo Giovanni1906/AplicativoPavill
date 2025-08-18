@@ -71,30 +71,29 @@
             android:id="@+id/bottom_sheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             android:background="@drawable/rounded_top_corners"
-            android:orientation="vertical"
             android:gravity="center"
-            android:padding="16dp">
+            android:orientation="vertical"
+            android:padding="16dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <!-- Viñeta para subir y bajar el BottomSheet -->
             <View
                 android:layout_width="40dp"
                 android:layout_height="4dp"
                 android:layout_gravity="center"
-                android:background="@drawable/rounded_corner_view"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_corner_view" />
             <!-- Texto "Hola xxxxxxx" -->
             <TextView
                 android:id="@+id/textViewName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Hola, Cliente"
-                android:textSize="16sp"
-                android:textColor="@color/textColor"
                 android:layout_marginBottom="16dp"
-            />
+                android:text="Hola, Cliente"
+                android:textColor="@color/textColor"
+                android:textSize="16sp" />
 
             <!-- Cuadro de búsqueda para el origen -->
             <LinearLayout
@@ -132,7 +131,7 @@
                 android:layout_marginBottom="8dp"
                 android:background="@android:color/transparent"
                 android:gravity="center"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:visibility="visible">
 
                 <Button
@@ -194,31 +193,31 @@
                 android:id="@+id/layout_buttons_destination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="8dp"
-                android:visibility="gone"
-                android:background="@android:color/transparent">
+                android:background="@android:color/transparent"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <Button
                     android:id="@+id/btnSetDestinationToCurrentLocation"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:text="ubicación actual"
+                    android:layout_weight="1"
                     android:backgroundTint="@color/primaryColor"
+                    android:text="ubicación actual"
                     android:textColor="@android:color/white" />
 
                 <Button
                     android:id="@+id/btnUseMapForDestination"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Usar el mapa"
+                    android:layout_weight="1"
                     android:backgroundTint="@color/secondaryColor"
+                    android:text="Usar el mapa"
                     android:textColor="@android:color/white" />
             </LinearLayout>
 
@@ -234,8 +233,7 @@
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/button_gradient"
                 android:text="Volver a ubicación de Origen"
-                android:visibility="gone"
-                />
+                android:visibility="gone" />
             <!-- Botón para mostrar opciones de destino -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnGoToDestination"
@@ -253,6 +251,7 @@
                 style="@style/Button.Form"
                 android:layout_width="match_parent"
                 android:layout_height="40sp"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/button_alternative"
                 android:text="Continuar" />
 
@@ -260,11 +259,11 @@
                 android:id="@+id/numberOfTaxis"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
                 android:text="encontramos 5 unidades cercanas a tu ubicación"
                 android:textColor="@android:color/darker_gray"
-                android:layout_marginTop="16dp"
-                android:visibility="gone"
-                android:gravity="center"/>
+                android:visibility="gone" />
 
         </LinearLayout>
 

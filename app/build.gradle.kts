@@ -28,8 +28,8 @@ android {
         applicationId = "radiotaxipavill.radiotaxipavillapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 210
-        versionName = "2.05"
+        versionCode = 211
+        versionName = "3.01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
