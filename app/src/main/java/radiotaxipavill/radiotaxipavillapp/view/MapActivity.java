@@ -349,6 +349,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Maneja la acción de establecer la ubicación como origen o destino.
      */
     private void handleUseMapForLocation(boolean isForOrigin) {
+        Log.e("MapActivity", "handleUseMapForLocation");
+
         isUseMapForOrigin = isForOrigin;
         Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         Button btnBack = findViewById(R.id.btn_back);
@@ -1187,7 +1189,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     /**
      * Cierra el teclado
      */
-    private void closeKeyboard() {
+
+  /*  private void closeKeyboard() {
         // Cerrar el teclado
         View view = this.getCurrentFocus();
         if (view != null) {
@@ -1197,7 +1200,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             }
         }
     }
-
+*/
     /**
      * Configura los listeners para los inputs de texto
      */
@@ -1293,6 +1296,18 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         EditText searchEditText = dialogView.findViewById(R.id.searchEditText);
         RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
+        Button btnSelectFromMap = dialogView.findViewById(R.id.btnSelectFromMap);
+
+        // Configurar el botón "Seleccionar del mapa"
+        btnSelectFromMap.setOnClickListener(v -> {
+            Log.d("MapSelection", "Botón 'Seleccionar del mapa' clickeado para " + (isOrigin ? "origen" : "destino"));
+            // Cerrar el diálogo
+            if (currentDialog != null) {
+                currentDialog.dismiss();
+            }
+            // Llamar a la función para habilitar selección del mapa
+            enableMapSelectionMode(isOrigin);
+        });
 
         // Configurar el RecyclerView
         SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
@@ -1393,6 +1408,76 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    /**
+     * Habilita el modo de selección del mapa para seleccionar origen o destino
+     * @param isOrigin true si es para origen, false si es para destino
+     */
+    private void enableMapSelectionMode(boolean isOrigin) {
+        Log.d("MapSelection", "Habilitando modo selección del mapa para " + (isOrigin ? "origen" : "destino"));
+        
+        // Mostrar mensaje al usuario
+        String message = isOrigin ? 
+            "Toca en el mapa para seleccionar la ubicación de origen" : 
+            "Toca en el mapa para seleccionar la ubicación de destino";
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        
+        // Configurar el listener de clics del mapa
+        if (mMap != null) {
+
+            if (isOrigin) {
+                handleUseMapForLocation(true);
+            }else{
+                handleUseMapForLocation(false);
+            }
+
+            mMap.setOnMapClickListener(latLng -> {
+                // Obtener la dirección desde las coordenadas usando el método existente
+                String address = getAddressFromLatLng(latLng);
+                
+                if (isOrigin) {
+                    // Configurar origen
+                    originAddress = address;
+                    originLatLng = latLng;
+                    editTextOrigin.setText(address);
+                    
+                    // Agregar marcador al mapa
+                    addMarkerToMap(latLng, "Origen", getResources().getColor(R.color.primaryColor), true);
+
+                    Log.d("MapSelection", "Origen seleccionado del mapa: " + address + " en " + latLng);
+                } else {
+                    // Configurar destino
+                    destinationAddress = address;
+                    destinationLatLng = latLng;
+                    editTextDestination.setText(address);
+                    
+                    // Agregar marcador al mapa
+                     addMarkerToMap(latLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+
+                    Log.d("MapSelection", "Destino seleccionado del mapa: " + address + " en " + latLng);
+                }
+                
+                // Mostrar confirmación
+                String confirmMessage = isOrigin ? 
+                    "Origen seleccionado: " + address : 
+                    "Destino seleccionado: " + address;
+                Toast.makeText(MapActivity.this, confirmMessage, Toast.LENGTH_SHORT).show();
+                
+                // Deshabilitar el modo de selección del mapa
+                disableMapSelectionMode();
+            });
+        }
+    }
+
+    /**
+     * Deshabilita el modo de selección del mapa
+     */
+    private void disableMapSelectionMode() {
+        Log.d("MapSelection", "Deshabilitando modo selección del mapa");
+        if (mMap != null) {
+            mMap.setOnMapClickListener(null);
         }
     }
 

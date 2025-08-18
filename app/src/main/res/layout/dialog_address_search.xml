@@ -33,6 +33,18 @@
         android:layout_height="wrap_content"
         android:maxHeight="300dp"
         android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Botón para seleccionar del mapa -->
+    <Button
+        android:id="@+id/btnSelectFromMap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Seleccionar del mapa"
+        android:background="@drawable/button_gradient"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:textSize="16sp" />
 
 </LinearLayout>
