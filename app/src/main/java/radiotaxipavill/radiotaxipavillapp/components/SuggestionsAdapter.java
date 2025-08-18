@@ -1,5 +1,6 @@
 package radiotaxipavill.radiotaxipavillapp.components;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,14 +16,26 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
 
     private List<AutocompletePrediction> suggestions;
     private final OnSuggestionClickListener listener;
+    private final OnSuggestionSelectedListener selectedListener;
 
     public interface OnSuggestionClickListener {
         void onSuggestionClick(AutocompletePrediction suggestion);
     }
 
-    public SuggestionsAdapter(List<AutocompletePrediction> suggestions, OnSuggestionClickListener listener) {
+    public interface OnSuggestionSelectedListener {
+        void onSuggestionSelected();
+    }
+
+   /* public SuggestionsAdapter(List<AutocompletePrediction> suggestions, OnSuggestionClickListener listener) {
         this.suggestions = suggestions;
         this.listener = listener;
+        this.selectedListener = null;
+    }*/
+
+    public SuggestionsAdapter(List<AutocompletePrediction> suggestions, OnSuggestionClickListener listener, OnSuggestionSelectedListener selectedListener) {
+        this.suggestions = suggestions;
+        this.listener = listener;
+        this.selectedListener = selectedListener;
     }
 
     public void updateSuggestions(List<AutocompletePrediction> newSuggestions) {
@@ -41,7 +54,7 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
     @Override
     public void onBindViewHolder(@NonNull SuggestionViewHolder holder, int position) {
         AutocompletePrediction suggestion = suggestions.get(position);
-        holder.bind(suggestion, listener);
+        holder.bind(suggestion, listener, selectedListener);
     }
 
     @Override
@@ -59,11 +72,17 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
             secondaryText = itemView.findViewById(R.id.secondary_text);
         }
 
-        public void bind(AutocompletePrediction suggestion, OnSuggestionClickListener listener) {
+        public void bind(AutocompletePrediction suggestion, OnSuggestionClickListener listener, OnSuggestionSelectedListener selectedListener) {
             primaryText.setText(suggestion.getPrimaryText(null));
             secondaryText.setText(suggestion.getSecondaryText(null));
 
-            itemView.setOnClickListener(v -> listener.onSuggestionClick(suggestion));
+            itemView.setOnClickListener(v -> {
+               // Log.e("itemView", "setOnClickListener");
+               listener.onSuggestionClick(suggestion);
+                if (selectedListener != null) {
+                    selectedListener.onSuggestionSelected();
+                }
+            });
         }
     }
 }

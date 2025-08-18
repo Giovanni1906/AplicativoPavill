@@ -266,6 +266,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private void setupMapUseButtons() {
         Button btnUseMapForOrigin = findViewById(R.id.btnUseMapForOrigin);
         Button btnUseMapForDestination = findViewById(R.id.btnUseMapForDestination);
+
         Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         Button btnBack = findViewById(R.id.btn_back);
         View iconShadow = findViewById(R.id.icon_shadow);
@@ -278,9 +279,12 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         iconShadow.setVisibility(View.GONE);
         iconCenterMarker.setVisibility(View.GONE);
 
+        btnUseMapForOrigin.setVisibility(View.GONE);
+        btnUseMapForDestination.setVisibility(View.GONE);
+
         // Configurar los botones "Usar el mapa"
-        btnUseMapForOrigin.setOnClickListener(v -> handleUseMapForLocation(true));
-        btnUseMapForDestination.setOnClickListener(v -> handleUseMapForLocation(false));
+        //btnUseMapForOrigin.setOnClickListener(v -> handleUseMapForLocation(true));
+       // btnUseMapForDestination.setOnClickListener(v -> handleUseMapForLocation(false));
 
         btnConfirmLocation.setOnClickListener(v -> {
             LatLng centerLatLng = mMap.getCameraPosition().target;
@@ -477,6 +481,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         btnSetOriginToCurrentLocation.setOnClickListener(v -> setLocationAsOrigin());
         btnSetDestinationToCurrentLocation.setOnClickListener(v -> setLocationAsDestination());
+
+        btnSetOriginToCurrentLocation.setVisibility(View.GONE);
     }
 
     /**
@@ -903,8 +909,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * @params btnGoToOrigin, btnGoToDestination
      */
     private void ChangeOptions() {
-        btnGoToOrigin.setOnClickListener(v -> toggleSearchVisibility(true));
-        btnGoToDestination.setOnClickListener(v -> toggleSearchVisibility(false));
+       // btnGoToOrigin.setOnClickListener(v -> toggleSearchVisibility(true));
+       // btnGoToDestination.setOnClickListener(v -> toggleSearchVisibility(false));
     }
 
 
@@ -997,7 +1003,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Inicializa el adaptador y RecyclerView para las sugerencias de origen.
      */
     private void initializeSuggestionsAdapterOrigin() {
+
+        Log.d("MapActivity", "initializeSuggestionsAdapterOrigin");
+
         suggestionsAdapterOrigin = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
+
             originAddress = suggestion.getFullText(null).toString();
             originPlaceId = suggestion.getPlaceId();
 
@@ -1018,7 +1028,14 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             editTextOrigin.setText(originAddress);
 
-            Log.d("OriginSelection", "Dirección de origen seleccionada: " + originAddress);
+            Log.e("OriginSelection", "Dirección de origen seleccionada: " + originAddress);
+
+        }, () -> {
+            // Callback para cuando se selecciona una sugerencia
+            Log.e("OriginSelection", "setVisibility" );
+
+           recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
+           progressBarSuggestionsOrigin.setVisibility(View.GONE);
         });
 
         recyclerViewSuggestionsOrigin.setLayoutManager(new LinearLayoutManager(this));
@@ -1032,6 +1049,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Inicializa el adaptador y RecyclerView para las sugerencias de destino.
      */
     private void initializeSuggestionsAdapterDestination() {
+
         suggestionsAdapterDestination = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
             destinationAddress = suggestion.getFullText(null).toString();
             destinationPlaceId = suggestion.getPlaceId();
@@ -1053,6 +1071,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             editTextDestination.setText(destinationAddress);
             Log.d("DestinationSelection", "Dirección de destino seleccionada: " + destinationAddress);
+        }, () -> {
+            // Callback para cuando se selecciona una sugerencia
+            recyclerViewSuggestionsDestination.setVisibility(View.GONE);
+            progressBarSuggestionsDestination.setVisibility(View.GONE);
         });
 
         recyclerViewSuggestionsDestination.setLayoutManager(new LinearLayoutManager(this));
@@ -1172,7 +1194,10 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+
                 if (s.length() >= 3) {
+                    Log.e("setupTextWatchers", "length>3");
+
                     progressBarSuggestionsOrigin.setVisibility(View.VISIBLE); // Muestra el indicador de carga
 
                     placesController.getPredictions(s.toString(), predictions -> {
@@ -1190,6 +1215,16 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void afterTextChanged(Editable s) {}
+        });
+
+        // Focus listener para el input de origen
+        editTextOrigin.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                // Ocultar las sugerencias de origen cuando recibe el foco
+                Log.d("FocusListener", "editTextOrigin recibió foco, ocultando sugerencias de origen");
+                recyclerViewSuggestionsDestination.setVisibility(View.GONE);
+                progressBarSuggestionsDestination.setVisibility(View.GONE);
+            }
         });
 
         // TextWatcher para el input de destino
@@ -1218,6 +1253,18 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
             @Override
             public void afterTextChanged(Editable s) {}
+        });
+
+        // Focus listener para el input de destino
+        editTextDestination.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                // Ocultar las sugerencias de destino cuando recibe el foco
+                Log.d("FocusListener", "editTextDestination recibió foco, ocultando sugerencias de destino");
+
+
+                recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
+                progressBarSuggestionsOrigin.setVisibility(View.GONE);
+            }
         });
     }
 
@@ -1289,7 +1336,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Alterna la visibilidad de los botones e inputs de origen y destino.
      * @param isOriginActive true si se activa origen, false si se activa destino.
      */
-    private void toggleSearchVisibility(boolean isOriginActive) {
+    /*private void toggleSearchVisibility(boolean isOriginActive) {
         // Mostrar elementos de origen y ocultar destino si isOriginActive es true
         int originVisibility = isOriginActive ? View.VISIBLE : View.GONE;
         int destinationVisibility = isOriginActive ? View.GONE : View.VISIBLE;
@@ -1300,8 +1347,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
         // Mostrar/Ocultar botones de origen y destino
-        btnGoToOrigin.setVisibility(destinationVisibility);
-        btnGoToDestination.setVisibility(originVisibility);
+        //btnGoToOrigin.setVisibility(destinationVisibility);
+        //btnGoToDestination.setVisibility(originVisibility);
 
         // Mostrar/Ocultar secciones de búsqueda
         layoutSearchOrigin.setVisibility(originVisibility);
@@ -1311,7 +1358,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         layoutSearchDestination.setVisibility(destinationVisibility);
         layout_buttons_destination.setVisibility(destinationVisibility);
         recyclerViewSuggestionsDestination.setVisibility(destinationVisibility);
-    }
+    }*/
 
     /**
      * Precarga Google Places
