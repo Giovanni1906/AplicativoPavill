@@ -89,6 +89,9 @@ import com.google.maps.android.clustering.ClusterManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import android.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.inputmethod.InputMethodManager;
 
 public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -136,6 +139,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
     private ProgressBar progressBarSuggestionsOrigin;
     private ProgressBar progressBarSuggestionsDestination;
+
+    private AlertDialog currentDialog;
 
 
     @Override
@@ -891,6 +896,17 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Configurar listeners para los inputs
         setupTextWatchers();
+        
+        // Configurar click listeners para abrir diálogos de búsqueda
+        editTextOrigin.setOnClickListener(v -> {
+            Log.d("ClickListener", "editTextOrigin clickeado, abriendo ventana de búsqueda");
+            openAddressSearchDialog(true); // true para origen
+        });
+        
+        editTextDestination.setOnClickListener(v -> {
+            Log.d("ClickListener", "editTextDestination clickeado, abriendo ventana de búsqueda");
+            openAddressSearchDialog(false); // false para destino
+        });
 
         // botones para eliminar inputs de origen y destino
         DeleteInputsText(btnDeleteOrigin, btnDeleteDestination);
@@ -1033,7 +1049,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }, () -> {
             // Callback para cuando se selecciona una sugerencia
             Log.e("OriginSelection", "setVisibility" );
-
            recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
            progressBarSuggestionsOrigin.setVisibility(View.GONE);
         });
@@ -1220,10 +1235,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Focus listener para el input de origen
         editTextOrigin.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                // Ocultar las sugerencias de origen cuando recibe el foco
-                Log.d("FocusListener", "editTextOrigin recibió foco, ocultando sugerencias de origen");
-                recyclerViewSuggestionsDestination.setVisibility(View.GONE);
-                progressBarSuggestionsDestination.setVisibility(View.GONE);
+                // Abrir ventana de búsqueda de direcciones cuando recibe el foco
+                Log.d("FocusListener", "editTextOrigin recibió foco, abriendo ventana de búsqueda");
+                openAddressSearchDialog(true); // true para origen
             }
         });
 
@@ -1258,14 +1272,128 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         // Focus listener para el input de destino
         editTextDestination.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                // Ocultar las sugerencias de destino cuando recibe el foco
-                Log.d("FocusListener", "editTextDestination recibió foco, ocultando sugerencias de destino");
-
-
-                recyclerViewSuggestionsOrigin.setVisibility(View.GONE);
-                progressBarSuggestionsOrigin.setVisibility(View.GONE);
+                // Abrir ventana de búsqueda de direcciones cuando recibe el foco
+                Log.d("FocusListener", "editTextDestination recibió foco, abriendo ventana de búsqueda");
+                openAddressSearchDialog(false); // false para destino
             }
         });
+    }
+
+    /**
+     * Abre un diálogo para buscar direcciones
+     * @param isOrigin true si es para origen, false si es para destino
+     */
+    private void openAddressSearchDialog(boolean isOrigin) {
+        // Crear el diálogo
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(isOrigin ? "Buscar dirección de origen" : "Buscar dirección de destino");
+        
+        // Crear la vista del diálogo
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_address_search, null);
+        EditText searchEditText = dialogView.findViewById(R.id.searchEditText);
+        RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
+        ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
+        
+        // Configurar el RecyclerView
+        SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
+            // Manejar la selección de la sugerencia
+            String selectedAddress = suggestion.getFullText(null).toString();
+            String selectedPlaceId = suggestion.getPlaceId();
+            
+            if (isOrigin) {
+                originAddress = selectedAddress;
+                originPlaceId = selectedPlaceId;
+                editTextOrigin.setText(selectedAddress);
+                
+                // Obtener LatLng del Place ID y marcar en el mapa
+                placesController.getLatLngFromPlaceId(selectedPlaceId, new PlacesController.LatLngCallback() {
+                    @Override
+                    public void onLatLngFetched(LatLng latLng) {
+                        originLatLng = latLng;
+                        addMarkerToMap(latLng, "Origen", getResources().getColor(R.color.primaryColor), true);
+                        Log.d("OriginSelection", "Marcador de origen añadido: " + latLng);
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        Log.e("OriginSelection", "Error al obtener LatLng para el origen: " + exception.getMessage());
+                    }
+                });
+            } else {
+                destinationAddress = selectedAddress;
+                destinationPlaceId = selectedPlaceId;
+                editTextDestination.setText(selectedAddress);
+                
+                // Obtener LatLng del Place ID y marcar en el mapa
+                placesController.getLatLngFromPlaceId(selectedPlaceId, new PlacesController.LatLngCallback() {
+                    @Override
+                    public void onLatLngFetched(LatLng latLng) {
+                        destinationLatLng = latLng;
+                        addMarkerToMap(latLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+                        Log.d("DestinationSelection", "Marcador de destino añadido: " + latLng);
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        Log.e("DestinationSelection", "Error al obtener LatLng para el destino: " + exception.getMessage());
+                    }
+                });
+            }
+            
+            // Cerrar el diálogo
+            if (currentDialog != null) {
+                currentDialog.dismiss();
+            }
+        }, () -> {
+            // Callback para cuando se selecciona una sugerencia
+            if (currentDialog != null) {
+                currentDialog.dismiss();
+            }
+        });
+        
+        suggestionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        suggestionsRecyclerView.setAdapter(suggestionsAdapter);
+        suggestionsRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        
+        // Configurar el TextWatcher para la búsqueda
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() >= 3) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    
+                    placesController.getPredictions(s.toString(), predictions -> {
+                        suggestionsAdapter.updateSuggestions(predictions);
+                        suggestionsRecyclerView.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                    });
+                } else {
+                    progressBar.setVisibility(View.GONE);
+                    suggestionsRecyclerView.setVisibility(View.GONE);
+                    suggestionsAdapter.updateSuggestions(new ArrayList<>());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        
+        builder.setView(dialogView);
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+        
+        // Mostrar el diálogo
+        currentDialog = builder.create();
+        currentDialog.show();
+        
+        // Enfocar el campo de búsqueda y mostrar el teclado
+        searchEditText.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
+        }
     }
 
     /**
