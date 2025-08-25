@@ -75,6 +75,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -731,6 +732,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     @SuppressLint("MissingPermission")
     private void getCurrentLocationAndCenterMap() {
+        Log.e("MapActivity", "getCurrentLocationAndCenterMap");
+
         if (fusedLocationClient == null) {
             Log.e("MapActivity", "FusedLocationProviderClient es NULL, inicializando...");
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -764,12 +767,17 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Método para actualizar la ubicación en el mapa y centrar la cámara en la ubicación actual.
      */
     private void updateMapWithLocation(Location location) {
+        Log.e("MapActivity", "updateMapWithLocation");
+
         if (mMap == null) {
             Log.e("MapActivity", "mMap es NULL, no se puede actualizar la ubicación.");
             return;
         }
 
         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        Log.e("MapActivity", "getLatitude: "+String.valueOf(location.getLatitude()));
+        Log.e("MapActivity", "getLongitude: "+String.valueOf(location.getLongitude()));
 
         // Asegurar que el círculo azul y el `ic_here` estén sincronizados
         if (locationMarker == null) {
@@ -792,10 +800,26 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         // Mover la cámara solo si es la primera vez o el usuario no ha movido el mapa
         if (firstTimeLoading) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
+            Log.e("MapActivity", "firstTimeLoading SI");
+
+            //LatLng latLng = new LatLng(Double.parseDouble(ClienteCoordenadaX),Double.parseDouble(ClienteCoordenadaY));
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(currentLocation)      // Sets the center of the map to Mountain Viewf
+                    .zoom(19)                   // Sets the zoom
+                    //.bearing(90)                // Sets the orientation of the camera to east
+                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+
+            //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
             // Desplaza la vista para que el marcador no quede oculto por la interfaz
-            new Handler().postDelayed(() -> mMap.animateCamera(CameraUpdateFactory.scrollBy(0, 250)), 500);
+            //new Handler().postDelayed(() -> mMap.animateCamera(CameraUpdateFactory.scrollBy(0, 250)), 500);
+
             firstTimeLoading = false;
+        }else{
+            Log.e("MapActivity", "firstTimeLoading NO");
         }
     }
 
@@ -804,6 +828,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      */
     @SuppressLint("MissingPermission")
     private void requestFastLocationUpdate() {
+        Log.e("MapActivity", "requestFastLocationUpdate");
+
         LocationRequest locationRequest;
         LocationCallback locationCallback = new LocationCallback() {
             @Override
@@ -890,7 +916,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         String clienteNombre = sharedPreferences.getString("ClienteNombre", "cliente");
 
         // Establecer el texto en el TextView
-        textViewName.setText("Hola, " + clienteNombre);
+        textViewName.setText("Hola " + clienteNombre+". ¿A dónde deseas ir?");
 
         // Inicializar adaptadores de sugerencias
         //initializeSuggestionsAdapterOrigin();
@@ -1289,7 +1315,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     private void openAddressSearchDialog(boolean isOrigin) {
         // Crear el diálogo
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(isOrigin ? "Buscar dirección de origen" : "Buscar dirección de destino");
+       // builder.setTitle(isOrigin ? "Buscar dirección de origen" : "Buscar dirección de destino");
         
         // Crear la vista del diálogo
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_address_search, null);

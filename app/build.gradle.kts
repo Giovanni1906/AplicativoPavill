@@ -1,6 +1,16 @@
 import java.io.FileInputStream
 import java.util.Properties
 
+/**
+ * Configuración de build para PavillTaxi
+ * 
+ * Convención de nombres de APK:
+ * - Debug: PavillTaxi-v{versionName}-b{versionCode}-debug.apk
+ * - Release: PavillTaxi-v{versionName}-b{versionCode}-release.apk
+ * - Con flavor: PavillTaxi-v{versionName}-b{versionCode}-{flavorName}-{buildType}.apk
+ * 
+ * Ejemplo: PavillTaxi-v3.01-b211-debug.apk
+ */
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -28,8 +38,8 @@ android {
         applicationId = "radiotaxipavill.radiotaxipavillapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 211
-        versionName = "3.01"
+        versionCode = 302
+        versionName = "3.02"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -40,7 +50,34 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
+        debug {
+            // Configuración para debug builds
+        }
+    }
+    
+    // Configuración personalizada para nombres de APK
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                val buildType = variant.buildType.name
+                val versionName = variant.versionName
+                val versionCode = variant.versionCode
+                val flavorName = variant.flavorName
+                
+                val outputFileName = when {
+                    buildType == "debug" -> "PavillTaxi-v${versionName}-b${versionCode}-debug.apk"
+                    buildType == "release" -> "PavillTaxi-v${versionName}-b${versionCode}-release.apk"
+                    flavorName.isNotEmpty() -> "PavillTaxi-v${versionName}-b${versionCode}-${flavorName}-${buildType}.apk"
+                    else -> "PavillTaxi-v${versionName}-b${versionCode}-${buildType}.apk"
+                }
+                
+                output.outputFileName = outputFileName
+                println("APK será generado como: $outputFileName")
+            }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

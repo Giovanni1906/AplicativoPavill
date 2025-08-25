@@ -170,7 +170,7 @@
                 <EditText
                     android:id="@+id/editTextDestination"
                     style="@style/GeneralEditTextStyle"
-                    android:hint="Ubicación de destino"
+                    android:hint="Ubicación de destino (Opcional)"
                     android:inputType="text" />
 
                 <ImageButton

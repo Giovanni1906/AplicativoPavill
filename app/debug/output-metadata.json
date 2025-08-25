@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 211,
-      "versionName": "3.01",
-      "outputFile": "app-debug.apk"
+      "versionCode": 302,
+      "versionName": "3.02",
+      "outputFile": "PavillTaxi-v3.02-b302-debug.apk"
     }
   ],
   "elementType": "File",
