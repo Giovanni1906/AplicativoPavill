@@ -1373,6 +1373,14 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
         Button btnSelectFromMap = dialogView.findViewById(R.id.btnSelectFromMap);
+        ImageButton btnCloseDialog = dialogView.findViewById(R.id.btnCloseDialog);
+
+        // Configurar el botón de cerrar
+        btnCloseDialog.setOnClickListener(v -> {
+            if (currentDialog != null) {
+                currentDialog.dismiss();
+            }
+        });
 
         // Configurar el botón "Seleccionar del mapa"
         btnSelectFromMap.setOnClickListener(v -> {
@@ -1473,7 +1481,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         });
         
         builder.setView(dialogView);
-        builder.setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
         
         // Crear el diálogo con esquinas redondeadas
         currentDialog = builder.create();

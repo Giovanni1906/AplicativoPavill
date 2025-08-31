@@ -1,15 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:padding="16dp">
+
+    <!-- Botón de cerrar circular con icono X -->
+    <ImageButton
+        android:id="@+id/btnCloseDialog"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:background="@drawable/circular_image_purple_mask"
+        android:contentDescription="Cerrar diálogo"
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
     <!-- Campo de búsqueda -->
     <TextView
         android:id="@+id/lblSearchAddressTittle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/btnCloseDialog"
+        android:layout_marginTop="8dp"
         android:paddingBottom="5dp"
         android:text="Direccion de origen"
         android:textAlignment="center"
@@ -22,6 +38,8 @@
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/lblSearchAddressTittle"
+        android:layout_marginTop="8dp"
         android:hint="Buscar dirección..."
         android:inputType="text"
         android:background="@drawable/search_box_background"
@@ -34,7 +52,9 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_below="@id/searchEditText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
         android:visibility="gone"
         style="?android:attr/progressBarStyleSmall" />
 
@@ -43,6 +63,8 @@
         android:id="@+id/suggestionsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/progressBar"
+        android:layout_marginTop="8dp"
         android:maxHeight="300dp"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"
@@ -55,8 +77,9 @@
         style="@style/Button.Form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/suggestionsRecyclerView"
         android:layout_marginTop="16dp"
         android:background="@drawable/button_alternative"
         android:text="Seleccionar del mapa" />
 
-</LinearLayout>
+</RelativeLayout>
