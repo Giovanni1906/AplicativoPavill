@@ -6,6 +6,18 @@
     android:padding="16dp">
 
     <!-- Campo de búsqueda -->
+    <TextView
+        android:id="@+id/lblSearchAddressTittle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:text="Direccion de origen"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
     <EditText
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
@@ -37,14 +49,14 @@
         android:layout_marginBottom="16dp" />
 
     <!-- Botón para seleccionar del mapa -->
-    <Button
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSelectFromMap"
+        style="@style/Button.Form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Seleccionar del mapa"
-        android:background="@drawable/button_gradient"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:textSize="16sp" />
+        android:layout_marginTop="16dp"
+        android:background="@drawable/button_alternative"
+        android:text="Seleccionar del mapa" />
 
 </LinearLayout>

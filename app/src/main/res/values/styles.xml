@@ -164,5 +164,13 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Estilo para EditText de solo lectura -->
+    <style name="ReadOnlyEditTextStyle" parent="GeneralEditTextStyle">
+        <item name="android:background">@drawable/readonly_edittext_background</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:textColorHint">@color/textColor</item>
+        <item name="android:alpha">0.8</item>
+    </style>
+
 </resources>
 

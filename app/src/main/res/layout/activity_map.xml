@@ -108,9 +108,12 @@
 
                 <EditText
                     android:id="@+id/editTextOrigin"
-                    style="@style/GeneralEditTextStyle"
+                    style="@style/ReadOnlyEditTextStyle"
                     android:hint="Ubicación de origen"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false" />
 
                 <ImageButton
                     android:id="@+id/btnDeleteOrigin"
@@ -169,9 +172,12 @@
 
                 <EditText
                     android:id="@+id/editTextDestination"
-                    style="@style/GeneralEditTextStyle"
+                    style="@style/ReadOnlyEditTextStyle"
                     android:hint="Ubicación de destino (Opcional)"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false" />
 
                 <ImageButton
                     android:id="@+id/btnDeleteDestination"

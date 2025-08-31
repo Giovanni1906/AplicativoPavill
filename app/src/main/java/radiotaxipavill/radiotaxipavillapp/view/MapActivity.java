@@ -93,6 +93,9 @@ import java.util.Locale;
 import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.inputmethod.InputMethodManager;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.Gravity;
 
 public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -162,7 +165,9 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             routeController = new RouteController(this);
 
             // Verificar permisos de ubicación ANTES de cargar el mapa
-            checkLocationPermission();
+            if (!checkLocationPermission()) {
+                requestLocationPermission();
+            }
 
             // Inicializar UI y favoritos ANTES del mapa
             initializeUI();
@@ -200,7 +205,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 originLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                initializeMap(); // ✅ Solo inicializar el mapa cuando la ubicación está lista
+                initializeMap(); // ✅ Solo inicializar el mapa cuando la ubicación está listax
             } else {
                 Log.w("MapActivity", "Ubicación no disponible, reintentando...");
                 retryFetchingLocation(3); // 🔄 Reintentar 3 veces
@@ -690,22 +695,67 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Solicita el permiso de ubicación al usuario
      */
     private void requestLocationPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            
+            // Si es la primera vez que se solicita el permiso, mostramos explicación
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // Mostrar diálogo explicativo antes de solicitar el permiso
+                showLocationPermissionDialog();
+            } else {
+                // Solicitar el permiso directamente
+                ActivityCompat.requestPermissions(this, 
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    /**
+     * Muestra un diálogo explicativo sobre por qué se necesita el permiso de ubicación
+     */
+    private void showLocationPermissionDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Permiso de Ubicación Requerido")
+                .setMessage("Esta aplicación necesita acceso a tu ubicación para mostrar taxis cercanos y calcular rutas. Por favor, otorga el permiso de ubicación para continuar.")
+                .setPositiveButton("Otorgar Permiso", (dialog, which) -> {
+                    // Solicitar el permiso después de que el usuario confirme
+                    ActivityCompat.requestPermissions(this, 
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 
+                        LOCATION_PERMISSION_REQUEST_CODE);
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    dialog.dismiss();
+                    Toast.makeText(this, "Sin permisos de ubicación, algunas funciones no estarán disponibles.", Toast.LENGTH_LONG).show();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    /**
+     * Muestra un diálogo para ir a la configuración de la aplicación
+     */
+    private void showSettingsDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Permiso Denegado Permanentemente")
+                .setMessage("Has denegado el permiso de ubicación permanentemente. Para usar todas las funciones de la aplicación, ve a Configuración > Aplicaciones > Pavill Taxi > Permisos y habilita la ubicación.")
+                .setPositiveButton("Ir a Configuración", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     /**
      * Verifica si el permiso de ubicación está otorgado
-     * @return
+     * @return true si el permiso está otorgado, false si no
      */
     private boolean checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-            return false;
-        }
-        return true;
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
@@ -740,6 +790,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
         if (!checkLocationPermission()) {
+            requestLocationPermission();
             return;
         }
 
@@ -873,10 +924,16 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permiso otorgado
+                Toast.makeText(this, "Permiso de ubicación otorgado.", Toast.LENGTH_SHORT).show();
                 checkIfLocationIsEnabled();
             } else {
                 // Permiso denegado
-//                Toast.makeText(this, "Permiso de ubicación denegado.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permiso de ubicación denegado. Algunas funciones no estarán disponibles.", Toast.LENGTH_LONG).show();
+                
+                // Mostrar diálogo para ir a configuración si el usuario denegó permanentemente
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    showSettingsDialog();
+                }
             }
         }
     }
@@ -1038,7 +1095,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
                 firstTimeLoading = true;
                 getCurrentLocationAndCenterMap(); // Centrar el mapa en la ubicación actual
             } else {
-                Toast.makeText(this, "Problemas con los permisos de ubicación.", Toast.LENGTH_SHORT).show();
+                requestLocationPermission();
             }
         });
     }
@@ -1261,14 +1318,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             public void afterTextChanged(Editable s) {}
         });
 
-        // Focus listener para el input de origen
-        editTextOrigin.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                // Abrir ventana de búsqueda de direcciones cuando recibe el foco
-                Log.d("FocusListener", "editTextOrigin recibió foco, abriendo ventana de búsqueda");
-                openAddressSearchDialog(true); // true para origen
-            }
-        });
+        // El editTextOrigin es readonly, solo responde a clicks
+        // No necesita OnFocusChangeListener ya que no puede recibir foco
 
         // TextWatcher para el input de destino
         editTextDestination.addTextChangedListener(new TextWatcher() {
@@ -1298,14 +1349,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             public void afterTextChanged(Editable s) {}
         });
 
-        // Focus listener para el input de destino
-        editTextDestination.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                // Abrir ventana de búsqueda de direcciones cuando recibe el foco
-                Log.d("FocusListener", "editTextDestination recibió foco, abriendo ventana de búsqueda");
-                openAddressSearchDialog(false); // false para destino
-            }
-        });
+        // El editTextDestination es readonly, solo responde a clicks
+        // No necesita OnFocusChangeListener ya que no puede recibir foco
     }
 
     /**
@@ -1319,6 +1364,11 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         
         // Crear la vista del diálogo
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_address_search, null);
+        
+        // Configurar el título según si es origen o destino
+        TextView lblSearchAddressTitle = dialogView.findViewById(R.id.lblSearchAddressTittle);
+        lblSearchAddressTitle.setText(isOrigin ? "Dirección de origen" : "Dirección de destino");
+        
         EditText searchEditText = dialogView.findViewById(R.id.searchEditText);
         RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
@@ -1425,8 +1475,26 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         builder.setView(dialogView);
         builder.setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
         
-        // Mostrar el diálogo
+        // Crear el diálogo con esquinas redondeadas
         currentDialog = builder.create();
+        
+        // Aplicar esquinas redondeadas al diálogo
+        currentDialog.setOnShowListener(dialog -> {
+            Window window = currentDialog.getWindow();
+            if (window != null) {
+                // Configurar esquinas redondeadas
+                window.setBackgroundDrawableResource(R.drawable.dialog_rounded_background);
+                
+                // Configurar márgenes para que las esquinas redondeadas sean visibles
+                WindowManager.LayoutParams layoutParams = window.getAttributes();
+                layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+                layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                layoutParams.gravity = Gravity.CENTER;
+                window.setAttributes(layoutParams);
+            }
+        });
+        
+        // Mostrar el diálogo
         currentDialog.show();
         
         // Enfocar el campo de búsqueda y mostrar el teclado
