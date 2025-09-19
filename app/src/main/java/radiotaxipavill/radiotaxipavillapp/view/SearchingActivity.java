@@ -103,6 +103,12 @@ public class SearchingActivity extends AppCompatActivity {
         int minutes = seconds / 60;
         seconds = seconds % 60;
         textViewTimer.setText(String.format("%02d:%02d", minutes, seconds));
+        
+        // Después de 5 minutos, cancelar la búsqueda automáticamente
+        if (minutes >= 5) {
+            Log.d("SearchingActivity", "Tiempo límite alcanzado (5 minutos), cancelando búsqueda automáticamente");
+            cancelSearch();
+        }
     }
 
     /**
@@ -117,6 +123,11 @@ public class SearchingActivity extends AppCompatActivity {
             Log.d("SearchingActivity", "Estado del pedido recibido: " + status);
 
             switch (status) {
+                case "EN_ESPERA": // Pedido en espera - continuar buscando
+                    Log.d("SearchingActivity", "Estado: EN_ESPERA. Continuando búsqueda...");
+                    // No hacer nada especial, solo continuar con la búsqueda
+                    break;
+
                 case "ACEPTADO": // Pedido aprobado
                     navigateToWaitingActivity();
                     Log.d("SearchingActivity", "Pedido aceptado.");
@@ -131,7 +142,7 @@ public class SearchingActivity extends AppCompatActivity {
                     break;
 
                 default:
-                    Log.d("SearchingActivity", "Estado desconocido o en espera: " + status);
+                    Log.d("SearchingActivity", "Estado desconocido: " + status);
                     break;
             }
         });

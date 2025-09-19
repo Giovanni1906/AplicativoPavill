@@ -164,7 +164,9 @@ public class PedidoStatusService extends Service {
                         switch (status) {
                             case "EN_ESPERA": // Pedido en espera
                                 Log.d(TAG, "Estado: EN_ESPERA. Buscando conductor...");
-//                                showSearchingMessage();
+                                
+                                // Enviar broadcast para dirigir a SearchingActivity
+                                sendStatusBroadcast(status, "Buscando conductor disponible...");
                                 break;
 
                             case "ACEPTADO": // Pedido aceptado

@@ -17,7 +17,7 @@ plugins {
 
 android {
     namespace = "radiotaxipavill.radiotaxipavillapp"
-    compileSdk = 34
+    compileSdk = 35
 
     // Cargar las propiedades del archivo key.properties
     val keystorePropertiesFile = rootProject.file("key.properties")
@@ -37,9 +37,9 @@ android {
     defaultConfig {
         applicationId = "radiotaxipavill.radiotaxipavillapp"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 302
-        versionName = "3.04"
+        targetSdk = 35
+        versionCode = 307
+        versionName = "3.07"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -695,6 +695,8 @@ public class WaitingActivity extends AppCompatActivity implements OnMapReadyCall
                     break;
 
                 case "EN_ESPERA":
+                    Log.d("WaitingActivity", "EN_ESPERAEN_ESPERAEN_ESPERAEN_ESPERAEN_ESPERA");
+
                     Toast.makeText(WaitingActivity.this, "El conductor canceló el pedido, buscando nuevo Pavill.", Toast.LENGTH_SHORT).show();
                     Intent searchIntent = new Intent(WaitingActivity.this, SearchingActivity.class);
                     searchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

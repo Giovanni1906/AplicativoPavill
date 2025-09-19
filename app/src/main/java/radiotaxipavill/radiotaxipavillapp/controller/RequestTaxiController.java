@@ -129,6 +129,7 @@ public class RequestTaxiController {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("Accion", "RegistrarPedido");
+                params.put("Plataforma", "ANDROID");
                 params.put("ClienteId", clienteId);
                 params.put("PedidoDireccion", originAddress);
                 params.put("PedidoReferencia", reference);

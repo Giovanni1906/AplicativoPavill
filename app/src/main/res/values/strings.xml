@@ -8,15 +8,15 @@
 <!--    Administracion.pavill-->
     <string name="map_api_key">AIzaSyCPU_P1X90dr5d5jTQKUuFT_yA9mwsuIDA</string>
 
-    <string name="url_services">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnCliente.php</string>
-    <string name="url_services_conductor">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnConductor.php</string>
-    <string name="url_services_pedido">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnPedido.php</string>
-    <string name="url_services_ubicacion">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservicem/JnConductorUbicacion.php</string>
-    <string name="url_services_mapa">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnMapa.php</string>
-    <string name="url_services_fav">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnClienteDestinoFavorito.php</string>
-    <string name="url_services_publicidad">http://rtpavillv2.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnPublicidad.php</string>
+    <string name="url_services">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnCliente.php</string>
+    <string name="url_services_conductor">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnConductor.php</string>
+    <string name="url_services_pedido">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnPedido.php</string>
+    <string name="url_services_ubicacion">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservicem/JnConductorUbicacion.php</string>
+    <string name="url_services_mapa">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnMapa.php</string>
+    <string name="url_services_fav">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnClienteDestinoFavorito.php</string>
+    <string name="url_services_publicidad">http://rtpavillv3.ddns.net:8014/apptaxipavill-cliente-v300/webservice/JnPublicidad.php</string>
     <string name="url_delete_acount">https://pavill-dev.github.io/pavill-delete-account/</string>
 <!--    versión de la aplicación-->
-    <string name="app_version_number">v.3.04.0</string>
+    <string name="app_version_number">v.3.07.0</string>
 
 </resources>
