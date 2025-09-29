@@ -83,6 +83,7 @@
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnEnviar"
         style="@style/Button.Form"
+        android:layout_marginTop="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/button_alternative"

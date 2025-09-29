@@ -186,7 +186,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             getCurrentLocationAndLoadMap();
 
             // Configurar botones después de todo
-            setupLocationButtons();
+            //setupLocationButtons();
             setupMapUseButtons();
 
         }
@@ -275,8 +275,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * Configura los botones para establecer la ubicación actual como origen o destino.
      */
     private void setupMapUseButtons() {
-        Button btnUseMapForOrigin = findViewById(R.id.btnUseMapForOrigin);
-        Button btnUseMapForDestination = findViewById(R.id.btnUseMapForDestination);
+        // Button btnUseMapForOrigin = findViewById(R.id.btnUseMapForOrigin);
+        // Button btnUseMapForDestination = findViewById(R.id.btnUseMapForDestination);
 
         Button btnConfirmLocation = findViewById(R.id.btn_confirm_location);
         Button btnBack = findViewById(R.id.btn_back);
@@ -290,8 +290,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         iconShadow.setVisibility(View.GONE);
         iconCenterMarker.setVisibility(View.GONE);
 
-        btnUseMapForOrigin.setVisibility(View.GONE);
-        btnUseMapForDestination.setVisibility(View.GONE);
+        // btnUseMapForOrigin.setVisibility(View.GONE);
+        // btnUseMapForDestination.setVisibility(View.GONE);
 
         // Configurar los botones "Usar el mapa"
         //btnUseMapForOrigin.setOnClickListener(v -> handleUseMapForLocation(true));
@@ -488,6 +488,8 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
     /**
      * Configura los botones para establecer la ubicación actual como origen o destino.
      */
+
+    /**
     private void setupLocationButtons() {
         Button btnSetOriginToCurrentLocation = findViewById(R.id.btnSetOriginToCurrentLocation);
         Button btnSetDestinationToCurrentLocation = findViewById(R.id.btnSetDestinationToCurrentLocation);
@@ -497,6 +499,7 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
 
         btnSetOriginToCurrentLocation.setVisibility(View.GONE);
     }
+    */
 
     /**
      * Establece la ubicación actual como origen.
@@ -954,15 +957,15 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
         ImageButton btnDeleteDestination = findViewById(R.id.btnDeleteDestination);
 
         btnRequestTaxi = findViewById(R.id.btnRequestTaxi);
-        btnGoToDestination = findViewById(R.id.btnGoToDestination);
-        btnGoToOrigin = findViewById(R.id.btnGoToOrigin);
+        // btnGoToDestination = findViewById(R.id.btnGoToDestination);
+        // btnGoToOrigin = findViewById(R.id.btnGoToOrigin);
 
         layoutSearchOrigin = findViewById(R.id.layoutSearchOrigin);
-        layout_buttons_origin = findViewById(R.id.layout_buttons_origin);
+        // layout_buttons_origin = findViewById(R.id.layout_buttons_origin);
         //recyclerViewSuggestionsOrigin = findViewById(R.id.recyclerViewSuggestionsOrigin);
 
         layoutSearchDestination = findViewById(R.id.layoutSearchDestination);
-        layout_buttons_destination = findViewById(R.id.layout_buttons_destination);
+        // layout_buttons_destination = findViewById(R.id.layout_buttons_destination);
        // recyclerViewSuggestionsDestination = findViewById(R.id.recyclerViewSuggestionsDestination);
 
         // Obtener el TextView
@@ -1358,159 +1361,154 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
      * @param isOrigin true si es para origen, false si es para destino
      */
     private void openAddressSearchDialog(boolean isOrigin) {
-        // Crear el diálogo
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-       // builder.setTitle(isOrigin ? "Buscar dirección de origen" : "Buscar dirección de destino");
-        
-        // Crear la vista del diálogo
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_address_search, null);
-        
-        // Configurar el título según si es origen o destino
-        TextView lblSearchAddressTitle = dialogView.findViewById(R.id.lblSearchAddressTittle);
-        lblSearchAddressTitle.setText(isOrigin ? "Dirección de origen" : "Dirección de destino");
-        
+
+        TextView lblTitle = dialogView.findViewById(R.id.lblSearchAddressTittle);
         EditText searchEditText = dialogView.findViewById(R.id.searchEditText);
         RecyclerView suggestionsRecyclerView = dialogView.findViewById(R.id.suggestionsRecyclerView);
         ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
         Button btnSelectFromMap = dialogView.findViewById(R.id.btnSelectFromMap);
         ImageButton btnCloseDialog = dialogView.findViewById(R.id.btnCloseDialog);
 
-        // Configurar el botón de cerrar
-        btnCloseDialog.setOnClickListener(v -> {
-            if (currentDialog != null) {
-                currentDialog.dismiss();
-            }
-        });
+        lblTitle.setText(isOrigin ? "Dirección de origen" : "Dirección de destino");
 
-        // Configurar el botón "Seleccionar del mapa"
-        btnSelectFromMap.setOnClickListener(v -> {
-            Log.d("MapSelection", "Botón 'Seleccionar del mapa' clickeado para " + (isOrigin ? "origen" : "destino"));
-            // Cerrar el diálogo
-            if (currentDialog != null) {
-                currentDialog.dismiss();
-            }
-            // Llamar a la función para habilitar selección del mapa
-            enableMapSelectionMode(isOrigin);
-        });
+        // Adapter de sugerencias: solo delega a applyPlaceSelection(...)
+        SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(
+                new ArrayList<>(),
+                suggestion -> {
+                    String address = suggestion.getFullText(null).toString();
+                    String placeId = suggestion.getPlaceId();
+                    applyPlaceSelection(isOrigin, address, placeId);
+                    if (currentDialog != null) currentDialog.dismiss();
+                },
+                () -> { if (currentDialog != null) currentDialog.dismiss(); }
+        );
 
-        // Configurar el RecyclerView
-        SuggestionsAdapter suggestionsAdapter = new SuggestionsAdapter(new ArrayList<>(), suggestion -> {
-            // Manejar la selección de la sugerencia
-            String selectedAddress = suggestion.getFullText(null).toString();
-            String selectedPlaceId = suggestion.getPlaceId();
-            
-            if (isOrigin) {
-                originAddress = selectedAddress;
-                originPlaceId = selectedPlaceId;
-                editTextOrigin.setText(selectedAddress);
-                
-                // Obtener LatLng del Place ID y marcar en el mapa
-                placesController.getLatLngFromPlaceId(selectedPlaceId, new PlacesController.LatLngCallback() {
-                    @Override
-                    public void onLatLngFetched(LatLng latLng) {
-                        originLatLng = latLng;
-                        addMarkerToMap(latLng, "Origen", getResources().getColor(R.color.primaryColor), true);
-                        Log.d("OriginSelection", "Marcador de origen añadido: " + latLng);
-                    }
-
-                    @Override
-                    public void onError(Exception exception) {
-                        Log.e("OriginSelection", "Error al obtener LatLng para el origen: " + exception.getMessage());
-                    }
-                });
-            } else {
-                destinationAddress = selectedAddress;
-                destinationPlaceId = selectedPlaceId;
-                editTextDestination.setText(selectedAddress);
-                
-                // Obtener LatLng del Place ID y marcar en el mapa
-                placesController.getLatLngFromPlaceId(selectedPlaceId, new PlacesController.LatLngCallback() {
-                    @Override
-                    public void onLatLngFetched(LatLng latLng) {
-                        destinationLatLng = latLng;
-                        addMarkerToMap(latLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
-                        Log.d("DestinationSelection", "Marcador de destino añadido: " + latLng);
-                    }
-
-                    @Override
-                    public void onError(Exception exception) {
-                        Log.e("DestinationSelection", "Error al obtener LatLng para el destino: " + exception.getMessage());
-                    }
-                });
-            }
-            
-            // Cerrar el diálogo
-            if (currentDialog != null) {
-                currentDialog.dismiss();
-            }
-        }, () -> {
-            // Callback para cuando se selecciona una sugerencia
-            if (currentDialog != null) {
-                currentDialog.dismiss();
-            }
-        });
-        
         suggestionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         suggestionsRecyclerView.setAdapter(suggestionsAdapter);
         suggestionsRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        
-        // Configurar el TextWatcher para la búsqueda
-        searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        // Reutiliza el helper genérico para predicciones
+        wirePredictions(searchEditText, progressBar, suggestionsRecyclerView, suggestionsAdapter);
+
+        // Cerrar
+        btnCloseDialog.setOnClickListener(v -> { if (currentDialog != null) currentDialog.dismiss(); });
+
+        // Seleccionar desde mapa → reutiliza tu flujo ya existente (sin duplicar UI)
+        btnSelectFromMap.setOnClickListener(v -> {
+            if (currentDialog != null) currentDialog.dismiss();
+            enableMapSelectionMode(isOrigin); // ya enfoca y gestiona selección (o puedes llamar handleUseMapForLocation)
+        });
+
+        builder.setView(dialogView);
+        currentDialog = builder.create();
+        currentDialog.setOnShowListener(d -> {
+            Window w = currentDialog.getWindow();
+            if (w != null) {
+                w.setBackgroundDrawableResource(R.drawable.dialog_rounded_background);
+                WindowManager.LayoutParams lp = w.getAttributes();
+                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+                lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                lp.gravity = Gravity.CENTER;
+                w.setAttributes(lp);
+            }
+        });
+
+        currentDialog.show();
+
+        // Teclado
+        searchEditText.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    /**
+     * Helper para predicciones
+     * @param input
+     * @param progress
+     * @param list
+     * @param adapter
+     */
+    private void wirePredictions(EditText input, ProgressBar progress, RecyclerView list, SuggestionsAdapter adapter) {
+        input.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() >= 3) {
-                    progressBar.setVisibility(View.VISIBLE);
-                    
+                    progress.setVisibility(View.VISIBLE);
                     placesController.getPredictions(s.toString(), predictions -> {
-                        suggestionsAdapter.updateSuggestions(predictions);
-                        suggestionsRecyclerView.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.GONE);
+                        adapter.updateSuggestions(predictions);
+                        list.setVisibility(View.VISIBLE);
+                        progress.setVisibility(View.GONE);
                     });
                 } else {
-                    progressBar.setVisibility(View.GONE);
-                    suggestionsRecyclerView.setVisibility(View.GONE);
-                    suggestionsAdapter.updateSuggestions(new ArrayList<>());
+                    progress.setVisibility(View.GONE);
+                    list.setVisibility(View.GONE);
+                    adapter.updateSuggestions(new ArrayList<>());
                 }
+            }
+        });
+    }
+
+    /**
+     * Helper para marcar en mapa y actualizar estado/UI sin duplicar
+     * @param isOrigin
+     * @param address
+     * @param latLng
+     */
+    private void setAddressAndMarker(boolean isOrigin, String address, LatLng latLng) {
+        if (latLng == null || mMap == null) return;
+
+        if (isOrigin) {
+            originLatLng = latLng;
+            addMarkerToMap(latLng, "Origen", getResources().getColor(R.color.primaryColor), true);
+        } else {
+            destinationLatLng = latLng;
+            addMarkerToMap(latLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
+        }
+
+        // Si tienes un “enfoque” al entrar en selección, puedes reutilizarlo aquí si quieres
+        // focusCameraForSelection(latLng);
+
+        // La propia addMarkerToMap() ya llama updateRoute(); no hace falta repetirlo
+    }
+
+    /**
+     * Helper para aplicar la selección de un Place (origen/destino)
+     * @param isOrigin
+     * @param address
+     * @param placeId
+     */
+    private void applyPlaceSelection(boolean isOrigin, String address, String placeId) {
+        // Setea textos y placeId inmediatamente (feedback rápido)
+        if (isOrigin) {
+            originAddress = address;
+            originPlaceId = placeId;
+            editTextOrigin.setText(address);
+        } else {
+            destinationAddress = address;
+            destinationPlaceId = placeId;
+            editTextDestination.setText(address);
+        }
+
+        // Resolve LatLng y delega colocar marcador + actualizar ruta
+        placesController.getLatLngFromPlaceId(placeId, new PlacesController.LatLngCallback() {
+            @Override
+            public void onLatLngFetched(LatLng latLng) {
+                setAddressAndMarker(isOrigin, address, latLng);
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
-        });
-        
-        builder.setView(dialogView);
-        
-        // Crear el diálogo con esquinas redondeadas
-        currentDialog = builder.create();
-        
-        // Aplicar esquinas redondeadas al diálogo
-        currentDialog.setOnShowListener(dialog -> {
-            Window window = currentDialog.getWindow();
-            if (window != null) {
-                // Configurar esquinas redondeadas
-                window.setBackgroundDrawableResource(R.drawable.dialog_rounded_background);
-                
-                // Configurar márgenes para que las esquinas redondeadas sean visibles
-                WindowManager.LayoutParams layoutParams = window.getAttributes();
-                layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-                layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-                layoutParams.gravity = Gravity.CENTER;
-                window.setAttributes(layoutParams);
+            public void onError(Exception exception) {
+                Log.e("PlaceSelection", "Error obteniendo LatLng: " + exception.getMessage());
+                Toast.makeText(MapActivity.this, "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show();
             }
         });
-        
-        // Mostrar el diálogo
-        currentDialog.show();
-        
-        // Enfocar el campo de búsqueda y mostrar el teclado
-        searchEditText.requestFocus();
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.showSoftInput(searchEditText, InputMethodManager.SHOW_IMPLICIT);
-        }
     }
+
 
     /**
      * Habilita el modo de selección del mapa para seleccionar origen o destino
