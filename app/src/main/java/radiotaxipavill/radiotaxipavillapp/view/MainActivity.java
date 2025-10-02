@@ -4,12 +4,19 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
 import radiotaxipavill.radiotaxipavillapp.R;
@@ -30,6 +37,40 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // ---------- EDGE TO EDGE SOLO AQUÍ ----------
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        // Status/Nav bar transparentes para que se vea la foto detrás
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        }
+        // Evitar contraste forzado de la nav bar (Android 10+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+        // Iconos CLAROS (blancos) porque tu fondo es oscuro
+        WindowInsetsControllerCompat controller =
+                new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
+
+        // Empuja SOLO la zona de botones por encima de la barra de gestos/teclado
+        View cta = findViewById(R.id.ctaContainer);
+        ViewCompat.setOnApplyWindowInsetsListener(cta, (v, insets) -> {
+            Insets sys = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            int bottom = Math.max(sys.bottom, ime.bottom);  // gestos o teclado
+
+            // Mantén tu padding/márgenes y añade el inset inferior
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(findViewById(android.R.id.content));
+
+        // ---------- Tu código original debajo ----------
 
         backgroundPavill = findViewById(R.id.backgroundPavill);
 

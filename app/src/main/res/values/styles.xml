@@ -172,5 +172,22 @@
         <item name="android:alpha">0.8</item>
     </style>
 
+    <style name="ShapeAppearance.Pavill.ExtraRound" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">32dp</item>
+    </style>
+
+    <style name="ThemeOverlay.Pavill.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Pavill.ExtraRound</item>
+    </style>
+
+    <style name="PavillFloatingDialog.Window" parent="@style/Animation.AppCompat.Dialog">
+        <item name="android:windowEnterAnimation">@anim/pavill_dialog_in</item>
+        <item name="android:windowExitAnimation">@anim/pavill_dialog_out</item>
+    </style>
+
+
+
+
 </resources>
 

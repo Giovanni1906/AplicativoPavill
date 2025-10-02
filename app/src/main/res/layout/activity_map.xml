@@ -1,15 +1,18 @@
-    <androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/drawer_layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
 
     <!-- CoordinatorLayout para permitir el uso de BottomSheetBehavior -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="false">
 
         <!-- Contenedor principal para el mapa -->
         <RelativeLayout
@@ -75,6 +78,7 @@
             android:gravity="center"
             android:orientation="vertical"
             android:padding="16dp"
+            android:paddingBottom="16dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <!-- Viñeta para subir y bajar el BottomSheet -->
@@ -270,9 +274,11 @@
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnRequestTaxi"
                 style="@style/Button.Form"
-                android:layout_width="match_parent"
+                android:layout_gravity="bottom"
                 android:layout_height="40sp"
                 android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+
                 android:background="@drawable/button_alternative"
                 android:text="Continuar" />
 

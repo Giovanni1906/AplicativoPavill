@@ -1531,42 +1531,6 @@ public class MapActivity extends BaseActivity implements OnMapReadyCallback {
             }else{
                 handleUseMapForLocation(false);
             }
-
-            mMap.setOnMapClickListener(latLng -> {
-                // Obtener la dirección desde las coordenadas usando el método existente
-                String address = getAddressFromLatLng(latLng);
-                
-                if (isOrigin) {
-                    // Configurar origen
-                    originAddress = address;
-                    originLatLng = latLng;
-                    editTextOrigin.setText(address);
-                    
-                    // Agregar marcador al mapa
-                    addMarkerToMap(latLng, "Origen", getResources().getColor(R.color.primaryColor), true);
-
-                    Log.d("MapSelection", "Origen seleccionado del mapa: " + address + " en " + latLng);
-                } else {
-                    // Configurar destino
-                    destinationAddress = address;
-                    destinationLatLng = latLng;
-                    editTextDestination.setText(address);
-                    
-                    // Agregar marcador al mapa
-                     addMarkerToMap(latLng, "Destino", getResources().getColor(R.color.secondaryColor), false);
-
-                    Log.d("MapSelection", "Destino seleccionado del mapa: " + address + " en " + latLng);
-                }
-                
-                // Mostrar confirmación
-                String confirmMessage = isOrigin ? 
-                    "Origen seleccionado: " + address : 
-                    "Destino seleccionado: " + address;
-                Toast.makeText(MapActivity.this, confirmMessage, Toast.LENGTH_SHORT).show();
-                
-                // Deshabilitar el modo de selección del mapa
-                disableMapSelectionMode();
-            });
         }
     }
 

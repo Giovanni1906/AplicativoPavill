@@ -51,11 +51,13 @@ public class ChangePasswordActivity extends AppCompatActivity {
         loadingDialog.show();
         // Validar que las contraseñas coincidan
         if (nuevaContrasena.isEmpty() || confirmarContrasena.isEmpty()) {
+            loadingDialog.dismiss();
             mostrarError("Ambos campos son obligatorios.");
             return;
         }
 
         if (!nuevaContrasena.equals(confirmarContrasena)) {
+            loadingDialog.dismiss();
             mostrarError("Las contraseñas no coinciden.");
             return;
         }
