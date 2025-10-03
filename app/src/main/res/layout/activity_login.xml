@@ -86,7 +86,21 @@
                     android:id="@+id/TextPassword"
                     style="@style/GeneralEditTextStyle"
                     android:hint="Contraseña"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    android:paddingEnd="48dp"/> <!-- deja espacio para el ojo -->
+
+
+                <ImageView
+                    android:id="@+id/ivTogglePassword"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@android:drawable/ic_menu_view"
+                    android:padding="8dp"
+                    android:contentDescription="Mostrar/Ocultar contraseña"
+                    app:tint="@color/iconColor" />
+
             </LinearLayout>
 
             <!-- Botón para iniciar sesión -->

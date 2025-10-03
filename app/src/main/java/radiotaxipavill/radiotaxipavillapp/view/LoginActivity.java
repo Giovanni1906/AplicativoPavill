@@ -3,9 +3,11 @@ package radiotaxipavill.radiotaxipavillapp.view;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +46,9 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         errorText = findViewById(R.id.ErrorText);
 
+        EditText passwordEditText = findViewById(R.id.TextPassword);
+        ImageView togglePassword = findViewById(R.id.ivTogglePassword);
+
 
         // Configurar botón para regresar al MainActivity
         CardView btnBackToMain = findViewById(R.id.btnBackToMain);
@@ -81,6 +86,23 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, RecoverPasswordActivity.class);
             startActivity(intent);
         });
+
+        // mostrar/ocultar contraseña
+        togglePassword.setOnClickListener(v -> {
+            if (passwordEditText.getInputType() ==
+                    (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                // Mostrar contraseña
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                //togglePassword.setImageResource(R.drawable.ic_eye_open); // icono ojo abierto
+            } else {
+                // Ocultar contraseña
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                //togglePassword.setImageResource(R.drawable.ic_eye_closed); // icono ojo cerrado
+            }
+            // Mover cursor al final
+            passwordEditText.setSelection(passwordEditText.getText().length());
+        });
+
     }
 
     /**
