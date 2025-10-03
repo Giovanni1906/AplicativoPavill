@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -48,7 +49,7 @@
         <service
             android:name="radiotaxipavill.radiotaxipavillapp.services.PedidoStatusService"
             android:enabled="true"
-            android:foregroundServiceType="location"
+            android:foregroundServiceType="dataSync|location"
             android:exported="false"
             />
 

@@ -3,9 +3,11 @@ package radiotaxipavill.radiotaxipavillapp.services;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -22,6 +24,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import radiotaxipavill.radiotaxipavillapp.R;
 import radiotaxipavill.radiotaxipavillapp.components.TemporaryData;
 import radiotaxipavill.radiotaxipavillapp.controller.PedidoStatusController;
+import radiotaxipavill.radiotaxipavillapp.view.MainActivity;
 
 public class PedidoStatusService extends Service {
 
@@ -39,9 +42,11 @@ public class PedidoStatusService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(1, createNotification());
-        }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(1, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC | ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+            } else {
+                startForeground(1, createNotification());
+            }
 
         handler = new Handler();
         isServiceStopped = false; // Asegúrate de reiniciar la bandera al crear el servicio
@@ -69,12 +74,37 @@ public class PedidoStatusService extends Service {
             }
         }
 
+        // 👉 Launch intent del paquete: trae la app al frente sin resetear el estado
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launchIntent == null) {
+            // Fallback por si acaso (no debería pasar)
+            launchIntent = new Intent(this, MainActivity.class);
+        }
+        // Aseguramos que se comporte como desde el launcher
+        launchIntent.setAction(Intent.ACTION_MAIN);
+        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        // Flags clave:
+        // - NEW_TASK: necesario desde servicio
+        // - RESET_TASK_IF_NEEDED: si la tarea existe, la trae al frente con su estado;
+        //   si no, la crea respetando el stack declarado en el manifest.
+        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+
+        PendingIntent pi = PendingIntent.getActivity(
+                this,
+                0,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         // Crear la notificación
         return new NotificationCompat.Builder(this, channelId)
                 .setContentTitle("Pavill")
                 .setContentText("Tienes una carrera en proceso...")
                 .setSmallIcon(R.drawable.icono_pavill) // Cambia esto por un ícono válido en tu app
                 .setOngoing(true) // La notificación no se puede deslizar para cerrar
+                .setContentIntent(pi)
                 .build();
     }
 
