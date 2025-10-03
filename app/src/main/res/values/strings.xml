@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pavill</string>
+    <string name="btn_register">Crear Cuenta</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="welcome_message">Bienvenido</string>
+    <string name="login_button_text">Iniciar sesión</string>
+
+    <!--    Administracion.pavill-->
+    <string name="map_api_key">AIzaSyCPU_P1X90dr5d5jTQKUuFT_yA9mwsuIDA</string>
+
+    <string name="url_services">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnCliente.php</string>
+    <string name="url_services_conductor">http://rtpavillv2.ddns.net:8014/apptaxipavillv4/webservice/JnConductor.php</string>
+    <string name="url_services_pedido">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnPedido.php</string>
+    <string name="url_services_ubicacion">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservicem/JnConductorUbicacion.php</string>
+    <string name="url_services_mapa">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnMapa.php</string>
+    <string name="url_services_fav">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnClienteDestinoFavorito.php</string>
+    <string name="url_services_publicidad">http://rtpavillv2.ddns.net:8014/apptaxipavillv3/webservice/JnPublicidad.php</string>
+    <string name="url_delete_acount">https://pavill-dev.github.io/pavill-delete-account/</string>
+    <!--    versión de la aplicación-->
+    <string name="app_version_number">v.2.05.0</string>
+
+</resources>
